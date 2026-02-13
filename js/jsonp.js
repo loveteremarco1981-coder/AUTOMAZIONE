@@ -1,3 +1,6 @@
+// in js/jsonp.js
+console.log('[LOAD] jsonp.js');
+
 function jsonp(url, callbackParam='callback'){
   return new Promise((resolve, reject)=>{
     const cb='cb_'+Math.random().toString(36).slice(2);
