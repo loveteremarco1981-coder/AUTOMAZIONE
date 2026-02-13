@@ -1,3 +1,6 @@
+// in js/app.js
+console.log('[LOAD] app.js');
+
 if (!window.APP_CONFIG || !window.APP_CONFIG.endpoint) {
   console.error('[CONFIG] APP_CONFIG.endpoint mancante. Controlla config.js e il tag <script src="config.js">.');
 }
