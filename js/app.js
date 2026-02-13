@@ -12,11 +12,13 @@ function renderPeople(people){
   const ul = document.getElementById('people-list'); if(!ul) return;
   ul.innerHTML = '';
   (people||[]).forEach(p=>{
+    // tollerante: onlineSmart || onlineRaw || online === true/IN
     const online =
       (p.onlineSmart===true) ||
       (p.onlineRaw===true)   ||
       (p.online===true)      ||
       (String(p.online||'').toUpperCase()==='IN');
+
     const li = document.createElement('li');
     li.className = 'person';
     li.innerHTML = `<div>${p.name}</div>
@@ -60,19 +62,22 @@ function renderMeta(m){
 async function loadModel(){
   try{
     const model = await jsonp(ENDPOINT);
+    console.log('[MODEL]', model);
     paintState(model.state);
     renderPeople(model.people);
     renderMeta(model);
   }catch(e){ console.error('Load error', e); }
 }
 
-// Comandi via JSONP (niente CORS)
+// Comandi via JSONP (no CORS)
 async function sendCmd(evt, on){
   try{
-    await jsonp(`${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${on?'true':'false'}`);
+    const url = `${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${on?'true':'false'}`;
+    const res = await jsonp(url);
+    console.log('[CMD]', evt, on, res);
     toast('Comando inviato');
     setTimeout(loadModel, 300);
-  }catch(e){ toast('Errore comando'); }
+  }catch(e){ console.error('Cmd error', e); toast('Errore comando'); }
 }
 
 // Bind
