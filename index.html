@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Casa — Controllo (no PIN)</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="state-line">
+      <h1 id="state-pill">—</h1>
+      <div class="meta"><span id="meta-time">—</span> · <span id="meta-flags">—</span></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Persone</h2>
+      <ul id="people-list" class="people"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Comandi (senza PIN)</h2>
+      <div class="grid-2">
+        <div class="tile">
+          <div class="tile-header">Vacanza</div>
+          <div class="segmented">
+            <button class="seg" data-cmd="set_vacanza" data-val="true">ON</button>
+            <button class="seg" data-cmd="set_vacanza" data-val="false">OFF</button>
+          </div>
+        </div>
+        <div class="tile">
+          <div class="tile-header">Override</div>
+          <div class="segmented">
+            <button class="seg" data-cmd="set_override" data-val="true">ON</button>
+            <button class="seg" data-cmd="set_override" data-val="false">OFF</button>
+          </div>
+        </div>
+      </div>
+      <small class="hint">Questa versione non richiede PIN: ricorda di rimuovere il controllo PIN in GAS (doPost).</small>
+    </section>
+
+    <section class="card legend">
+      <h2>Leggenda stati</h2>
+      <ul>
+        <li><span class="dot comfy-day"></span> COMFY_DAY — Casa occupata, giorno</li>
+        <li><span class="dot comfy-night"></span> COMFY_NIGHT — Casa occupata, notte</li>
+        <li><span class="dot sec-day"></span> SECURITY_DAY — Casa vuota, giorno</li>
+        <li><span class="dot sec-night"></span> SECURITY_NIGHT — Casa vuota, notte</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Automazione & orari</h2>
+      <div class="grid-3">
+        <div class="kv"><div class="k">ALBA</div><div class="v" id="alba">—</div></div>
+        <div class="kv"><div class="k">TRAMONTO</div><div class="v" id="tramonto">—</div></div>
+        <div class="kv"><div class="k">ORA ADESSO</div><div class="v" id="ora">—</div></div>
+        <div class="kv"><div class="k">NOTTE?</div><div class="v" id="notte">—</div></div>
+        <div class="kv"><div class="k">Prossimo PIANTE (ALBA)</div><div class="v" id="next-piante-alba">—</div></div>
+        <div class="kv"><div class="k">Prossimo PIANTE (post chiusura)</div><div class="v" id="next-piante-close">—</div></div>
+        <div class="kv"><div class="k">Prossimo LATE CLOSE</div><div class="v" id="next-lateclose">—</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Ultimo evento</h2>
+      <div id="last-event" class="mono">—</div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script src="js/jsonp.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
