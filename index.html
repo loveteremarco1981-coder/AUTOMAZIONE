@@ -15,18 +15,13 @@
   </header>
 
   <main class="container">
+    <!-- Persone -->
     <section class="card">
       <h2>Persone</h2>
       <ul id="people-list" class="people"></ul>
     </section>
 
-    <!-- Stato e meta -->
-    <h1 id="state-pill">—</h1>
-    <span id="meta-time">—</span>
-    <span id="meta-flags">—</span>
-    <div id="last-event">—</div>
-
-    
+    <!-- Comandi -->
     <section class="card">
       <h2>Comandi (senza PIN)</h2>
       <div class="grid-2">
@@ -47,6 +42,7 @@
       </div>
     </section>
 
+    <!-- Leggenda -->
     <section class="card">
       <h2>Leggenda stati</h2>
       <ul class="legend">
@@ -57,43 +53,32 @@
       </ul>
     </section>
 
-    
-<!-- Orari & automazioni -->
-<div id="alba">—</div>
-<div id="tramonto">—</div>
-<div id="ora">—</div>
-<div id="notte">—</div>
-<div id="next-piante-alba">—</div>
-<div id="next-piante-close">—</div>
-<div id="next-lateclose">—</div>
-
-
+    <!-- Automazione & orari -->
     <section class="card">
       <h2>Automazione & orari</h2>
       <div class="grid-3">
-        <div class="kv"><div class="k">ALBA</div><div class="v" id="alba">—</div></div>
+        <div class="kv"><div class="k">ALBA</div>   <div class="v" id="alba">—</div></div>
         <div class="kv"><div class="k">TRAMONTO</div><div class="v" id="tramonto">—</div></div>
         <div class="kv"><div class="k">ORA ADESSO</div><div class="v" id="ora">—</div></div>
-        <div class="kv"><div class="k">NOTTE?</div><div class="v" id="notte">—</div></div>
-        <div class="kv"><div class="k">Prossimo PIANTE (ALBA)</div><div class="v" id="next-piante-alba">—</div></div>
+        <div class="kv"><div class="k">NOTTE?</div> <div class="v" id="notte">—</div></div>
+        <div class="kv"><div class="k">Prossimo PIANTE (ALBA)</div>        <div class="v" id="next-piante-alba">—</div></div>
         <div class="kv"><div class="k">Prossimo PIANTE (post chiusura)</div><div class="v" id="next-piante-close">—</div></div>
-        <div class="kv"><div class="k">Prossimo LATE CLOSE</div><div class="v" id="next-lateclose">—</div></div>
+        <div class="kv"><div class="k">Prossimo LATE CLOSE</div>            <div class="v" id="next-lateclose">—</div></div>
       </div>
     </section>
 
+    <!-- Ultimo evento -->
     <section class="card">
       <h2>Ultimo evento</h2>
       <div id="last-event" class="mono">—</div>
     </section>
   </main>
 
- <!-- ... il resto della pagina ... -->
-
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- ORDINE GIUSTO: prima config, poi jsonp, poi app -->
-  <script src="config.js"></script>
-  <script src="js/jsonp.js"></script>
-  <script src="js/app.js"></script>
+  config.js"></script>
+  js/jsonp.js"></script>
+  js/app.js"></script>
 </body>
 </html>
