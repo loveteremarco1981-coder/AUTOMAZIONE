@@ -12,7 +12,7 @@ function renderPeople(people){
   const ul = document.getElementById('people-list'); if(!ul) return;
   ul.innerHTML = '';
   (people||[]).forEach(p=>{
-    // tollerante: onlineSmart || onlineRaw || online === true/IN
+    // IN se onlineSmart || onlineRaw || online === true/IN
     const online =
       (p.onlineSmart===true) ||
       (p.onlineRaw===true)   ||
