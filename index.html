@@ -3,23 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Automazione — (no PIN)</title>
+  <title>Automazione — (no PIN, single-file)</title>
 
-  <!-- CSS -->
-  css/style.css?v=3" />
+  <!-- CSS base (inlined per evitare problemi di path). Metti pure il tuo style.css dopo, se vuoi. -->
+  <style>
+    :root{
+      --bg:#0e1116; --card:#141821; --muted:#9aa1ad; --text:#e9eef7; --brand:#0b84ff;
+      --green:#2ec27e; --yellow:#f7c948; --blue:#89b4ff; --orange:#ff9271;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b0d12,#0e1116);color:var(--text);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    .app-header{position:sticky;top:0;background:rgba(10,12,16,.7);backdrop-filter:saturate(180%) blur(18px);
+                border-bottom:1px solid rgba(255,255,255,.06);padding:12px 16px}
+    .state-line{display:flex;align-items:center;gap:12px}
+    #state-pill{margin:0;font-size:20px}
+    .meta{color:var(--muted);font-size:12px}
+    .container{padding:16px;display:grid;gap:16px;max-width:980px;margin:0 auto}
+    .card{background:#141821;border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px;
+          box-shadow:0 6px 24px rgba(0,0,0,.35)}
+    .card h2{margin:0 0 10px 0;font-size:16px}
+    .people{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+    .person{display:flex;align-items:center;justify-content:space-between;background:#0f131b;
+            border:1px solid rgba(255,255,255,.06);padding:10px 12px;border-radius:12px}
+    .badge{padding:3px 10px;border-radius:999px;font-size:12px}
+    .badge.in{background:rgba(46,194,126,.2);color:#8be6b7}
+    .badge.out{background:rgba(255,146,113,.18);color:#ffb4a0}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .tile{background:#0f131b;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px}
+    .tile-header{font-size:13px;color:#cfd6e4;margin-bottom:8px}
+    .segmented{display:grid;grid-template-columns:1fr 1fr;background:#0b0e14;
+               border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden}
+    .seg{padding:10px 0;border:0;background:transparent;color:#dbe4f6;cursor:pointer}
+    .legend ul{margin:0;padding-left:18px;color:#c7cfdb}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:8px}
+    .comfy-day{background:var(--green)} .comfy-night{background:var(--blue)}
+    .sec-day{background:var(--yellow)} .sec-night{background:var(--orange)}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .kv{background:#0f131b;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px}
+    .k{font-size:12px;color:#b9c2d3} .v{font-weight:700}
+    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;color:#cbd5e1}
+    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);
+           min-width:220px;max-width:80vw;padding:10px 14px;border-radius:12px;
+           background:rgba(40,40,40,.95);color:#fff;display:none;z-index:9999}
+    .toast.show{display:block}
+    @media (max-width:760px){ .grid-3{grid-template-columns:1fr;} .grid-2{grid-template-columns:1fr;} }
+  </style>
+
+  <!-- Se desideri, puoi riattivare il tuo CSS esterno (facoltativo):
+  <link rel="stylesheet" href="/AUTOMAZIONE/css/style.css?v=4" />
+  -->
 </head>
 <body>
   <header class="app-header">
     <div class="state-line">
       <h1 id="state-pill">—</h1>
-      <div class="meta">
-        <span id="meta-time">—</span> · <span id="meta-flags">—</span>
-      </div>
+      <div class="meta"><span id="meta-time">—</span> · <span id="meta-flags">—</span></div>
     </div>
   </header>
 
   <main class="container">
-
     <!-- Persone -->
     <section class="card">
       <h2>Persone</h2>
@@ -79,12 +122,134 @@
     </section>
   </main>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- ORDINE GIUSTO: prima config, poi jsonp, poi app -->
-  /AUTOMAZIONE/config.js?v=3</script>
-/AUTOMAZIONE/js/jsonp.js?v=3</script>
-/AUTOMAZIONE/js/app.js?v=3</script>
+  <!-- CONFIG (inlined) -->
+  <script>
+    // Metti qui il TUO endpoint /exec
+    window.APP_CONFIG = {
+      endpoint: "https://script.google.com/macros/s/AKfycbzWadQvolbaH1hIUFHjcSXsMcH9Z9iTss1Ty-uiVVKQ-TjMOBfajv3e262tnH_1Th0A/exec"
+    };
+  </script>
+
+  <!-- JSONP helper (inlined) -->
+  <script>
+    console.log('[LOAD] jsonp (inline)');
+    function jsonp(url, callbackParam='callback'){
+      return new Promise((resolve, reject)=>{
+        const cb='cb_'+Math.random().toString(36).slice(2);
+        const sep = url.includes('?') ? '&' : '?';
+        const s=document.createElement('script');
+        s.src = `${url}${sep}${callbackParam}=${cb}`;
+        window[cb] = (data)=>{ resolve(data); s.remove(); delete window[cb]; };
+        s.onerror = ()=>{ reject(new Error('JSONP error')); s.remove(); delete window[cb]; };
+        document.head.appendChild(s);
+      });
+    }
+  </script>
+
+  <!-- APP (inlined) -->
+  <script>
+    console.log('[LOAD] app (inline)');
+
+    const ENDPOINT = (window.APP_CONFIG && window.APP_CONFIG.endpoint) || null;
+    if(!ENDPOINT){
+      console.error('[CONFIG] APP_CONFIG.endpoint mancante.');
+    }
+
+    function fmt(dt){ if(!dt) return '—'; const d=new Date(dt); if(isNaN(d)) return String(dt); return d.toLocaleString(); }
+    function fmtAgo(min){ if(min==null) return '—'; if(min<1) return 'ora'; if(min===1) return '1 min'; return min+' min'; }
+    function toast(msg){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+    function paintState(state){ const el=document.getElementById('state-pill'); if(el) el.textContent = state || '—'; }
+
+    function renderPeople(people){
+      const ul = document.getElementById('people-list'); if(!ul) return;
+      ul.innerHTML = '';
+      (people||[]).forEach(p=>{
+        const online =
+          (p.onlineSmart===true) ||
+          (p.onlineRaw===true)   ||
+          (p.online===true)      ||
+          (String(p.online||'').toUpperCase()==='IN');
+
+        const li = document.createElement('li');
+        li.className = 'person';
+        li.innerHTML = `<div>${p.name}</div>
+          <div class="badge ${online?'in':'out'}">
+            ${online?'IN':'OUT'}${p.lastLifeMinAgo!=null?' · '+fmtAgo(p.lastLifeMinAgo):''}
+          </div>`;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderMeta(m){
+      const timeEl=document.getElementById('meta-time');
+      if(timeEl) timeEl.textContent = fmt(m.meta?.nowIso||Date.now());
+
+      const flags = [];
+      if(m.vacanza) flags.push('vacanza');
+      if(m.override) flags.push('override');
+      const st=(m.state||'').toUpperCase();
+      flags.push(st.endsWith('_NIGHT') ? 'notte':'giorno');
+
+      const flagsEl=document.getElementById('meta-flags');
+      if(flagsEl) flagsEl.textContent = flags.join(' · ');
+
+      const le=document.getElementById('last-event');
+      if(le) le.textContent = m.lastEvent || '—';
+
+      const next = (m.next || m.meta?.next || {});
+      const set = (id, val)=>{ const el=document.getElementById(id); if(el) el.textContent = val; };
+
+      set('alba', fmt(m.alba));
+      set('tramonto', fmt(m.tramonto));
+      set('ora', fmt(m.meta?.nowIso||Date.now()));
+      set('notte', st.endsWith('_NIGHT')? 'NOTTE':'GIORNO');
+      set('next-piante-alba',  fmt(next.pianteAlba));
+      set('next-piante-close', fmt(next.piantePostClose));
+      set('next-lateclose',    fmt(next.lateClose));
+    }
+
+    async function loadModel(){
+      if(!ENDPOINT) return;
+      try{
+        const model = await jsonp(ENDPOINT);
+        console.log('[MODEL]', model);
+        paintState(model.state);
+        renderPeople(model.people);
+        renderMeta(model);
+      }catch(e){ console.error('Load error', e); }
+    }
+
+    async function sendCmd(evt, on){
+      if(!ENDPOINT) return;
+      try{
+        const url = `${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${on?'true':'false'}`;
+        const res = await jsonp(url);
+        console.log('[CMD]', evt, on, res);
+        toast('Comando inviato');
+        setTimeout(loadModel, 300);
+      }catch(e){ console.error('Cmd error', e); toast('Errore comando'); }
+    }
+
+    function bind(){
+      console.log('[BIND] attach handlers');
+      document.querySelectorAll('.seg').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const evt=btn.dataset.cmd;
+          const val=(btn.dataset.val==='true');
+          console.log('[CLICK]', evt, val);
+          sendCmd(evt, val);
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      bind();
+      loadModel();
+      setInterval(loadModel, 15000);
+    });
+  </script>
 </body>
 </html>
