@@ -1,18 +1,22 @@
 const ENDPOINT = window.APP_CONFIG.endpoint;
 
-// --- Helpers UI ---
+// Helpers
 function fmt(dt){ if(!dt) return '—'; const d=new Date(dt); if(isNaN(d)) return String(dt); return d.toLocaleString(); }
 function fmtAgo(min){ if(min==null) return '—'; if(min<1) return 'ora'; if(min===1) return '1 min'; return min+' min'; }
 function toast(msg){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
 
-// --- Render ---
+// Render
 function paintState(state){ const el=document.getElementById('state-pill'); if(el) el.textContent = state || '—'; }
 
 function renderPeople(people){
   const ul = document.getElementById('people-list'); if(!ul) return;
   ul.innerHTML = '';
   (people||[]).forEach(p=>{
-    const online = (p.onlineSmart===true) || (p.onlineRaw===true);
+    const online =
+      (p.onlineSmart===true) ||
+      (p.onlineRaw===true)   ||
+      (p.online===true)      ||
+      (String(p.online||'').toUpperCase()==='IN');
     const li = document.createElement('li');
     li.className = 'person';
     li.innerHTML = `<div>${p.name}</div>
@@ -39,29 +43,20 @@ function renderMeta(m){
   const le=document.getElementById('last-event');
   if(le) le.textContent = m.lastEvent || '—';
 
-  // Orari
-  const map = {
-    alba: 'alba',
-    tramonto: 'tramonto',
-    ora: 'ora',
-    notte: 'notte',
-    nextAlba: 'next-piante-alba',
-    nextClose: 'next-piante-close',
-    nextLate: 'next-lateclose'
-  };
+  // Orari & prossimi
   const next = (m.next || m.meta?.next || {});
-  const byId = (id, val)=>{ const el=document.getElementById(id); if(el) el.textContent = val; };
+  const set = (id, val)=>{ const el=document.getElementById(id); if(el) el.textContent = val; };
 
-  byId(map.alba, fmt(m.alba));
-  byId(map.tramonto, fmt(m.tramonto));
-  byId(map.ora, fmt(m.meta?.nowIso||Date.now()));
-  byId(map.notte, st.endsWith('_NIGHT') ? 'NOTTE':'GIORNO');
-  byId(map.nextAlba, fmt(next.pianteAlba));
-  byId(map.nextClose, fmt(next.piantePostClose));
-  byId(map.nextLate, fmt(next.lateClose));
+  set('alba', fmt(m.alba));
+  set('tramonto', fmt(m.tramonto));
+  set('ora', fmt(m.meta?.nowIso||Date.now()));
+  set('notte', st.endsWith('_NIGHT')? 'NOTTE':'GIORNO');
+  set('next-piante-alba',  fmt(next.pianteAlba));
+  set('next-piante-close', fmt(next.piantePostClose));
+  set('next-lateclose',    fmt(next.lateClose));
 }
 
-// --- Load model ---
+// Load
 async function loadModel(){
   try{
     const model = await jsonp(ENDPOINT);
@@ -71,7 +66,7 @@ async function loadModel(){
   }catch(e){ console.error('Load error', e); }
 }
 
-// --- Comandi via JSONP (no CORS) ---
+// Comandi via JSONP (niente CORS)
 async function sendCmd(evt, on){
   try{
     await jsonp(`${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${on?'true':'false'}`);
@@ -80,7 +75,7 @@ async function sendCmd(evt, on){
   }catch(e){ toast('Errore comando'); }
 }
 
-// --- Bind UI ---
+// Bind
 function bind(){
   document.querySelectorAll('.seg').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -91,4 +86,8 @@ function bind(){
   });
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{ bind(); loadModel(); setInterval(loadModel, 15000); });
+document.addEventListener('DOMContentLoaded', ()=>{
+  bind();
+  loadModel();
+  setInterval(loadModel, 15000);
+});
