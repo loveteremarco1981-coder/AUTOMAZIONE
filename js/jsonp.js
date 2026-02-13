@@ -1,4 +1,3 @@
-// in js/jsonp.js
 console.log('[LOAD] jsonp.js');
 
 function jsonp(url, callbackParam='callback'){
