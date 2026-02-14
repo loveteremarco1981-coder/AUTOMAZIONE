@@ -3,64 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Automazione Casa — HomeKit Dark</title>
-  css/style.css?v=4" />
+  <title>Automazione Casa — HomeKit</title>
+
+  <!-- HomeKit Dark CSS verrà fornito nello STEP 3 -->
+  css/style.css?v=10" />
 </head>
 <body>
-  <!-- HEADER – Stato Casa -->
+
+  <!-- HEADER -->
   <header class="hk-header">
-    <div class="hk-header-inner">
-      <div class="hk-header-state">
-        <h1 id="state-pill">—</h1>
-        <div class="hk-sub">
-          <span id="meta-time">—</span> · <span id="meta-flags">—</span>
-        </div>
+    <div class="hk-header-inner fade-in">
+      <h1 id="state-pill" class="hk-state-main">—</h1>
+      <div class="hk-header-meta">
+        <span id="meta-time">—</span> · <span id="meta-flags">—</span>
       </div>
     </div>
   </header>
 
+  <!-- CONTAINER -->
   <main class="hk-container">
 
-    <!-- CARD 1: STATO CASA -->
-    <section class="hk-card hk-statecard">
+    <!-- ====================== CARD 1 – STATO CASA ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Stato Casa</div>
-      <div class="hk-state-grid">
-        <div class="hk-state-item">
+
+      <div class="hk-grid">
+        <div class="hk-item">
           <div class="hk-label">Modalità</div>
           <div class="hk-value" id="state-pill-dup">—</div>
         </div>
-        <div class="hk-state-item">
+
+        <div class="hk-item">
           <div class="hk-label">Ultimo evento</div>
           <div class="hk-value" id="last-event">—</div>
         </div>
-        <div class="hk-state-item">
+
+        <div class="hk-item">
           <div class="hk-label">Giorno/Notte</div>
           <div class="hk-value" id="notte">—</div>
         </div>
       </div>
     </section>
 
-    <!-- CARD 2: PERSONE -->
-    <section class="hk-card">
+    <!-- ====================== CARD 2 – PERSONE ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Persone</div>
       <ul id="people-list" class="hk-people"></ul>
     </section>
 
-    <!-- CARD 3: COMANDI CASA -->
-    <section class="hk-card">
+    <!-- ====================== CARD 3 – COMANDI CASA ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Comandi Casa</div>
-      <div class="hk-buttons">
-        <div class="hk-btnblock">
-          <div class="hk-btnlabel">Vacanza</div>
-          <div class="hk-btndual">
+
+      <div class="hk-grid-btn">
+        <!-- VACANZA -->
+        <div class="hk-btn-group">
+          <div class="hk-btn-title">Vacanza</div>
+          <div class="hk-btn-dual">
             <button class="hk-btn" data-cmd="set_vacanza" data-val="true">ON</button>
             <button class="hk-btn" data-cmd="set_vacanza" data-val="false">OFF</button>
           </div>
         </div>
 
-        <div class="hk-btnblock">
-          <div class="hk-btnlabel">Override</div>
-          <div class="hk-btndual">
+        <!-- OVERRIDE -->
+        <div class="hk-btn-group">
+          <div class="hk-btn-title">Override</div>
+          <div class="hk-btn-dual">
             <button class="hk-btn" data-cmd="set_override" data-val="true">ON</button>
             <button class="hk-btn" data-cmd="set_override" data-val="false">OFF</button>
           </div>
@@ -68,49 +76,55 @@
       </div>
     </section>
 
-    <!-- CARD 4: TAPPARELLE -->
-    <section class="hk-card">
+    <!-- ====================== CARD 4 – TAPPARELLE ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Tapparelle</div>
-      <div class="hk-buttons">
-        <button class="hk-btn hk-big" data-cmd="alza_tutto" data-val="true">⬆️ Alza tutto</button>
-        <button class="hk-btn hk-big" data-cmd="abbassa_tutto" data-val="true">⬇️ Abbassa tutto</button>
+      <div class="hk-grid-btn">
+        <button class="hk-btn hk-btn-big" data-cmd="alza_tutto" data-val="true">⬆️ Alza tutto</button>
+        <button class="hk-btn hk-btn-big" data-cmd="abbassa_tutto" data-val="true">⬇️ Abbassa tutto</button>
       </div>
     </section>
 
-    <!-- CARD 5: PIANTE -->
-    <section class="hk-card">
+    <!-- ====================== CARD 5 – PIANTE ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Piante</div>
-      <div class="hk-buttons">
-        <button class="hk-btn hk-big" data-cmd="piante" data-val="true">🌿 Avvia PIANTE</button>
+
+      <div class="hk-grid-btn">
+        <button class="hk-btn hk-btn-big" data-cmd="piante" data-val="true">🌿 Avvia Piante</button>
       </div>
-      <div class="hk-state-grid">
-        <div class="hk-state-item">
-          <div class="hk-label">Prossimo</div>
+
+      <div class="hk-grid">
+        <div class="hk-item">
+          <div class="hk-label">Prossimo ALBA</div>
           <div class="hk-value" id="next-piante-alba">—</div>
         </div>
-        <div class="hk-state-item">
-          <div class="hk-label">Dopo chiusura</div>
+        <div class="hk-item">
+          <div class="hk-label">Post chiusura</div>
           <div class="hk-value" id="next-piante-close">—</div>
         </div>
       </div>
     </section>
 
-    <!-- CARD 6: ORARI -->
-    <section class="hk-card">
+    <!-- ====================== CARD 6 – ORARI ====================== -->
+    <section class="hk-card slide-up">
       <div class="hk-card-title">Orari</div>
-      <div class="hk-state-grid">
-        <div class="hk-state-item"><div class="hk-label">Alba</div> <div class="hk-value" id="alba">—</div></div>
-        <div class="hk-state-item"><div class="hk-label">Tramonto</div><div class="hk-value" id="tramonto">—</div></div>
-        <div class="hk-state-item"><div class="hk-label">Ora</div> <div class="hk-value" id="ora">—</div></div>
+
+      <div class="hk-grid">
+        <div class="hk-item"><div class="hk-label">Alba</div> <div class="hk-value" id="alba">—</div></div>
+        <div class="hk-item"><div class="hk-label">Tramonto</div><div class="hk-value" id="tramonto">—</div></div>
+        <div class="hk-item"><div class="hk-label">Ora</div> <div class="hk-value" id="ora">—</div></div>
       </div>
     </section>
 
   </main>
 
+  <!-- Toast -->
   <div id="toast" class="hk-toast"></div>
 
-  config.js?v=4"></script>
-  js/jsonp.js?v=4"></script>
-  js/app.js?v=4"></script>
+  <!-- SCRIPT -->
+  config.js?v=10"></script>
+  js/jsonp.js?v=10"></script>
+  js/app.js?v=10"></script>
+
 </body>
 </html>
