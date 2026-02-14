@@ -1,104 +1,45 @@
 /*******************************************************
- * HOMEKIT APP – SEZIONE A (Utility + Animazioni)
+ * HOMEKIT APP – VERSIONE FINALE CORRETTA
  *******************************************************/
 
-console.log("[LOAD] app.js HomeKit Dark");
+console.log("[LOAD] app.js – CLEAN VERSION");
 
-// Endpoint
+// ENDPOINT
 const ENDPOINT = window.APP_CONFIG.endpoint;
 
-// Delay promisificato
+/*******************************************************
+ * Utility
+ *******************************************************/
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// Toast stile iOS
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1500);
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1500);
 }
 
-// Formattazione data
 function fmt(d){
   if(!d) return "—";
   const dt = new Date(d);
   if(isNaN(dt)) return d;
   return dt.toLocaleString();
 }
-
-// “x min fa”
-function fmtAgo(min){
-  if(min == null) return "—";
-  if(min < 1) return "ora";
-  if(min === 1) return "1 min";
-  return min+" min";
-}
-
-// Animazione inserimento card (utilizzata nelle render)
-function animateCard(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.classList.remove("fade-in");
-  void el.offsetWidth;
-  el.classList.add("fade-in");
-}
-/*******************************************************
- * HOMEKIT APP – SEZIONE A (Utility + Animazioni)
- *******************************************************/
-
-console.log("[LOAD] app.js HomeKit Dark");
-
-// Endpoint
-const ENDPOINT = window.APP_CONFIG.endpoint;
-
-// Delay promisificato
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-// Toast stile iOS
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1500);
-}
-
-// Formattazione data
-function fmt(d){
-  if(!d) return "—";
-  const dt = new Date(d);
-  if(isNaN(dt)) return d;
-  return dt.toLocaleString();
-}
-
-// “x min fa”
-function fmtAgo(min){
-  if(min == null) return "—";
-  if(min < 1) return "ora";
-  if(min === 1) return "1 min";
-  return min+" min";
-}
-
-// Animazione inserimento card (utilizzata nelle render)
-function animateCard(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.classList.remove("fade-in");
-  void el.offsetWidth;
-  el.classList.add("fade-in");
+function fmtAgo(m){
+  if(m==null) return "—";
+  if(m<1) return "ora";
+  if(m===1) return "1 min";
+  return m+" min";
 }
 
 /*******************************************************
- * HOMEKIT APP — SEZIONE C
- * Comandi: Vacanza, Override, Tapparelle, Piante (+Retry)
+ * JSONP
  *******************************************************/
-
-/*────────────────────────────────────────────
-  JSONP CALL GENERICA
-────────────────────────────────────────────*/
 async function sendJSONP(url){
   return new Promise((resolve, reject)=>{
-    const cb = "cb_" + Math.random().toString(36).slice(2);
-    const s  = document.createElement("script");
+    const cb = "cb_"+Math.random().toString(36).slice(2);
+    const sep = url.includes("?") ? "&" : "?";
+    const s = document.createElement("script");
 
     window[cb] = (data)=>{
       resolve(data);
@@ -107,188 +48,169 @@ async function sendJSONP(url){
     };
 
     s.onerror = ()=>{
-      reject(new Error("JSONP error"));
+      reject(new Error("JSONP ERROR"));
       delete window[cb];
       s.remove();
     };
 
-    const sep = url.includes("?") ? "&" : "?";
     s.src = url + sep + "callback=" + cb;
     document.head.appendChild(s);
   });
 }
 
-/*────────────────────────────────────────────
-  COMANDO PIANTE con Retry (3 tentativi)
-────────────────────────────────────────────*/
+/*******************************************************
+ * RENDER – stato, persone, orari, eventi
+ *******************************************************/
+function renderState(model){
+  const st = model.state || "—";
+
+  document.getElementById("state-pill").textContent = st;
+  document.getElementById("state-pill-dup").textContent = st;
+
+  const notte = st.toUpperCase().includes("NIGHT");
+  document.getElementById("notte").textContent = notte ? "NOTTE" : "GIORNO";
+
+  const flags = [];
+  if(model.vacanza) flags.push("vacanza");
+  if(model.override) flags.push("override");
+  flags.push(notte ? "notte" : "giorno");
+  document.getElementById("meta-flags").textContent = flags.join(" · ");
+
+  document.getElementById("meta-time").textContent = fmt(model.meta.nowIso);
+  document.getElementById("last-event").textContent = model.lastEvent || "—";
+}
+
+function renderPeople(list){
+  const box = document.getElementById("people-list");
+  box.innerHTML = "";
+  (list||[]).forEach(p=>{
+    const online = p.onlineSmart || p.onlineRaw;
+    const li = document.createElement("li");
+    li.className = "person";
+
+    li.innerHTML = `
+      <div>${p.name}</div>
+      <div class="badge ${online?'in':'out'}">
+        ${online?'IN':'OUT'}${p.lastLifeMinAgo!=null?' · '+fmtAgo(p.lastLifeMinAgo):''}
+      </div>
+    `;
+
+    box.appendChild(li);
+  });
+}
+
+function renderTime(m){
+  document.getElementById("alba").textContent = fmt(m.alba);
+  document.getElementById("tramonto").textContent = fmt(m.tramonto);
+  document.getElementById("ora").textContent = fmt(m.meta.nowIso);
+}
+
+function renderNext(m){
+  const n = m.next || {};
+  document.getElementById("next-piante-alba").textContent = fmt(n.pianteAlba);
+  document.getElementById("next-piante-close").textContent = fmt(n.piantePostClose);
+}
+
+function renderAll(model){
+  renderState(model);
+  renderPeople(model.people);
+  renderTime(model);
+  renderNext(model);
+}
+
+/*******************************************************
+ * Tema dinamico giorno/notte
+ *******************************************************/
+function applyTheme(model){
+  const st = model.state || "";
+  const notte = st.toUpperCase().includes("NIGHT");
+
+  document.body.classList.remove("hk-night","hk-day");
+  document.body.classList.add(notte ? "hk-night" : "hk-day");
+}
+
+/*******************************************************
+ * Flash aggiornamento card
+ *******************************************************/
+function flashUpdated(){
+  document.querySelectorAll(".hk-card").forEach(card=>{
+    card.classList.remove("update-flash");
+    void card.offsetWidth;
+    card.classList.add("update-flash");
+  });
+}
+
+/*******************************************************
+ * Loading shimmer
+ *******************************************************/
+function showLoading(){
+  document.querySelectorAll(".hk-value, .person, .badge").forEach(el=>{
+    el.classList.add("hk-shimmer");
+  });
+}
+function hideLoading(){
+  document.querySelectorAll(".hk-shimmer").forEach(el=>{
+    el.classList.remove("hk-shimmer");
+  });
+}
+
+/*******************************************************
+ * Comandi
+ *******************************************************/
 async function sendPianteRetry(){
   for(let i=1;i<=3;i++){
     try{
       await sendJSONP(`${ENDPOINT}?admin=1&event=piante&value=true`);
       toast("🌿 Piante avviate");
       return;
-    }catch(err){
-      console.warn("Retry PIANTE:", i, err);
-      await delay(2000);
+    }catch(e){
+      await delay(1500);
     }
   }
   toast("Errore PIANTE");
 }
 
-/*────────────────────────────────────────────
-  COMANDO GENERICO
-────────────────────────────────────────────*/
-async function sendCmd(evt, val){
-  // Caso speciale PIANTE con retry automatico
-  if(evt === "piante"){
-    return sendPianteRetry();
-  }
-
-  const url =
-    `${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${val?'true':'false'}`;
+async function sendCmd(evt,val){
+  if(evt==="piante") return sendPianteRetry();
 
   try{
-    await sendJSONP(url);
-    animateCommandButton(evt);
+    await sendJSONP(`${ENDPOINT}?admin=1&event=${evt}&value=${val?'true':'false'}`);
     toast("OK");
-
-    // ricarico modello con leggero delay
-    setTimeout(loadModel, 250);
-
-  }catch(err){
-    console.error("Cmd error:", err);
+    setTimeout(loadModel,300);
+  }catch(e){
     toast("Errore");
   }
 }
 
-/*────────────────────────────────────────────
-  ANIMAZIONE PULSANTE STILE HOMEKIT
-────────────────────────────────────────────*/
-function animateCommandButton(evt){
-  const btn = document.querySelector(`[data-cmd="${evt}"]`);
-  if(!btn) return;
-
-  btn.classList.remove("hk-pulse");
-  void btn.offsetWidth;
-  btn.classList.add("hk-pulse");
-}
-
 /*******************************************************
- * HOMEKIT APP — SEZIONE D
- * Loader, Bind interattivo, Auto-refresh
+ * Loader + Bind
  *******************************************************/
-
-/*────────────────────────────────────────────
-  CARICA MODELLO (JSONP)
-────────────────────────────────────────────*/
-  async function loadModel(){
+async function loadModel(){
   try{
-    showLoading();               // <--- AGGIUNGILA QUI
+    showLoading();
     const model = await sendJSONP(ENDPOINT);
-
     renderAll(model);
-
-    applyTheme(model);           // <--- AGGIUNGILA QUI
-    flashUpdatedCards(model);    // <--- AGGIUNGILA QUI
-
-  }catch(err){
+    applyTheme(model);
+    flashUpdated();
+  }catch(e){
     toast("Errore rete");
   }finally{
-    hideLoading();               // <--- AGGIUNGILA QUI
+    hideLoading();
   }
 }
 
-/*────────────────────────────────────────────
-  BIND EVENTI (tutti i pulsanti HomeKit)
-────────────────────────────────────────────*/
 function bindButtons(){
-  // tutti i pulsanti con data-cmd
-  document.querySelectorAll("[data-cmd]").forEach(btn => {
-    btn.addEventListener("click", ()=>{
+  document.querySelectorAll("[data-cmd]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
       const cmd = btn.dataset.cmd;
-      const val = (btn.dataset.val === "true");
-
-      animatePress(btn);
-      sendCmd(cmd, val);
+      const val = btn.dataset.val==="true";
+      sendCmd(cmd,val);
     });
   });
 }
 
-/*────────────────────────────────────────────
-  Animazione del pulsante stile iOS “press”
-────────────────────────────────────────────*/
-function animatePress(btn){
-  btn.classList.remove("hk-press");
-  void btn.offsetWidth; // forza reflow
-  btn.classList.add("hk-press");
-}
-
-/*────────────────────────────────────────────
-  AVVIO APP
-────────────────────────────────────────────*/
-document.addEventListener("DOMContentLoaded", ()=>{
-  
-  // Binding
+document.addEventListener("DOMContentLoaded",()=>{
   bindButtons();
-
-  // Primo caricamento immediato
   loadModel();
-
-  // Refresh automatico ogni 10s
-  setInterval(loadModel, 10000);
-  
+  setInterval(loadModel,10000);
 });
-
-
-.badge {
-  transition: background .25s, transform .25s;
-}
-.badge.in {
-  animation: badgeIn .35s ease-out;
-}
-.badge.out {
-  animation: badgeOut .35s ease-out;
-}
-
-@keyframes badgeIn {
-  from { transform:scale(.8); opacity:.4; }
-  to   { transform:scale(1); opacity:1; }
-}
-@keyframes badgeOut {
-  from { transform:scale(1.2); opacity:.5; }
-  to   { transform:scale(1); opacity:1; }
-}
-
-/*******************************************************
- * HOMEKIT APP — SEZIONE E
- * Tema dinamico giorno/notte
- *******************************************************/
-function applyTheme(model){
-  const st = model.state || "";
-  const isNight = st.toUpperCase().includes("NIGHT");
-
-  const body = document.body;
-  body.classList.remove("hk-night","hk-day");
-
-  if(isNight){
-    body.classList.add("hk-night");
-  } else {
-    body.classList.add("hk-day");
-  }
-}
-
-/*******************************************************
- * HOMEKIT APP — SEZIONE F
- * Evidenzia le card che cambiano (flash blu)
- *******************************************************/
-function flashUpdatedCards(model){
-  // card principali
-  const cards = document.querySelectorAll(".hk-card");
-
-  cards.forEach(card=>{
-    card.classList.remove("update-flash");
-    void card.offsetWidth; // forza reflow
-    card.classList.add("update-flash");
-  });
-}
-
