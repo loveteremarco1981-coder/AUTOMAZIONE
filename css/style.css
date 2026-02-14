@@ -254,3 +254,179 @@ body{
   .hk-grid{ grid-template-columns:1fr; }
   .hk-btn-big{ font-size:16px; }
 }
+
+/* Pulsante press stile iOS */
+.hk-press {
+  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
+}
+
+@keyframes hkPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.94); background:#2a3143; }
+  100% { transform: scale(1); }
+}
+
+/* Effetto lampo/bloom HomeKit */
+.hk-pulse {
+  position: relative;
+}
+.hk-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.16);
+  animation: hkPulseFx .45s ease-out;
+}
+@keyframes hkPulseFx {
+  from { opacity: .65; transform: scale(.95); }
+  to   { opacity: 0;   transform: scale(1.18); }
+}
+``
+/* Pulsante press stile iOS */
+.hk-press {
+  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
+}
+
+@keyframes hkPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.94); background:#2a3143; }
+  100% { transform: scale(1); }
+}
+
+/* Effetto lampo/bloom HomeKit */
+.hk-pulse {
+  position: relative;
+}
+.hk-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.16);
+  animation: hkPulseFx .45s ease-out;
+}
+@keyframes hkPulseFx {
+  from { opacity: .65; transform: scale(.95); }
+  to   { opacity: 0;   transform: scale(1.18); }
+}
+``
+/* Pulsante press stile iOS */
+.hk-press {
+  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
+}
+
+@keyframes hkPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.94); background:#2a3143; }
+  100% { transform: scale(1); }
+}
+
+/* Effetto lampo/bloom HomeKit */
+.hk-pulse {
+  position: relative;
+}
+.hk-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.16);
+  animation: hkPulseFx .45s ease-out;
+}
+@keyframes hkPulseFx {
+  from { opacity: .65; transform: scale(.95); }
+  to   { opacity: 0;   transform: scale(1.18); }
+}
+``
+
+/* Ombra Apple Home */
+.hk-card {
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.30),
+    0 4px 10px rgba(0,0,0,.22),
+    0 0 2px rgba(255,255,255,.07) inset;
+}
+
+/* Highlight aggiornamento */
+.hk-card.update-flash {
+  animation: flashUpdate .7s ease-out;
+}
+
+@keyframes flashUpdate {
+  0%   { box-shadow:0 0 0 rgba(0,150,255,.0); }
+  40%  { box-shadow:0 0 28px rgba(0,150,255,.45); }
+  100% { box-shadow:var(--shadow); }
+}
+
+/* Icone tapparelle animate */
+.hk-blind {
+  display:inline-block;
+  width:22px;
+  height:22px;
+  border-radius:6px;
+  background:linear-gradient(to bottom,#4f5b74,#222733);
+  position:relative;
+  overflow:hidden;
+}
+.hk-blind::after {
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  height:60%;
+  background:rgba(255,255,255,.17);
+  animation:blindMove 1.2s ease infinite;
+}
+
+@keyframes blindMove {
+  0%   { top:-10%; }
+  100% { top:100%; }
+}
+
+/* Icone tapparelle animate */
+.hk-blind {
+  display:inline-block;
+  width:22px;
+  height:22px;
+  border-radius:6px;
+  background:linear-gradient(to bottom,#4f5b74,#222733);
+  position:relative;
+  overflow:hidden;
+}
+.hk-blind::after {
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  height:60%;
+  background:rgba(255,255,255,.17);
+  animation:blindMove 1.2s ease infinite;
+}
+
+@keyframes blindMove {
+  0%   { top:-10%; }
+  100% { top:100%; }
+}
+
+/* Icone tapparelle animate */
+.hk-blind {
+  display:inline-block;
+  width:22px;
+  height:22px;
+  border-radius:6px;
+  background:linear-gradient(to bottom,#4f5b74,#222733);
+  position:relative;
+  overflow:hidden;
+}
+.hk-blind::after {
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  height:60%;
+  background:rgba(255,255,255,.17);
+  animation:blindMove 1.2s ease infinite;
+}
+
+@keyframes blindMove {
+  0%   { top:-10%; }
+  100% { top:100%; }
+}
