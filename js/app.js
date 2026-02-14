@@ -1,53 +1,29 @@
 /*******************************************************
- * HOMEKIT APP – VERSIONE FINALE CORRETTA
+ * APP.JS — BLOCCO 1
+ * VARIABILI + ENDPOINT + JSONP + UTILITY
  *******************************************************/
 
-console.log("[LOAD] app.js – CLEAN VERSION");
+console.log("[LOAD] app.js — iOS Version");
 
-// ENDPOINT
+/* ENDPOINT */
 const ENDPOINT = window.APP_CONFIG.endpoint;
 
 /*******************************************************
- * Utility
- *******************************************************/
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-function toast(t){
-  const el = document.getElementById("toast");
-  el.textContent = t;
-  el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),1500);
-}
-
-function fmt(d){
-  if(!d) return "—";
-  const dt = new Date(d);
-  if(isNaN(dt)) return d;
-  return dt.toLocaleString();
-}
-function fmtAgo(m){
-  if(m==null) return "—";
-  if(m<1) return "ora";
-  if(m===1) return "1 min";
-  return m+" min";
-}
-
-/*******************************************************
- * JSONP
+ * JSONP WRAPPER
  *******************************************************/
 async function sendJSONP(url){
-  return new Promise((resolve, reject)=>{
-    const cb = "cb_"+Math.random().toString(36).slice(2);
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
     const sep = url.includes("?") ? "&" : "?";
     const s = document.createElement("script");
 
-    window[cb] = (data)=>{
+    window[cb] = (data) => {
       resolve(data);
       delete window[cb];
       s.remove();
     };
 
-    s.onerror = ()=>{
+    s.onerror = () => {
       reject(new Error("JSONP ERROR"));
       delete window[cb];
       s.remove();
@@ -59,39 +35,115 @@ async function sendJSONP(url){
 }
 
 /*******************************************************
- * RENDER – stato, persone, orari, eventi
+ * UTILITY
  *******************************************************/
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1600);
+}
+
+function fmt(d){
+  if(!d) return "—";
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleString();
+}
+
+function fmtAgo(m){
+  if(m == null) return "—";
+  if(m < 1) return "ora";
+  if(m === 1) return "1 min";
+  return m + " min";
+}
+
+/*******************************************************
+ * APP.JS — BLOCCO 2
+ * PRESS EFFECT + PULSE EFFECT + SELECTORS
+ *******************************************************/
+
+/* Effetto pressione stile iOS */
+function pressFx(el){
+  if(!el) return;
+  el.classList.remove("hk-press");
+  void el.offsetWidth;
+  el.classList.add("hk-press");
+}
+
+/* Effetto bloom/pulse HomeKit */
+function pulseFx(el){
+  if(!el) return;
+  el.classList.add("hk-pulse");
+  setTimeout(() => el.classList.remove("hk-pulse"), 450);
+}
+
+/* Shortcut per selettori */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+/*******************************************************
+ * APP.JS — BLOCCO 3
+ * RENDER STATO / EVENTI / GIORNO-NOTTE
+ *******************************************************/
+
 function renderState(model){
+
+  /* Stato principale */
   const st = model.state || "—";
+  $("#state-pill").textContent = st;
+  $("#state-pill-dup") && ($("#state-pill-dup").textContent = st);
 
-  document.getElementById("state-pill").textContent = st;
-  document.getElementById("state-pill-dup").textContent = st;
+  /* Ultimo evento */
+  $("#last-event").textContent = model.lastEvent || "—";
 
-  const notte = st.toUpperCase().includes("NIGHT");
-  document.getElementById("notte").textContent = notte ? "NOTTE" : "GIORNO";
+  /* Giorno / Notte */
+  const isNight = String(model.notte).toLowerCase() === "true" || st.toUpperCase().includes("NIGHT");
+  const dayState = isNight ? "notte" : "giorno";
+  $("#hk-daystate").textContent = dayState;
 
+  /* Flag superiori */
   const flags = [];
   if(model.vacanza) flags.push("vacanza");
   if(model.override) flags.push("override");
-  flags.push(notte ? "notte" : "giorno");
-  document.getElementById("meta-flags").textContent = flags.join(" · ");
+  flags.push(dayState);
+  $("#meta-flags") && ($("#meta-flags").textContent = flags.join(" · "));
 
-  document.getElementById("meta-time").textContent = fmt(model.meta.nowIso);
-  document.getElementById("last-event").textContent = model.lastEvent || "—";
+  /* Aggiorna tema visivo */
+  applyTheme(model);
 }
 
+function applyTheme(model){
+  const st = model.state || "";
+  const notte = st.toUpperCase().includes("NIGHT");
+  document.body.classList.remove("hk-night", "hk-day");
+  document.body.classList.add(notte ? "hk-night" : "hk-day");
+}
+
+/*******************************************************
+ * APP.JS — BLOCCO 4
+ * RENDER PERSONE (lista + badge IN/OUT)
+ *******************************************************/
+
 function renderPeople(list){
-  const box = document.getElementById("people-list");
+  const box = $("#people-list");
+  if(!box) return;
+
   box.innerHTML = "";
-  (list||[]).forEach(p=>{
+
+  (list || []).forEach(p => {
     const online = p.onlineSmart || p.onlineRaw;
+
     const li = document.createElement("li");
     li.className = "person";
 
     li.innerHTML = `
       <div>${p.name}</div>
-      <div class="badge ${online?'in':'out'}">
-        ${online?'IN':'OUT'}${p.lastLifeMinAgo!=null?' · '+fmtAgo(p.lastLifeMinAgo):''}
+      <div class="badge ${online ? 'in' : 'out'}">
+        ${online ? 'IN' : 'OUT'}
+        ${p.lastLifeMinAgo != null ? ' · ' + fmtAgo(p.lastLifeMinAgo) : ''}
       </div>
     `;
 
@@ -99,18 +151,26 @@ function renderPeople(list){
   });
 }
 
-function renderTime(m){
-  document.getElementById("alba").textContent = fmt(m.alba);
-  document.getElementById("tramonto").textContent = fmt(m.tramonto);
-  document.getElementById("ora").textContent = fmt(m.meta.nowIso);
+/*******************************************************
+ * APP.JS — BLOCCO 5
+ * RENDER ORARI + PIANTE (next events)
+ *******************************************************/
+
+function renderTime(model){
+  $("#alba").textContent = fmt(model.alba);
+  $("#tramonto").textContent = fmt(model.tramonto);
+  $("#ora").textContent = fmt(model.meta.nowIso);
 }
 
-function renderNext(m){
-  const n = m.next || {};
-  document.getElementById("next-piante-alba").textContent = fmt(n.pianteAlba);
-  document.getElementById("next-piante-close").textContent = fmt(n.piantePostClose);
+function renderNext(model){
+  const n = model.next || {};
+  $("#next-piante-alba").textContent = fmt(n.pianteAlba);
+  $("#next-piante-close").textContent = fmt(n.piantePostClose);
 }
 
+/*******************************************************
+ * RENDER COMPLETO (STATE + PEOPLE + ORARI + NEXT)
+ *******************************************************/
 function renderAll(model){
   renderState(model);
   renderPeople(model.people);
@@ -119,78 +179,127 @@ function renderAll(model){
 }
 
 /*******************************************************
- * Tema dinamico giorno/notte
+ * APP.JS — BLOCCO 6
+ * NAVIGAZIONE iOS A TAB (Casa / Comandi / Tapparelle / Piante)
  *******************************************************/
-function applyTheme(model){
-  const st = model.state || "";
-  const notte = st.toUpperCase().includes("NIGHT");
 
-  document.body.classList.remove("hk-night","hk-day");
-  document.body.classList.add(notte ? "hk-night" : "hk-day");
+function initTabs(){
+  const tabs = $$(".hk-tab");
+  const sections = {
+    home: $(".hk-main"),       // sezione principale
+    cmd: $("#section-cmd"),
+    tapp: $("#section-tapp"),
+    plant: $("#section-plant")
+  };
+
+  function showSection(target){
+    // disattiva tutte le tab
+    tabs.forEach(t => t.classList.remove("active"));
+
+    // nascondi tutte le sezioni secondarie
+    Object.keys(sections).forEach(k => {
+      if(k === "home"){
+        // la sezione home è il main
+        sections[k].style.display = (target === "home") ? "flex" : "none";
+      } else {
+        sections[k].style.display = (target === k) ? "block" : "none";
+      }
+    });
+
+    // attiva tab corrente
+    const currentTab = document.querySelector(`.hk-tab[data-target="${target}"]`);
+    if(currentTab){
+      currentTab.classList.add("active");
+      pressFx(currentTab);
+    }
+  }
+
+  // click handler
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.target;
+      showSection(target);
+    });
+  });
+
+  // sezione iniziale
+  showSection("home");
 }
 
 /*******************************************************
- * Flash aggiornamento card
+ * APP.JS — BLOCCO 7
+ * COMANDI CASA / TAPPARELLE / PIANTE
  *******************************************************/
-function flashUpdated(){
-  document.querySelectorAll(".hk-card").forEach(card=>{
-    card.classList.remove("update-flash");
-    void card.offsetWidth;
-    card.classList.add("update-flash");
-  });
-}
 
-/*******************************************************
- * Loading shimmer
- *******************************************************/
-function showLoading(){
-  document.querySelectorAll(".hk-value, .person, .badge").forEach(el=>{
-    el.classList.add("hk-shimmer");
-  });
-}
-function hideLoading(){
-  document.querySelectorAll(".hk-shimmer").forEach(el=>{
-    el.classList.remove("hk-shimmer");
-  });
-}
-
-/*******************************************************
- * Comandi
- *******************************************************/
+/* PIANTE — 3 tentativi con attesa */
 async function sendPianteRetry(){
-  for(let i=1;i<=3;i++){
+  for(let i = 1; i <= 3; i++){
     try{
       await sendJSONP(`${ENDPOINT}?admin=1&event=piante&value=true`);
-      toast("🌿 Piante avviate");
+      toast("🌱 Piante avviate");
       return;
     }catch(e){
-      await delay(1500);
+      await delay(1200);
     }
   }
   toast("Errore PIANTE");
 }
 
-async function sendCmd(evt,val){
-  if(evt==="piante") return sendPianteRetry();
+/* Gestore comandi generici */
+async function sendCmd(evt, val, el){
+  if(el) pressFx(el);
+
+  if(evt === "piante"){
+    pulseFx(el);
+    return sendPianteRetry();
+  }
 
   try{
-    await sendJSONP(`${ENDPOINT}?admin=1&event=${evt}&value=${val?'true':'false'}`);
+    await sendJSONP(`${ENDPOINT}?admin=1&event=${evt}&value=${val ? 'true' : 'false'}`);
+    pulseFx(el);
     toast("OK");
-    setTimeout(loadModel,300);
+    setTimeout(loadModel, 300);
   }catch(e){
-    toast("Errore");
+    toast("Errore rete");
   }
 }
 
+/* Bind dei pulsanti */
+function bindButtons(){
+  $$("[data-cmd]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cmd = btn.dataset.cmd;
+      const val = (btn.dataset.val === "true");
+      sendCmd(cmd, val, btn);
+    });
+  });
+}
+
 /*******************************************************
- * Loader + Bind
+ * APP.JS — BLOCCO 8
+ * LOADER + AUTOREFRESH + INIT COMPLETO
+ *******************************************************/
+
+function showLoading(){
+  $$(".hk-value, .person, .badge").forEach(el => {
+    el.classList.add("hk-shimmer");
+  });
+}
+
+function hideLoading(){
+  $$(".hk-shimmer").forEach(el => {
+    el.classList.remove("hk-shimmer");
+  });
+}
+
+/*******************************************************
+ * MODEL LOADING
  *******************************************************/
 async function loadModel(){
   try{
     showLoading();
     const model = await sendJSONP(ENDPOINT);
     renderAll(model);
-    applyTheme(model);
     flashUpdated();
   }catch(e){
     toast("Errore rete");
@@ -199,18 +308,22 @@ async function loadModel(){
   }
 }
 
-function bindButtons(){
-  document.querySelectorAll("[data-cmd]").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const cmd = btn.dataset.cmd;
-      const val = btn.dataset.val==="true";
-      sendCmd(cmd,val);
-    });
-  });
-}
+/*******************************************************
+ * INIT APP (Apple Home Style)
+ *******************************************************/
+document.addEventListener("DOMContentLoaded", () => {
 
-document.addEventListener("DOMContentLoaded",()=>{
+  /* Bind pulsanti */
   bindButtons();
+
+  /* Navigazione tab iOS */
+  initTabs();
+
+  /* Primo caricamento */
   loadModel();
-  setInterval(loadModel,10000);
+
+  /* Auto-refresh ogni 10 secondi */
+  setInterval(loadModel, 10000);
+
 });
+
