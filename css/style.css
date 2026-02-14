@@ -1,8 +1,223 @@
 /*******************************************************
- *  HOMEKIT DARK THEME — AUTOMAZIONE CASA
- *  Transizioni + Animazioni + Card stile Apple Casa
+ * HOMEKIT APP – VERSIONE FINALE CORRETTA
  *******************************************************/
 
+console.log("[LOAD] app.js – CLEAN VERSION");
+
+// ENDPOINT
+const ENDPOINT = window.APP_CONFIG.endpoint;
+
+/*******************************************************
+ * Utility
+ *******************************************************/
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1500);
+}
+
+function fmt(d){
+  if(!d) return "—";
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleString();
+}
+function fmtAgo(m){
+  if(m==null) return "—";
+  if(m<1) return "ora";
+  if(m===1) return "1 min";
+  return m+" min";
+}
+
+/*******************************************************
+ * JSONP
+ *******************************************************/
+async function sendJSONP(url){
+  return new Promise((resolve, reject)=>{
+    const cb = "cb_"+Math.random().toString(36).slice(2);
+    const sep = url.includes("?") ? "&" : "?";
+    const s = document.createElement("script");
+
+    window[cb] = (data)=>{
+      resolve(data);
+      delete window[cb];
+      s.remove();
+    };
+
+    s.onerror = ()=>{
+      reject(new Error("JSONP ERROR"));
+      delete window[cb];
+      s.remove();
+    };
+
+    s.src = url + sep + "callback=" + cb;
+    document.head.appendChild(s);
+  });
+}
+
+/*******************************************************
+ * RENDER – stato, persone, orari, eventi
+ *******************************************************/
+function renderState(model){
+  const st = model.state || "—";
+
+  document.getElementById("state-pill").textContent = st;
+  document.getElementById("state-pill-dup").textContent = st;
+
+  const notte = st.toUpperCase().includes("NIGHT");
+  document.getElementById("notte").textContent = notte ? "NOTTE" : "GIORNO";
+
+  const flags = [];
+  if(model.vacanza) flags.push("vacanza");
+  if(model.override) flags.push("override");
+  flags.push(notte ? "notte" : "giorno");
+  document.getElementById("meta-flags").textContent = flags.join(" · ");
+
+  document.getElementById("meta-time").textContent = fmt(model.meta.nowIso);
+  document.getElementById("last-event").textContent = model.lastEvent || "—";
+}
+
+function renderPeople(list){
+  const box = document.getElementById("people-list");
+  box.innerHTML = "";
+  (list||[]).forEach(p=>{
+    const online = p.onlineSmart || p.onlineRaw;
+    const li = document.createElement("li");
+    li.className = "person";
+
+    li.innerHTML = `
+      <div>${p.name}</div>
+      <div class="badge ${online?'in':'out'}">
+        ${online?'IN':'OUT'}${p.lastLifeMinAgo!=null?' · '+fmtAgo(p.lastLifeMinAgo):''}
+      </div>
+    `;
+
+    box.appendChild(li);
+  });
+}
+
+function renderTime(m){
+  document.getElementById("alba").textContent = fmt(m.alba);
+  document.getElementById("tramonto").textContent = fmt(m.tramonto);
+  document.getElementById("ora").textContent = fmt(m.meta.nowIso);
+}
+
+function renderNext(m){
+  const n = m.next || {};
+  document.getElementById("next-piante-alba").textContent = fmt(n.pianteAlba);
+  document.getElementById("next-piante-close").textContent = fmt(n.piantePostClose);
+}
+
+function renderAll(model){
+  renderState(model);
+  renderPeople(model.people);
+  renderTime(model);
+  renderNext(model);
+}
+
+/*******************************************************
+ * Tema dinamico giorno/notte
+ *******************************************************/
+function applyTheme(model){
+  const st = model.state || "";
+  const notte = st.toUpperCase().includes("NIGHT");
+
+  document.body.classList.remove("hk-night","hk-day");
+  document.body.classList.add(notte ? "hk-night" : "hk-day");
+}
+
+/*******************************************************
+ * Flash aggiornamento card
+ *******************************************************/
+function flashUpdated(){
+  document.querySelectorAll(".hk-card").forEach(card=>{
+    card.classList.remove("update-flash");
+    void card.offsetWidth;
+    card.classList.add("update-flash");
+  });
+}
+
+/*******************************************************
+ * Loading shimmer
+ *******************************************************/
+function showLoading(){
+  document.querySelectorAll(".hk-value, .person, .badge").forEach(el=>{
+    el.classList.add("hk-shimmer");
+  });
+}
+function hideLoading(){
+  document.querySelectorAll(".hk-shimmer").forEach(el=>{
+    el.classList.remove("hk-shimmer");
+  });
+}
+
+/*******************************************************
+ * Comandi
+ *******************************************************/
+async function sendPianteRetry(){
+  for(let i=1;i<=3;i++){
+    try{
+      await sendJSONP(`${ENDPOINT}?admin=1&event=piante&value=true`);
+      toast("🌿 Piante avviate");
+      return;
+    }catch(e){
+      await delay(1500);
+    }
+  }
+  toast("Errore PIANTE");
+}
+
+async function sendCmd(evt,val){
+  if(evt==="piante") return sendPianteRetry();
+
+  try{
+    await sendJSONP(`${ENDPOINT}?admin=1&event=${evt}&value=${val?'true':'false'}`);
+    toast("OK");
+    setTimeout(loadModel,300);
+  }catch(e){
+    toast("Errore");
+  }
+}
+
+/*******************************************************
+ * Loader + Bind
+ *******************************************************/
+async function loadModel(){
+  try{
+    showLoading();
+    const model = await sendJSONP(ENDPOINT);
+    renderAll(model);
+    applyTheme(model);
+    flashUpdated();
+  }catch(e){
+    toast("Errore rete");
+  }finally{
+    hideLoading();
+  }
+}
+
+function bindButtons(){
+  document.querySelectorAll("[data-cmd]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const cmd = btn.dataset.cmd;
+      const val = btn.dataset.val==="true";
+      sendCmd(cmd,val);
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  bindButtons();
+  loadModel();
+  setInterval(loadModel,10000);
+});
+
+/*******************************************************
+ *  HOMEKIT DARK THEME — BASE
+ *******************************************************/
 :root{
   --bg: #0d0f14;
   --bg2:#11141b;
@@ -21,19 +236,13 @@
   --pad:16px;
 
   --shadow:0 8px 28px rgba(0,0,0,.34);
-
-  --fade-fast: .25s;
-  --fade-slow: .45s;
 }
 
-/*******************************************************
- *  GLOBAL
- *******************************************************/
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -55,31 +264,7 @@ body{
 }
 
 /*******************************************************
- *  HEADER
- *******************************************************/
-.hk-header{
-  background:rgba(13,15,20,.85);
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(255,255,255,.07);
-  padding:20px;
-}
-.hk-header-inner{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-.hk-state-main{
-  font-size:28px;
-  font-weight:600;
-  margin:0;
-}
-.hk-header-meta{
-  font-size:13px;
-  color:var(--muted);
-}
-
-/*******************************************************
- *  LAYOUT
+ *  CARDS – HomeKit Dark
  *******************************************************/
 .hk-container{
   max-width:1000px;
@@ -89,9 +274,6 @@ body{
   gap:18px;
 }
 
-/*******************************************************
- *  CARDS
- *******************************************************/
 .hk-card{
   background:var(--card);
   padding:var(--pad);
@@ -113,13 +295,14 @@ body{
 }
 
 /*******************************************************
- *  GRID
+ *  GRID (per Stati, Orari, Piante)
  *******************************************************/
 .hk-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
   gap:14px;
 }
+
 .hk-item{
   background:var(--card2);
   padding:12px;
@@ -127,13 +310,16 @@ body{
   border:1px solid rgba(255,255,255,.07);
   transition:all .25s;
 }
+
 .hk-item:hover{
   background:#242a37;
 }
+
 .hk-label{
   font-size:12px;
   color:var(--muted);
 }
+
 .hk-value{
   font-size:15px;
   margin-top:3px;
@@ -141,7 +327,7 @@ body{
 }
 
 /*******************************************************
- *  PERSONE
+ *  PERSONE — Lista stile HomeKit
  *******************************************************/
 .hk-people{
   list-style:none;
@@ -150,6 +336,7 @@ body{
   display:grid;
   gap:10px;
 }
+
 .person{
   background:var(--card2);
   border-radius:var(--radius);
@@ -160,6 +347,7 @@ body{
   border:1px solid rgba(255,255,255,.06);
   transition:.25s;
 }
+
 .person:hover{
   background:#242a37;
 }
@@ -171,17 +359,19 @@ body{
   font-weight:600;
   transition:.25s;
 }
+
 .badge.in{
   background:rgba(39,209,124,.25);
   color:#98f7c9;
 }
+
 .badge.out{
   background:rgba(255,110,110,.22);
   color:#ffc9c9;
 }
 
 /*******************************************************
- *  BUTTONS
+ *  BUTTONS — HomeKit Style
  *******************************************************/
 .hk-grid-btn{
   display:flex;
@@ -201,12 +391,12 @@ body{
   transition:background .25s, transform .15s;
 }
 
-.hk-btn:active{
-  transform:scale(.97);
-}
-
 .hk-btn:hover{
   background:#232935;
+}
+
+.hk-btn:active{
+  transform:scale(.95);
 }
 
 .hk-btn-big{
@@ -227,220 +417,115 @@ body{
 }
 
 /*******************************************************
- *  TOAST
+ *  iOS Style Press Animation
  *******************************************************/
-.hk-toast{
-  position:fixed;
-  bottom:25px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,.78);
-  padding:12px 18px;
-  border-radius:var(--radius);
-  color:white;
-  font-weight:600;
-  display:none;
-  box-shadow:0 4px 18px rgba(0,0,0,.4);
+.hk-press {
+  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
 }
-.hk-toast.show{
-  display:block;
-  animation:fadeIn .4s ease both;
+
+@keyframes hkPress {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(.92); background:#2a3143; }
+  100% { transform: scale(1); }
 }
 
 /*******************************************************
- *  MEDIA
+ *  HomeKit Bloom Pulse Effect
  *******************************************************/
-@media(max-width:700px){
-  .hk-grid{ grid-template-columns:1fr; }
-  .hk-btn-big{ font-size:16px; }
+.hk-pulse {
+  position: relative;
 }
 
-/* Pulsante press stile iOS */
+.hk-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.15);
+  animation: hkPulseFx .45s ease-out;
+}
+
+@keyframes hkPulseFx {
+  from { opacity: .75; transform: scale(.95); }
+  to   { opacity: 0;   transform: scale(1.25); }
+}
+
+/*******************************************************
+ *  BUTTONS — HomeKit Style
+ *******************************************************/
+.hk-grid-btn{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.hk-btn{
+  background:var(--card2);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  padding:14px;
+  color:var(--text);
+  font-weight:600;
+  cursor:pointer;
+  font-size:15px;
+  transition:background .25s, transform .15s;
+}
+
+.hk-btn:hover{
+  background:#232935;
+}
+
+.hk-btn:active{
+  transform:scale(.95);
+}
+
+.hk-btn-big{
+  font-size:17px;
+  padding:16px;
+}
+
+.hk-btn-dual{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.hk-btn-title{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:4px;
+}
+
+/*******************************************************
+ *  iOS Style Press Animation
+ *******************************************************/
 .hk-press {
   animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
 }
 
 @keyframes hkPress {
   0%   { transform: scale(1); }
-  40%  { transform: scale(.94); background:#2a3143; }
+  40%  { transform: scale(.92); background:#2a3143; }
   100% { transform: scale(1); }
 }
 
-/* Effetto lampo/bloom HomeKit */
+/*******************************************************
+ *  HomeKit Bloom Pulse Effect
+ *******************************************************/
 .hk-pulse {
   position: relative;
 }
+
 .hk-pulse::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: var(--radius);
-  background: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.15);
   animation: hkPulseFx .45s ease-out;
 }
+
 @keyframes hkPulseFx {
-  from { opacity: .65; transform: scale(.95); }
-  to   { opacity: 0;   transform: scale(1.18); }
-}
-``
-/* Pulsante press stile iOS */
-.hk-press {
-  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
-}
-
-@keyframes hkPress {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(.94); background:#2a3143; }
-  100% { transform: scale(1); }
-}
-
-/* Effetto lampo/bloom HomeKit */
-.hk-pulse {
-  position: relative;
-}
-.hk-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.16);
-  animation: hkPulseFx .45s ease-out;
-}
-@keyframes hkPulseFx {
-  from { opacity: .65; transform: scale(.95); }
-  to   { opacity: 0;   transform: scale(1.18); }
-}
-``
-/* Pulsante press stile iOS */
-.hk-press {
-  animation: hkPress .18s cubic-bezier(.34,.07,.34,1.55);
-}
-
-@keyframes hkPress {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(.94); background:#2a3143; }
-  100% { transform: scale(1); }
-}
-
-/* Effetto lampo/bloom HomeKit */
-.hk-pulse {
-  position: relative;
-}
-.hk-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius);
-  background: rgba(255,255,255,.16);
-  animation: hkPulseFx .45s ease-out;
-}
-@keyframes hkPulseFx {
-  from { opacity: .65; transform: scale(.95); }
-  to   { opacity: 0;   transform: scale(1.18); }
-}
-``
-
-/* Ombra Apple Home */
-.hk-card {
-  box-shadow:
-    0 8px 20px rgba(0,0,0,.30),
-    0 4px 10px rgba(0,0,0,.22),
-    0 0 2px rgba(255,255,255,.07) inset;
-}
-
-/* Highlight aggiornamento */
-.hk-card.update-flash {
-  animation: flashUpdate .7s ease-out;
-}
-
-@keyframes flashUpdate {
-  0%   { box-shadow:0 0 0 rgba(0,150,255,.0); }
-  40%  { box-shadow:0 0 28px rgba(0,150,255,.45); }
-  100% { box-shadow:var(--shadow); }
-}
-
-/* Icone tapparelle animate */
-.hk-blind {
-  display:inline-block;
-  width:22px;
-  height:22px;
-  border-radius:6px;
-  background:linear-gradient(to bottom,#4f5b74,#222733);
-  position:relative;
-  overflow:hidden;
-}
-.hk-blind::after {
-  content:"";
-  position:absolute;
-  left:0; right:0;
-  height:60%;
-  background:rgba(255,255,255,.17);
-  animation:blindMove 1.2s ease infinite;
-}
-
-@keyframes blindMove {
-  0%   { top:-10%; }
-  100% { top:100%; }
-}
-
-/* Icone tapparelle animate */
-.hk-blind {
-  display:inline-block;
-  width:22px;
-  height:22px;
-  border-radius:6px;
-  background:linear-gradient(to bottom,#4f5b74,#222733);
-  position:relative;
-  overflow:hidden;
-}
-.hk-blind::after {
-  content:"";
-  position:absolute;
-  left:0; right:0;
-  height:60%;
-  background:rgba(255,255,255,.17);
-  animation:blindMove 1.2s ease infinite;
-}
-
-@keyframes blindMove {
-  0%   { top:-10%; }
-  100% { top:100%; }
-}
-
-/* Icone tapparelle animate */
-.hk-blind {
-  display:inline-block;
-  width:22px;
-  height:22px;
-  border-radius:6px;
-  background:linear-gradient(to bottom,#4f5b74,#222733);
-  position:relative;
-  overflow:hidden;
-}
-.hk-blind::after {
-  content:"";
-  position:absolute;
-  left:0; right:0;
-  height:60%;
-  background:rgba(255,255,255,.17);
-  animation:blindMove 1.2s ease infinite;
-}
-
-@keyframes blindMove {
-  0%   { top:-10%; }
-  100% { top:100%; }
-}
-
-/* Loading shimmer stile Apple Casa */
-.hk-shimmer {
-  position:relative;
-  background:linear-gradient(100deg,#2a2f3a 20%,#3d4452 40%,#2a2f3a 60%);
-  background-size:200% 100%;
-  animation:hkShimmer 1.4s infinite;
-  color:transparent !important;
-}
-
-@keyframes hkShimmer {
-  0%   { background-position:200% 0; }
-  100% { background-position:-200% 0; }
+  from { opacity: .75; transform: scale(.95); }
+  to   { opacity: 0;   transform: scale(1.25); }
 }
