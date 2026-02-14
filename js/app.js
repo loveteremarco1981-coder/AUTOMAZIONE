@@ -234,3 +234,57 @@ document.addEventListener("DOMContentLoaded", ()=>{
   setInterval(loadModel, 10000);
   
 });
+
+
+.badge {
+  transition: background .25s, transform .25s;
+}
+.badge.in {
+  animation: badgeIn .35s ease-out;
+}
+.badge.out {
+  animation: badgeOut .35s ease-out;
+}
+
+@keyframes badgeIn {
+  from { transform:scale(.8); opacity:.4; }
+  to   { transform:scale(1); opacity:1; }
+}
+@keyframes badgeOut {
+  from { transform:scale(1.2); opacity:.5; }
+  to   { transform:scale(1); opacity:1; }
+}
+
+/*******************************************************
+ * HOMEKIT APP — SEZIONE E
+ * Tema dinamico giorno/notte
+ *******************************************************/
+function applyTheme(model){
+  const st = model.state || "";
+  const isNight = st.toUpperCase().includes("NIGHT");
+
+  const body = document.body;
+  body.classList.remove("hk-night","hk-day");
+
+  if(isNight){
+    body.classList.add("hk-night");
+  } else {
+    body.classList.add("hk-day");
+  }
+}
+
+/*******************************************************
+ * HOMEKIT APP — SEZIONE F
+ * Evidenzia le card che cambiano (flash blu)
+ *******************************************************/
+function flashUpdatedCards(model){
+  // card principali
+  const cards = document.querySelectorAll(".hk-card");
+
+  cards.forEach(card=>{
+    card.classList.remove("update-flash");
+    void card.offsetWidth; // forza reflow
+    card.classList.add("update-flash");
+  });
+}
+
