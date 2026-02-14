@@ -1,145 +1,119 @@
-/* AUTOMA – app.js (no PIN, JSONP full)
-   - Lettura modello via JSONP (niente CORS)
-   - Comandi Vacanza/Override via GET JSONP (?admin=1&event=...&value=...)
-   - Persone IN/OUT: onlineSmart || onlineRaw || online === true/IN
-   - Giorno/Notte derivato da state (*_NIGHT)
-*/
+console.log("[LOAD] app v4 HOMEKIT");
 
-console.log('[LOAD] app.js');
+const ENDPOINT = window.APP_CONFIG.endpoint;
 
-// 1) CONFIG
-const ENDPOINT = (window.APP_CONFIG && window.APP_CONFIG.endpoint) || null;
-if (!ENDPOINT) {
-  console.error('[CONFIG] APP_CONFIG.endpoint mancante. Controlla /AUTOMAZIONE/config.js e il tag <script src="/AUTOMAZIONE/config.js"> in index.html');
+// small helpers
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+function toast(t){
+  const el = document.getElementById("toast");
+  el.textContent = t;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1500);
 }
 
-// 2) HELPERS
-function fmt(dt) {
-  if (!dt) return '—';
-  const d = new Date(dt);
-  if (isNaN(d)) return String(dt);
-  return d.toLocaleString();
+function fmt(d){
+  if(!d) return "—";
+  const dd = new Date(d);
+  if(isNaN(dd)) return d;
+  return dd.toLocaleString();
 }
-function fmtAgo(min) {
-  if (min == null) return '—';
-  if (min < 1) return 'ora';
-  if (min === 1) return '1 min';
-  return min + ' min';
-}
-function toast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1600);
+function fmtAgo(min){
+  if(min==null) return "—";
+  if(min<1) return "ora";
+  if(min==1) return "1 min";
+  return min+" min";
 }
 
-// 3) RENDER
-function paintState(state) {
-  const el = document.getElementById('state-pill');
-  if (el) el.textContent = state || '—';
+// card updates
+function paintState(s){
+  document.getElementById("state-pill").textContent = s||"—";
+  document.getElementById("state-pill-dup").textContent = s||"—";
 }
 
-function renderPeople(people) {
-  const ul = document.getElementById('people-list');
-  if (!ul) return;
-  ul.innerHTML = '';
-  (people || []).forEach(p => {
-    // IN se almeno una delle condizioni è vera
-    const online =
-      (p.onlineSmart === true) ||
-      (p.onlineRaw === true) ||
-      (p.online === true) ||
-      (String(p.online || '').toUpperCase() === 'IN');
-
-    const li = document.createElement('li');
-    li.className = 'person';
+function renderPeople(people){
+  const box = document.getElementById("people-list");
+  box.innerHTML = "";
+  (people||[]).forEach(p=>{
+    const online = p.onlineSmart || p.onlineRaw;
+    const li = document.createElement("li");
+    li.className = "person";
     li.innerHTML = `
       <div>${p.name}</div>
-      <div class="badge ${online ? 'in' : 'out'}">
-        ${online ? 'IN' : 'OUT'}${p.lastLifeMinAgo != null ? ' · ' + fmtAgo(p.lastLifeMinAgo) : ''}
+      <div class="badge ${online?"in":"out"}">
+        ${online?"IN":"OUT"}${p.lastLifeMinAgo!=null?" · "+fmtAgo(p.lastLifeMinAgo):""}
       </div>`;
-    ul.appendChild(li);
+    box.appendChild(li);
   });
 }
 
-function renderMeta(m) {
-  const timeEl = document.getElementById('meta-time');
-  if (timeEl) timeEl.textContent = fmt(m.meta?.nowIso || Date.now());
+function renderMeta(m){
+  document.getElementById("meta-time").textContent = fmt(m.meta.nowIso);
+  document.getElementById("meta-flags").textContent =
+    (m.vacanza?"vacanza ":"") +
+    (m.override?"override ":"") +
+    ((m.state||"").includes("NIGHT")?"notte":"giorno");
 
-  const flags = [];
-  if (m.vacanza) flags.push('vacanza');
-  if (m.override) flags.push('override');
-  const st = (m.state || '').toUpperCase();
-  flags.push(st.endsWith('_NIGHT') ? 'notte' : 'giorno');
+  document.getElementById("last-event").textContent = m.lastEvent||"—";
 
-  const flagsEl = document.getElementById('meta-flags');
-  if (flagsEl) flagsEl.textContent = flags.join(' · ');
+  document.getElementById("alba").textContent = fmt(m.alba);
+  document.getElementById("tramonto").textContent = fmt(m.tramonto);
+  document.getElementById("ora").textContent = fmt(m.meta.nowIso);
 
-  const le = document.getElementById('last-event');
-  if (le) le.textContent = m.lastEvent || '—';
+  const isNight = (m.state||"").includes("NIGHT");
+  document.getElementById("notte").textContent = isNight?"NOTTE":"GIORNO";
 
-  // Orari & prossimi
-  const next = (m.next || m.meta?.next || {});
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-
-  set('alba', fmt(m.alba));
-  set('tramonto', fmt(m.tramonto));
-  set('ora', fmt(m.meta?.nowIso || Date.now()));
-  set('notte', st.endsWith('_NIGHT') ? 'NOTTE' : 'GIORNO');
-  set('next-piante-alba', fmt(next.pianteAlba));
-  set('next-piante-close', fmt(next.piantePostClose));
-  set('next-lateclose', fmt(next.lateClose));
+  // next events
+  const next = m.next||{};
+  document.getElementById("next-piante-alba").textContent = fmt(next.pianteAlba);
+  document.getElementById("next-piante-close").textContent = fmt(next.piantePostClose);
 }
 
-// 4) LOAD MODEL (GET JSONP)
-async function loadModel() {
-  if (!ENDPOINT) return;
-  try {
-    const model = await jsonp(ENDPOINT); // definito in js/jsonp.js
-    console.log('[MODEL]', model);
-    paintState(model.state);
-    renderPeople(model.people);
-    renderMeta(model);
-  } catch (e) {
-    console.error('Load error', e);
+// retry for PIANTE
+async function sendPianteRetry(){
+  for(let i=1;i<=3;i++){
+    try{
+      await jsonp(ENDPOINT+"?admin=1&event=piante&value=true");
+      toast("PIANTE avviate");
+      return;
+    }catch(e){
+      console.warn("Retry piante",i);
+      await delay(2000);
+    }
+  }
+  toast("Errore PIANTE");
+}
+
+async function sendCmd(evt, val){
+  if(evt==="piante"){
+    return sendPianteRetry();
+  }
+  try{
+    await jsonp(`${ENDPOINT}?admin=1&event=${evt}&value=${val?'true':'false'}`);
+    toast("OK");
+    setTimeout(loadModel,200);
+  }catch(e){
+    toast("Errore");
   }
 }
 
-// 5) COMMANDS (GET JSONP, niente CORS)
-async function sendCmd(evt, on) {
-  if (!ENDPOINT) return;
-  try {
-    const url = `${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${on ? 'true' : 'false'}`;
-    const res = await jsonp(url);
-    console.log('[CMD]', evt, on, res);
-    toast('Comando inviato');
-    setTimeout(loadModel, 300);
-  } catch (e) {
-    console.error('Cmd error', e);
-    toast('Errore comando');
-  }
+async function loadModel(){
+  const model = await jsonp(ENDPOINT);
+  paintState(model.state);
+  renderPeople(model.people);
+  renderMeta(model);
 }
 
-// 6) BIND UI
-function bind() {
-  console.log('[BIND] attach handlers');
-  document.querySelectorAll('.seg').forEach(btn => {
-    btn.addEventListener('click', () => {
+// bind
+document.addEventListener("DOMContentLoaded",()=>{
+  document.querySelectorAll(".hk-btn, .seg").forEach(btn=>{
+    btn.addEventListener("click",()=>{
       const evt = btn.dataset.cmd;
-      const val = (btn.dataset.val === 'true');
-      console.log('[CLICK]', evt, val);
-      sendCmd(evt, val);
+      const val = btn.dataset.val==="true";
+      sendCmd(evt,val);
     });
   });
-}
 
-// 7) BOOT
-document.addEventListener('DOMContentLoaded', () => {
-  bind();
   loadModel();
-  setInterval(loadModel, 15000);
+  setInterval(loadModel,15000);
 });
