@@ -1,119 +1,236 @@
-console.log("[LOAD] app v4 HOMEKIT");
+/*******************************************************
+ * HOMEKIT APP – SEZIONE A (Utility + Animazioni)
+ *******************************************************/
 
+console.log("[LOAD] app.js HomeKit Dark");
+
+// Endpoint
 const ENDPOINT = window.APP_CONFIG.endpoint;
 
-// small helpers
+// Delay promisificato
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-function toast(t){
-  const el = document.getElementById("toast");
-  el.textContent = t;
-  el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),1500);
+// Toast stile iOS
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1500);
 }
 
+// Formattazione data
 function fmt(d){
   if(!d) return "—";
-  const dd = new Date(d);
-  if(isNaN(dd)) return d;
-  return dd.toLocaleString();
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleString();
 }
+
+// “x min fa”
 function fmtAgo(min){
-  if(min==null) return "—";
-  if(min<1) return "ora";
-  if(min==1) return "1 min";
+  if(min == null) return "—";
+  if(min < 1) return "ora";
+  if(min === 1) return "1 min";
   return min+" min";
 }
 
-// card updates
-function paintState(s){
-  document.getElementById("state-pill").textContent = s||"—";
-  document.getElementById("state-pill-dup").textContent = s||"—";
+// Animazione inserimento card (utilizzata nelle render)
+function animateCard(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove("fade-in");
+  void el.offsetWidth;
+  el.classList.add("fade-in");
+}
+/*******************************************************
+ * HOMEKIT APP – SEZIONE A (Utility + Animazioni)
+ *******************************************************/
+
+console.log("[LOAD] app.js HomeKit Dark");
+
+// Endpoint
+const ENDPOINT = window.APP_CONFIG.endpoint;
+
+// Delay promisificato
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
+// Toast stile iOS
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1500);
 }
 
-function renderPeople(people){
-  const box = document.getElementById("people-list");
-  box.innerHTML = "";
-  (people||[]).forEach(p=>{
-    const online = p.onlineSmart || p.onlineRaw;
-    const li = document.createElement("li");
-    li.className = "person";
-    li.innerHTML = `
-      <div>${p.name}</div>
-      <div class="badge ${online?"in":"out"}">
-        ${online?"IN":"OUT"}${p.lastLifeMinAgo!=null?" · "+fmtAgo(p.lastLifeMinAgo):""}
-      </div>`;
-    box.appendChild(li);
+// Formattazione data
+function fmt(d){
+  if(!d) return "—";
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleString();
+}
+
+// “x min fa”
+function fmtAgo(min){
+  if(min == null) return "—";
+  if(min < 1) return "ora";
+  if(min === 1) return "1 min";
+  return min+" min";
+}
+
+// Animazione inserimento card (utilizzata nelle render)
+function animateCard(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove("fade-in");
+  void el.offsetWidth;
+  el.classList.add("fade-in");
+}
+
+/*******************************************************
+ * HOMEKIT APP — SEZIONE C
+ * Comandi: Vacanza, Override, Tapparelle, Piante (+Retry)
+ *******************************************************/
+
+/*────────────────────────────────────────────
+  JSONP CALL GENERICA
+────────────────────────────────────────────*/
+async function sendJSONP(url){
+  return new Promise((resolve, reject)=>{
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    const s  = document.createElement("script");
+
+    window[cb] = (data)=>{
+      resolve(data);
+      delete window[cb];
+      s.remove();
+    };
+
+    s.onerror = ()=>{
+      reject(new Error("JSONP error"));
+      delete window[cb];
+      s.remove();
+    };
+
+    const sep = url.includes("?") ? "&" : "?";
+    s.src = url + sep + "callback=" + cb;
+    document.head.appendChild(s);
   });
 }
 
-function renderMeta(m){
-  document.getElementById("meta-time").textContent = fmt(m.meta.nowIso);
-  document.getElementById("meta-flags").textContent =
-    (m.vacanza?"vacanza ":"") +
-    (m.override?"override ":"") +
-    ((m.state||"").includes("NIGHT")?"notte":"giorno");
-
-  document.getElementById("last-event").textContent = m.lastEvent||"—";
-
-  document.getElementById("alba").textContent = fmt(m.alba);
-  document.getElementById("tramonto").textContent = fmt(m.tramonto);
-  document.getElementById("ora").textContent = fmt(m.meta.nowIso);
-
-  const isNight = (m.state||"").includes("NIGHT");
-  document.getElementById("notte").textContent = isNight?"NOTTE":"GIORNO";
-
-  // next events
-  const next = m.next||{};
-  document.getElementById("next-piante-alba").textContent = fmt(next.pianteAlba);
-  document.getElementById("next-piante-close").textContent = fmt(next.piantePostClose);
-}
-
-// retry for PIANTE
+/*────────────────────────────────────────────
+  COMANDO PIANTE con Retry (3 tentativi)
+────────────────────────────────────────────*/
 async function sendPianteRetry(){
   for(let i=1;i<=3;i++){
     try{
-      await jsonp(ENDPOINT+"?admin=1&event=piante&value=true");
-      toast("PIANTE avviate");
+      await sendJSONP(`${ENDPOINT}?admin=1&event=piante&value=true`);
+      toast("🌿 Piante avviate");
       return;
-    }catch(e){
-      console.warn("Retry piante",i);
+    }catch(err){
+      console.warn("Retry PIANTE:", i, err);
       await delay(2000);
     }
   }
   toast("Errore PIANTE");
 }
 
+/*────────────────────────────────────────────
+  COMANDO GENERICO
+────────────────────────────────────────────*/
 async function sendCmd(evt, val){
-  if(evt==="piante"){
+  // Caso speciale PIANTE con retry automatico
+  if(evt === "piante"){
     return sendPianteRetry();
   }
+
+  const url =
+    `${ENDPOINT}?admin=1&event=${encodeURIComponent(evt)}&value=${val?'true':'false'}`;
+
   try{
-    await jsonp(`${ENDPOINT}?admin=1&event=${evt}&value=${val?'true':'false'}`);
+    await sendJSONP(url);
+    animateCommandButton(evt);
     toast("OK");
-    setTimeout(loadModel,200);
-  }catch(e){
+
+    // ricarico modello con leggero delay
+    setTimeout(loadModel, 250);
+
+  }catch(err){
+    console.error("Cmd error:", err);
     toast("Errore");
   }
 }
 
-async function loadModel(){
-  const model = await jsonp(ENDPOINT);
-  paintState(model.state);
-  renderPeople(model.people);
-  renderMeta(model);
+/*────────────────────────────────────────────
+  ANIMAZIONE PULSANTE STILE HOMEKIT
+────────────────────────────────────────────*/
+function animateCommandButton(evt){
+  const btn = document.querySelector(`[data-cmd="${evt}"]`);
+  if(!btn) return;
+
+  btn.classList.remove("hk-pulse");
+  void btn.offsetWidth;
+  btn.classList.add("hk-pulse");
 }
 
-// bind
-document.addEventListener("DOMContentLoaded",()=>{
-  document.querySelectorAll(".hk-btn, .seg").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const evt = btn.dataset.cmd;
-      const val = btn.dataset.val==="true";
-      sendCmd(evt,val);
+/*******************************************************
+ * HOMEKIT APP — SEZIONE D
+ * Loader, Bind interattivo, Auto-refresh
+ *******************************************************/
+
+/*────────────────────────────────────────────
+  CARICA MODELLO (JSONP)
+────────────────────────────────────────────*/
+async function loadModel(){
+  try{
+    const model = await sendJSONP(ENDPOINT);
+
+    // rendering completo
+    renderAll(model);
+
+  }catch(err){
+    console.error("LoadModel error:", err);
+    toast("Errore rete");
+  }
+}
+
+/*────────────────────────────────────────────
+  BIND EVENTI (tutti i pulsanti HomeKit)
+────────────────────────────────────────────*/
+function bindButtons(){
+  // tutti i pulsanti con data-cmd
+  document.querySelectorAll("[data-cmd]").forEach(btn => {
+    btn.addEventListener("click", ()=>{
+      const cmd = btn.dataset.cmd;
+      const val = (btn.dataset.val === "true");
+
+      animatePress(btn);
+      sendCmd(cmd, val);
     });
   });
+}
 
+/*────────────────────────────────────────────
+  Animazione del pulsante stile iOS “press”
+────────────────────────────────────────────*/
+function animatePress(btn){
+  btn.classList.remove("hk-press");
+  void btn.offsetWidth; // forza reflow
+  btn.classList.add("hk-press");
+}
+
+/*────────────────────────────────────────────
+  AVVIO APP
+────────────────────────────────────────────*/
+document.addEventListener("DOMContentLoaded", ()=>{
+  
+  // Binding
+  bindButtons();
+
+  // Primo caricamento immediato
   loadModel();
-  setInterval(loadModel,15000);
+
+  // Refresh automatico ogni 10s
+  setInterval(loadModel, 10000);
+  
 });
