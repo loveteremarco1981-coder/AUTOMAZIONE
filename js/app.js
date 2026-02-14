@@ -181,16 +181,20 @@ function animateCommandButton(evt){
 /*────────────────────────────────────────────
   CARICA MODELLO (JSONP)
 ────────────────────────────────────────────*/
-async function loadModel(){
+  async function loadModel(){
   try{
+    showLoading();               // <--- AGGIUNGILA QUI
     const model = await sendJSONP(ENDPOINT);
 
-    // rendering completo
     renderAll(model);
 
+    applyTheme(model);           // <--- AGGIUNGILA QUI
+    flashUpdatedCards(model);    // <--- AGGIUNGILA QUI
+
   }catch(err){
-    console.error("LoadModel error:", err);
     toast("Errore rete");
+  }finally{
+    hideLoading();               // <--- AGGIUNGILA QUI
   }
 }
 
