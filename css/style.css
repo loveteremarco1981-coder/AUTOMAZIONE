@@ -1,67 +1,134 @@
+/*******************************************************
+ *  HOMEKIT DARK THEME — AUTOMAZIONE CASA
+ *  Transizioni + Animazioni + Card stile Apple Casa
+ *******************************************************/
+
 :root{
-  --bg:#0e1116;
-  --card:#151922;
-  --card2:#1b1f2a;
-  --text:#e9eef7;
-  --muted:#9aa1ad;
+  --bg: #0d0f14;
+  --bg2:#11141b;
+  --text:#eaf0f7;
+  --muted:#8b94a5;
+
+  --card:#181d27;
+  --card2:#1f2531;
+
   --accent:#0b84ff;
-  --ok:#2ec27e;
-  --warn:#ffb15a;
-  --err:#ff736a;
+  --good:#27d17c;
+  --warn:#ffb454;
+  --bad:#ff6e6e;
+
   --radius:18px;
-  --pad:14px;
-  --shadow:0 8px 25px rgba(0,0,0,.35);
+  --pad:16px;
+
+  --shadow:0 8px 28px rgba(0,0,0,.34);
+
+  --fade-fast: .25s;
+  --fade-slow: .45s;
 }
 
+/*******************************************************
+ *  GLOBAL
+ *******************************************************/
 body{
   margin:0;
   background:var(--bg);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   color:var(--text);
+  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.hk-header{
-  padding:20px;
-  background:rgba(10,12,16,.7);
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(255,255,255,.08);
+.fade-in{
+  animation:fadeIn .6s ease both;
 }
-.hk-header-state h1{
-  font-size:26px;
+.slide-up{
+  animation:slideUp .6s ease both;
+}
+
+@keyframes fadeIn {
+  from{ opacity:0; transform:translateY(4px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+@keyframes slideUp {
+  from{ opacity:0; transform:translateY(25px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+/*******************************************************
+ *  HEADER
+ *******************************************************/
+.hk-header{
+  background:rgba(13,15,20,.85);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:20px;
+}
+.hk-header-inner{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.hk-state-main{
+  font-size:28px;
+  font-weight:600;
   margin:0;
 }
-.hk-sub{ font-size:13px; color:var(--muted); }
-
-.hk-container{
-  padding:16px;
-  max-width:1000px;
-  margin:auto;
-  display:grid;
-  gap:16px;
+.hk-header-meta{
+  font-size:13px;
+  color:var(--muted);
 }
 
+/*******************************************************
+ *  LAYOUT
+ *******************************************************/
+.hk-container{
+  max-width:1000px;
+  margin:auto;
+  padding:18px;
+  display:grid;
+  gap:18px;
+}
+
+/*******************************************************
+ *  CARDS
+ *******************************************************/
 .hk-card{
   background:var(--card);
   padding:var(--pad);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   border:1px solid rgba(255,255,255,.08);
+  transform:translateZ(0);
+  transition:background .3s;
+}
+
+.hk-card:hover{
+  background:var(--card2);
 }
 
 .hk-card-title{
   font-size:16px;
-  margin-bottom:12px;
-  color:var(--text);
+  font-weight:600;
+  margin-bottom:14px;
 }
 
-.hk-statecard{
-  background:var(--card2);
-}
-
-.hk-state-grid{
+/*******************************************************
+ *  GRID
+ *******************************************************/
+.hk-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:10px;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:14px;
+}
+.hk-item{
+  background:var(--card2);
+  padding:12px;
+  border-radius:var(--radius);
+  border:1px solid rgba(255,255,255,.07);
+  transition:all .25s;
+}
+.hk-item:hover{
+  background:#242a37;
 }
 .hk-label{
   font-size:12px;
@@ -69,83 +136,121 @@ body{
 }
 .hk-value{
   font-size:15px;
+  margin-top:3px;
   font-weight:600;
-  margin-top:4px;
 }
 
+/*******************************************************
+ *  PERSONE
+ *******************************************************/
 .hk-people{
   list-style:none;
-  margin:0;
   padding:0;
+  margin:0;
   display:grid;
-  gap:8px;
+  gap:10px;
 }
 .person{
-  display:flex;
-  justify-content:space-between;
-  padding:10px;
   background:var(--card2);
   border-radius:var(--radius);
-  border:1px solid rgba(255,255,255,.05);
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border:1px solid rgba(255,255,255,.06);
+  transition:.25s;
 }
-.badge{
-  padding:4px 12px;
-  border-radius:999px;
-  font-size:12px;
-}
-.badge.in{
-  background:rgba(46,194,126,.25);
-  color:#93f5c4;
-}
-.badge.out{
-  background:rgba(255,98,98,.2);
-  color:#ffcac7;
+.person:hover{
+  background:#242a37;
 }
 
-.hk-buttons{
+.badge{
+  padding:5px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  transition:.25s;
+}
+.badge.in{
+  background:rgba(39,209,124,.25);
+  color:#98f7c9;
+}
+.badge.out{
+  background:rgba(255,110,110,.22);
+  color:#ffc9c9;
+}
+
+/*******************************************************
+ *  BUTTONS
+ *******************************************************/
+.hk-grid-btn{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:12px;
 }
 
 .hk-btn{
-  padding:12px;
   background:var(--card2);
-  border-radius:var(--radius);
   border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  padding:14px;
   color:var(--text);
   font-weight:600;
   cursor:pointer;
-  font-size:14px;
-  transition:.2s;
-}
-.hk-btn:hover{
-  background:#1e242f;
+  font-size:15px;
+  transition:background .25s, transform .15s;
 }
 
-.hk-btndual{
+.hk-btn:active{
+  transform:scale(.97);
+}
+
+.hk-btn:hover{
+  background:#232935;
+}
+
+.hk-btn-big{
+  font-size:17px;
+  padding:16px;
+}
+
+.hk-btn-dual{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:10px;
 }
 
-.hk-big{
-  font-size:16px;
-  padding:14px;
+.hk-btn-title{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:4px;
 }
 
+/*******************************************************
+ *  TOAST
+ *******************************************************/
 .hk-toast{
   position:fixed;
   bottom:25px;
   left:50%;
   transform:translateX(-50%);
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.78);
   padding:12px 18px;
   border-radius:var(--radius);
-  display:none;
   color:white;
   font-weight:600;
+  display:none;
+  box-shadow:0 4px 18px rgba(0,0,0,.4);
 }
 .hk-toast.show{
   display:block;
+  animation:fadeIn .4s ease both;
+}
+
+/*******************************************************
+ *  MEDIA
+ *******************************************************/
+@media(max-width:700px){
+  .hk-grid{ grid-template-columns:1fr; }
+  .hk-btn-big{ font-size:16px; }
 }
