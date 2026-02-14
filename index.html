@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="it">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Automazione Casa — HomeKit</title>
 
-  <!-- HomeKit Dark CSS verrà fornito nello STEP 3 -->
-  css/style.css?v=10" />
+  <link rel="stylesheet" href="css/style.css?v=10">
 </head>
-<body>
 
-  <!-- HEADER -->
+
+<body>
   <header class="hk-header">
     <div class="hk-header-inner fade-in">
       <h1 id="state-pill" class="hk-state-main">—</h1>
@@ -20,10 +17,10 @@
     </div>
   </header>
 
-  <!-- CONTAINER -->
+
   <main class="hk-container">
 
-    <!-- ====================== CARD 1 – STATO CASA ====================== -->
+    <!-- CARD 1 – STATO CASA -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Stato Casa</div>
 
@@ -45,18 +42,19 @@
       </div>
     </section>
 
-    <!-- ====================== CARD 2 – PERSONE ====================== -->
+
+    <!-- CARD 2 – PERSONE -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Persone</div>
       <ul id="people-list" class="hk-people"></ul>
     </section>
 
-    <!-- ====================== CARD 3 – COMANDI CASA ====================== -->
+
+    <!-- CARD 3 – COMANDI CASA -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Comandi Casa</div>
-
       <div class="hk-grid-btn">
-        <!-- VACANZA -->
+
         <div class="hk-btn-group">
           <div class="hk-btn-title">Vacanza</div>
           <div class="hk-btn-dual">
@@ -65,7 +63,6 @@
           </div>
         </div>
 
-        <!-- OVERRIDE -->
         <div class="hk-btn-group">
           <div class="hk-btn-title">Override</div>
           <div class="hk-btn-dual">
@@ -73,10 +70,12 @@
             <button class="hk-btn" data-cmd="set_override" data-val="false">OFF</button>
           </div>
         </div>
+
       </div>
     </section>
 
-    <!-- ====================== CARD 4 – TAPPARELLE ====================== -->
+
+    <!-- CARD 4 – TAPPARELLE -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Tapparelle</div>
       <div class="hk-grid-btn">
@@ -85,12 +84,12 @@
       </div>
     </section>
 
-    <!-- ====================== CARD 5 – PIANTE ====================== -->
+
+    <!-- CARD 5 – PIANTE -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Piante</div>
-
       <div class="hk-grid-btn">
-        <button class="hk-btn hk-btn-big" data-cmd="piante" data-val="true">🌿 Avvia Piante</button>
+        <button class="hk-btn hk-btn-big" data-cmd="piante" data-val="true">🌿 Avvia PIANTE</button>
       </div>
 
       <div class="hk-grid">
@@ -98,6 +97,7 @@
           <div class="hk-label">Prossimo ALBA</div>
           <div class="hk-value" id="next-piante-alba">—</div>
         </div>
+
         <div class="hk-item">
           <div class="hk-label">Post chiusura</div>
           <div class="hk-value" id="next-piante-close">—</div>
@@ -105,26 +105,24 @@
       </div>
     </section>
 
-    <!-- ====================== CARD 6 – ORARI ====================== -->
+
+    <!-- CARD 6 – ORARI -->
     <section class="hk-card slide-up">
       <div class="hk-card-title">Orari</div>
-
       <div class="hk-grid">
-        <div class="hk-item"><div class="hk-label">Alba</div> <div class="hk-value" id="alba">—</div></div>
+        <div class="hk-item"><div class="hk-label">Alba</div><div class="hk-value" id="alba">—</div></div>
         <div class="hk-item"><div class="hk-label">Tramonto</div><div class="hk-value" id="tramonto">—</div></div>
-        <div class="hk-item"><div class="hk-label">Ora</div> <div class="hk-value" id="ora">—</div></div>
+        <div class="hk-item"><div class="hk-label">Ora</div><div class="hk-value" id="ora">—</div></div>
       </div>
     </section>
 
   </main>
 
-  <!-- Toast -->
   <div id="toast" class="hk-toast"></div>
 
-  <!-- SCRIPT -->
-<script src="/AUTOMAZIONE/config.js?v=10"></script>
-<script src="/AUTOMAZIONE/js/jsonp.js?v=10"></script>
-<script src="/AUTOMAZIONE/js/app.js?v=10"></script>
 
+  config.js?v=10</script>
+  js/jsonp.js?v=10</script>
+  js/app.js?v=10</script>
 </body>
 </html>
