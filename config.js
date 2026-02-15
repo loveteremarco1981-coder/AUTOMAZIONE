@@ -5,24 +5,13 @@ window.APP_CONFIG = {
   transport: "jsonp",
   jsonpCallbackParam: "callback",
 
-  /* === PERCORSI LETTI DALLA UI ===
-     - state: COMFY_DAY / SECURITY_NIGHT ecc. (mostrato nel chip in alto)
-     - weather.tempC: temperatura per la pill meteo (°C)
-     - devicesOfflineCount: numero dispositivi offline
-     - energy.kwh: consumo energia per la pill Energy
-  */
   paths: {
     homeState:   "state",
     weatherTemp: "weather.tempC",
-    offlineCount:"devicesOfflineCount",
+    offlineCount:"devicesOfflineCount", /* non usato in dashboard, ma lo lasciamo */
     energyKwh:   "energy.kwh"
   },
 
-  /* === PREFERITI (HOME) ===
-     - "pushToggle": un solo bottone che attiva/disattiva in base allo stato corrente
-     - "push": un solo bottone che esegue l’azione
-     - path punta al booleano pubblicato dal tuo doGet (vacanza/override)
-  */
   tiles: [
     {
       id: "vacanza",
@@ -49,18 +38,22 @@ window.APP_CONFIG = {
       type: "push",
       label: "Piante",
       action: { url: "admin=1&event=piante" }
+    },
+    /* Nuove scorciatoie “tutte le tapparelle” */
+    {
+      id: "tapparelle_up",
+      type: "push",
+      label: "Tapparelle ▲",
+      action: { url: "admin=1&event=alza_tutto" }
+    },
+    {
+      id: "tapparelle_down",
+      type: "push",
+      label: "Tapparelle ▼",
+      action: { url: "admin=1&event=abbassa_tutto" }
     }
-
-    // Se vuoi aggiungere un indicatore in sola lettura, puoi rimettere:
-    // { id:"presenza", type:"sensor", label:"Presenza", path:"presenzaEffettiva",
-    //   format: v => v ? "In casa" : "Assente" }
-    //
-    // La tile "statoCasa" NON serve più: lo stato è nel chip in alto (paths.homeState).
   ],
 
-  // Ordine delle card Preferiti
-  favorites: ["vacanza", "override", "piante"],
-
-  // Quante righe massimo mostrare nella vista Log
+  favorites: ["vacanza","override","piante","tapparelle_up","tapparelle_down"],
   logLimit: 30
 };
