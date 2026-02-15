@@ -1,269 +1,170 @@
-/* Helpers */
-const $  = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-const pick = (o,p)=>p.split('.').reduce((x,k)=>(x && x[k]!==undefined)?x[k]:undefined,o);
-const qs = (base, q) => base + (base.includes('?')?'&':'?') + q;
+// app.js
+(function(){
+  const WEBAPP_URL = window.DASH.WEBAPP_URL;
+  const REFRESH_MS = window.DASH.REFRESH_MS;
+  const UNIT_KEY   = window.DASH.UNIT_KEY;
 
-/* ---------- FAVORITES (push / pushToggle) ---------- */
-function renderFavorites(){
-  const tiles = APP_CONFIG.tiles || [];
-  const favIds = (APP_CONFIG.favorites && APP_CONFIG.favorites.length)
-    ? APP_CONFIG.favorites
-    : tiles.map(t => t.id);
-  const byId = new Map(tiles.map(t => [t.id,t]));
-  $('#favoritesGrid').innerHTML = favIds.map(id=>{
-    const t = byId.get(id); if(!t) return '';
-    return `
-      <article class="tile click" data-id="${t.id}" data-type="${t.type}">
-        <div class="title">${t.label}</div>
-        <div class="state">—</div>
-      </article>
-    `;
-  }).join('');
-}
+  // ---------- utils ----------
+  const qs  = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
 
-/* ---------- TABBAR ---------- */
-function initTabbar(){
-  $('.tabbar').addEventListener('click', ev=>{
-    const tab = ev.target.closest('.tab'); if(!tab) return;
-    const target = tab.dataset.target;
-    $$('.tab').forEach(b=>b.classList.toggle('active', b===tab));
-    $$('.view').forEach(v=>v.classList.remove('active'));
-    $(`#view-${target}`)?.classList.add('active');
-    if(target==='devices') renderDevicesCached();
-    if(target==='log') loadLogs();
-  });
-  $('#view-menu').addEventListener('click', e=>{
-    const b=e.target.closest('.menu-btn'); if(!b) return;
-    document.querySelector(`.tab[data-target="${b.dataset.target}"]`)?.click();
-  });
-}
-
-/* ---------- FAVORITES ACTIONS ---------- */
-function bindFavoriteActions(){
-  $('#favoritesGrid').addEventListener('click', async ev=>{
-    const card = ev.target.closest('.tile'); if(!card) return;
-    const id = card.dataset.id;
-    const t = (APP_CONFIG.tiles||[]).find(x=>x.id===id);
-    if(!t) return;
-
-    if(t.type==='push'){
-      const url = qs(APP_CONFIG.endpoint, t.action.url);
-      try{ await fetch(url,{method:'GET',mode:'no-cors'});}catch(_){}
-      return;
-    }
-    if(t.type==='pushToggle'){
-      const active = card.classList.contains('on');
-      const url = qs(APP_CONFIG.endpoint, active ? t.toggle.off : t.toggle.on);
-      try{ await fetch(url,{method:'GET',mode:'no-cors'});}catch(_){}
-      return;
-    }
-  });
-}
-
-/* ---------- LOAD STATE ---------- */
-async function loadState(){
-  try{
-    const model = await jsonp(APP_CONFIG.endpoint, APP_CONFIG.jsonpCallbackParam || 'callback');
-    window.__lastModel = model;
-    apply(model);
-    $('#ts').textContent = 'Aggiornamento: ' + new Date().toLocaleTimeString();
-    const hasErr = Number(pick(model,'alerts.logErrors')||0) > 0;
-    document.querySelector('.tab[data-target="log"]')?.classList.toggle('has-dot', hasErr);
-  }catch(e){
-    $('#ts').textContent = 'Errore di connessione';
+  function toNum(val){
+    if (typeof val === 'number') return val;
+    const s = String(val||'').replace(',', '.').replace(/[^\d.\-]/g,'').trim();
+    const n = Number(s); return isFinite(n) ? n : null;
   }
-}
+  function cToF(c){ return c==null ? null : (c*9/5 + 32); }
+  function fmtTemp(n, unit){
+    if (n==null || !isFinite(n)) return '— °'+unit;
+    const v = (unit==='F') ? cToF(n) : n;
+    return Math.round(v) + '°' + unit;
+  }
+  function wmoEmoji(code){
+    const m = {
+      '0':'☀️','1':'🌤️','2':'⛅','3':'☁️',
+      '45':'🌫️','48':'🌫️',
+      '51':'🌦️','53':'🌦️','55':'🌦️',
+      '61':'🌧️','63':'🌧️','65':'🌧️',
+      '66':'🌧️❄️','67':'🌧️❄️',
+      '71':'🌨️','73':'🌨️','75':'🌨️',
+      '77':'❄️',
+      '80':'🌦️','81':'🌧️','82':'⛈️',
+      '85':'❄️','86':'❄️',
+      '95':'⛈️','96':'⛈️','99':'⛈️'
+    };
+    return m[String(code)] || '⛅';
+  }
 
-/* ---------- APPLY UI ---------- */
-function apply(m){
-  // Stato casa
-  $('#homeName').textContent = APP_CONFIG.title || 'Casa';
-  const stRaw = String(pick(m, APP_CONFIG.paths.homeState)||'').toUpperCase();
-  const chip = $('#chipState');
-  chip.textContent = stRaw || '—';
-  chip.classList.remove('neutral','comfy','security');
-  if(/^COMFY/.test(stRaw))        chip.classList.add('comfy');
-  else if(/^SECURITY|NIGHT/.test(stRaw)) chip.classList.add('security');
-  else                              chip.classList.add('neutral');
+  async function loadModel(){
+    return await JSONP_FETCH.getJSON(WEBAPP_URL + '?t=' + Date.now());
+  }
+  async function loadLogs(){
+    return await JSONP_FETCH.getJSON(WEBAPP_URL + '?logs=1&t=' + Date.now());
+  }
 
-  // Meteo (numerico)
-  const t = pick(m, APP_CONFIG.paths.weatherTemp);
-  $('#weatherTemp').textContent = (t!=null && isFinite(+t)) ? `${Math.round(+t)} °C` : '— °C';
-  $('#weatherProvider').textContent = pick(m,'weather.provider') || 'The Weather Channel';
+  // ---------- render ----------
+  function renderModel(model){
+    const unit = (localStorage.getItem(UNIT_KEY)||'C').toUpperCase();
 
-  // Dashboard Persone = casa occupata/vuota
-  const people = Array.isArray(m.people) ? m.people : [];
-  const onlineCount = people.filter(p => !!(p.onlineSmart || p.onlineRaw)).length;
-  const occupied = onlineCount > 0;
-  const peopleOnlineEl = document.getElementById('peopleOnline');
-  if (peopleOnlineEl) peopleOnlineEl.textContent = String(onlineCount);
-  const houseStatusEl = document.getElementById('houseStatus');
-  if (houseStatusEl) houseStatusEl.textContent = occupied ? 'Casa occupata' : 'Casa vuota';
+    // Meteo
+    const w   = model.weather || {};
+    const elT = qs('[data-weather-temp]');
+    const elI = qs('[data-weather-emoji]');
+    const elP = qs('[data-weather-provider]');
 
-  // Energy
-  const kwh = pick(m, APP_CONFIG.paths.energyKwh);
-  $('#energyKwh').textContent = (kwh!=null && isFinite(+kwh)) ? Number(kwh).toFixed(2) : '—';
+    if (elT) elT.textContent = fmtTemp(w.tempC, unit);
+    if (elI) elI.textContent = wmoEmoji(w.icon);
+    if (elP) elP.textContent = (w.provider||'').replace('Open‑','Open-');
 
-  // Favorites
-  (APP_CONFIG.tiles||[]).forEach(t=>{
-    const el = document.querySelector(`.tile[data-id="${t.id}"]`);
-    if(!el) return;
-    if(t.type==='push'){
-      el.classList.toggle('on', false);
-      el.querySelector('.state').textContent = 'Premi per eseguire';
-    }else if(t.type==='pushToggle'){
-      const active = !!pick(m, t.path);
-      el.classList.toggle('on', active);
-      el.querySelector('.state').textContent = active ? 'Disattiva' : 'Attiva';
+    // Ultimo aggiornamento
+    const elTs = qs('[data-last-update]');
+    const nowIso = model.meta && model.meta.nowIso ? new Date(model.meta.nowIso) : new Date();
+    if (elTs){
+      const hh = String(nowIso.getHours()).padStart(2,'0');
+      const mm = String(nowIso.getMinutes()).padStart(2,'0');
+      const ss = String(nowIso.getSeconds()).padStart(2,'0');
+      elTs.textContent = `${hh}:${mm}:${ss}`;
     }
-  });
 
-  renderDevicesCached();
-}
+    // People
+    const people = Array.isArray(model.people) ? model.people : [];
+    const online = people.filter(p => p.onlineSmart || p.onlineRaw).length;
+    const elPSum = qs('[data-people-summary]');
+    if (elPSum) elPSum.textContent = `${people.length} · ${online>0 ? 'Casa occupata' : 'Casa vuota'}`;
 
-/* ---------- DEVICES VIEW (Vimar + Persone) ---------- */
-function renderDevicesCached(){
-  const m = window.__lastModel || {};
-  // Persone
-  const arr = Array.isArray(m.people) ? m.people : [];
-  $('#peopleChips').innerHTML = arr.length
-    ? arr.map(p=>{
-        const inHome = !!(p.onlineSmart || p.onlineRaw);
-        return `<span class="badge ${inHome?'in':'out'}">${p.name} · ${inHome?'Online':'Offline'}</span>`;
-      }).join('')
-    : `<span class="muted" style="margin:6px">Nessuna persona</span>`;
+    const elPList = qs('[data-people-list]');
+    if (elPList){
+      elPList.innerHTML = '';
+      people.forEach(p=>{
+        const div = document.createElement('div');
+        div.textContent = `${p.name} · ${(p.onlineSmart||p.onlineRaw) ? 'IN CASA':'OUT'}`;
+        elPList.appendChild(div);
+      });
+    }
 
-  // Tapparelle con controlli
-  const shutters = pick(m, 'vimar.shutters') || [];
-  $('#vimarShutters').innerHTML = shutters.length ? shutters.map(s=>`
-    <div class="row">
-      <div class="meta">
-        <div class="title">${s.name || 'Tapparella'}</div>
-        <div class="sub">${s.room || ''}</div>
-      </div>
-      <div class="controls">
-        <button class="ctl-btn" title="Su" onclick="cmdShutter('${encodeURIComponent(s.id)}','up')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 14l5-5 5 5z"/></svg>
-        </button>
-        <button class="ctl-btn" title="Stop" onclick="cmdShutter('${encodeURIComponent(s.id)}','stop')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
-        </button>
-        <button class="ctl-btn" title="Giù" onclick="cmdShutter('${encodeURIComponent(s.id)}','down')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('') : `<div class="muted" style="margin:6px">Nessuna tapparella</div>`;
+    // Energy
+    const kwh = model.energy && model.energy.kwh;
+    const elK = qs('[data-energy-kwh]');
+    if (elK) elK.textContent = (kwh==null || !isFinite(kwh)) ? '— kWh' : `${kwh.toFixed(1)} kWh`;
 
-  // Termostati
-  const ths = pick(m, 'vimar.thermostats') || [];
-  $('#vimarThermo').innerHTML = ths.length ? ths.map(t=>`
-    <div class="row">
-      <div class="meta">
-        <div class="title">${t.name || 'Termostato'}</div>
-        <div class="sub">${t.room || ''}</div>
-      </div>
-      <div class="controls">
-        <button class="ctl-btn" title="Setpoint -" onclick="cmdThermo('${encodeURIComponent(t.id)}','dec')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>
-        </button>
-        <div class="sub">${fmtTemp(t.setpoint)}</div>
-        <button class="ctl-btn" title="Setpoint +" onclick="cmdThermo('${encodeURIComponent(t.id)}','inc')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 5h2v14h-2zM5 11h14v2H5z"/></svg>
-        </button>
-        <button class="ctl-btn" title="Mode" onclick="cmdThermo('${encodeURIComponent(t.id)}','modeNext')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 6h10v2H7zm0 10h10v2H7zm0-5h10v2H7z"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('') : `<div class="muted" style="margin:6px">Nessun termostato</div>`;
+    // Devices offline
+    const off = (model.devicesOfflineCount==null?0:model.devicesOfflineCount);
+    const elOff = qs('[data-devices-offline]');
+    if (elOff) elOff.textContent = off;
 
-  // Clivet
-  const hvac = pick(m, 'vimar.hvac') || [];
-  $('#vimarHvac').innerHTML = hvac.length ? hvac.map(h=>`
-    <div class="row">
-      <div class="meta">
-        <div class="title">${h.name || 'Clivet'}</div>
-        <div class="sub">${h.room || ''}</div>
-      </div>
-      <div class="controls">
-        <button class="ctl-btn" title="Power" onclick="cmdHvac('${encodeURIComponent(h.id)}','powerToggle')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2v10M6.2 4.8a10 10 0 1 0 11.6 0"/></svg>
-        </button>
-        <button class="ctl-btn" title="Setpoint -" onclick="cmdHvac('${encodeURIComponent(h.id)}','dec')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>
-        </button>
-        <div class="sub">${fmtTemp(h.setpoint)}</div>
-        <button class="ctl-btn" title="Setpoint +" onclick="cmdHvac('${encodeURIComponent(h.id)}','inc')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 5h2v14h-2zM5 11h14v2H5z"/></svg>
-        </button>
-        <button class="ctl-btn" title="Mode" onclick="cmdHvac('${encodeURIComponent(h.id)}','modeNext')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 6h10v2H7zm0 10h10v2H7zm0-5h10v2H7z"/></svg>
-        </button>
-        <button class="ctl-btn" title="Fan" onclick="cmdHvac('${encodeURIComponent(h.id)}','fanNext')">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 4a4 4 0 0 1 4 4c0 3-4 7-4 7s-4-4-4-7a4 4 0 0 1 4-4z"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('') : `<div class="muted" style="margin:6px">Nessun climatizzatore</div>`;
-}
-function fmtTemp(x){ const n=Number(x); return Number.isFinite(n)? (n.toFixed(1)+'°C') : '—'; }
+    // Badge errori log
+    const errs = model.alerts && model.alerts.logErrors || 0;
+    const elBadge = qs('[data-log-badge]');
+    if (elBadge){
+      elBadge.textContent = errs>0 ? String(errs) : '';
+      elBadge.style.display = errs>0 ? '' : 'none';
+    }
+  }
 
-/* ---------- COMMAND SENDERS (Vimar) ---------- */
-async function cmdShutter(id, cmd){
-  const url = qs(APP_CONFIG.endpoint, `admin=1&event=vimar_shutter&id=${id}&cmd=${cmd}`);
-  try{ await fetch(url,{method:'GET',mode:'no-cors'});}catch(_){}
-}
-async function cmdThermo(id, op){
-  const url = qs(APP_CONFIG.endpoint, `admin=1&event=vimar_thermo&id=${id}&op=${op}`);
-  try{ await fetch(url,{method:'GET',mode:'no-cors'});}catch(_){}
-}
-async function cmdHvac(id, op){
-  const url = qs(APP_CONFIG.endpoint, `admin=1&event=vimar_hvac&id=${id}&op=${op}`);
-  try{ await fetch(url,{method:'GET',mode:'no-cors'});}catch(_){}
-}
+  // ---------- azioni (Preferiti/VIMAR) ----------
+  async function callAdmin(eventName, extra={}){
+    const params = new URLSearchParams({ admin:'1', event:eventName, t: Date.now() });
+    Object.entries(extra).forEach(([k,v]) => params.set(k, v));
+    const url = WEBAPP_URL + '?' + params.toString();
+    return await JSONP_FETCH.getJSON(url);
+  }
 
-/* ---------- LOGS ---------- */
-async function loadLogs(){
-  const url = qs(APP_CONFIG.endpoint, 'logs=1');
-  try{
-    const data = await jsonp(url, APP_CONFIG.jsonpCallbackParam || 'callback');
-    const rows = Array.isArray(data.logs)?data.logs:[];
-    const errors = rows.filter(r=>{
-      const c = String(r.code||'').toUpperCase();
-      const d = String(r.desc||'').toUpperCase();
-      return /ERR|ERROR|FAIL/.test(c) || /ERR|ERROR|FAIL/.test(d);
+  function bindAdmin(){
+    // Preferiti base
+    qsa('[data-admin]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const evt = btn.getAttribute('data-admin');
+        const val = btn.getAttribute('data-value');
+        try{
+          const payload = {}; if (val!=null) payload.value = String(val);
+          await callAdmin(evt, payload);
+          console.log('OK:', evt, payload);
+          await refreshOnce(); // aggiorna UI dopo comando
+        }catch(e){ console.error('Admin ERR', e); }
+      });
     });
-    if(!errors.length){
-      $('#log').innerHTML = '';
-      $('#logEmpty').textContent = 'Nessun errore recente.';
-      document.querySelector('.tab[data-target="log"]')?.classList.toggle('has-dot', false);
-      return;
-    }
-    $('#logEmpty').textContent='';
-    $('#log').innerHTML = errors.slice(0, APP_CONFIG.logLimit || 30).map(e=>{
-      const when = e.ts ? new Date(e.ts).toLocaleString() : '';
-      return `<div class="row">
-        <div class="meta">
-          <div class="title">${e.code || '—'}</div>
-          <div class="sub">${e.desc || ''}${e.note? ' · '+e.note : ''}</div>
-        </div>
-        <div class="muted">${when}</div>
-      </div>`;
-    }).join('');
-    document.querySelector('.tab[data-target="log"]')?.classList.toggle('has-dot', true);
-  }catch(e){
-    $('#log').innerHTML = '';
-    $('#logEmpty').textContent = 'Log non disponibili (aggiungi ?logs=1).';
+    // VIMAR opzionale
+    qsa('[data-vimar]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const type = btn.getAttribute('data-vimar'); // shutter|thermo|hvac
+        const id   = btn.getAttribute('data-id');
+        const cmd  = btn.getAttribute('data-cmd') || btn.getAttribute('data-op');
+        try{
+          if (type==='shutter')      await callAdmin('vimar_shutter', { id, cmd });
+          else if (type==='thermo')  await callAdmin('vimar_thermo',  { id, op: cmd });
+          else if (type==='hvac')    await callAdmin('vimar_hvac',    { id, op: cmd });
+          console.log('VIMAR OK:', type, id, cmd);
+        }catch(e){ console.error('VIMAR ERR', e); }
+      });
+    });
   }
-}
 
-/* ---------- BOOT ---------- */
-renderFavorites();
-initTabbar();
-bindFavoriteActions();
-loadState();
-setInterval(loadState, APP_CONFIG.pollMs || 10000);
-const btn = document.getElementById('btnRefreshLog');
-if(btn){ btn.addEventListener('click', ()=>loadLogs()); }
+  // ---------- init & refresh ----------
+  async function refreshOnce(){
+    const model = await loadModel();
+    renderModel(model);
+  }
+
+  function bindUnitToggle(){
+    const elT = qs('[data-weather-temp]');
+    if (!elT) return;
+    elT.style.cursor = 'pointer';
+    elT.title = 'Clic per cambiare unità °C/°F';
+    elT.addEventListener('click', ()=>{
+      const cur = (localStorage.getItem(UNIT_KEY)||'C').toUpperCase();
+      const next = (cur==='C') ? 'F' : 'C';
+      localStorage.setItem(UNIT_KEY, next);
+      refreshOnce();
+    });
+  }
+
+  function init(){
+    if (!localStorage.getItem(UNIT_KEY)) localStorage.setItem(UNIT_KEY, 'C');
+    bindAdmin();
+    bindUnitToggle();
+    refreshOnce();
+    setInterval(refreshOnce, REFRESH_MS);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
