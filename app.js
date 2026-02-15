@@ -16,7 +16,7 @@ function renderState(model){
   const st = String(model.state||'').toUpperCase();
   const cls = STATE_CLASS[st] || 'neutral';
   chip.className = 'chip state '+cls;
-  chip.textContent = st.replace('COMFY','COMFY').replace('_',' ');
+  chip.textContent = st.replace('_',' ');
   $('#houseStatus').textContent = model.notte ? 'Notte' : 'Giorno';
 }
 
@@ -44,7 +44,7 @@ function renderWeather(model){
   $('#weatherTemp').textContent = temp;
   $('#weatherProvider').textContent = (wc.icon? (wc.icon+' ') : '') + (meta.provider || '—');
 
-  // Colora dot in base alle condizioni
+  // Colora dot
   const code = String(meta.icon||'');
   let color = 'var(--accent)';
   if (/6[1-7]|8[0-2]|9[5-9]/.test(code)) color = 'var(--bad)';     // pioggia/temporali
@@ -61,6 +61,7 @@ function renderEnergy(model){
 
 function renderVimar(model){
   const v = model.vimar || {shutters:[],thermostats:[],hvac:[]};
+
   // Shutters
   const sh = $('#vimarShutters'); sh.innerHTML = '';
   v.shutters.forEach(x=>{
@@ -202,11 +203,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // menu interni
   $all('.menu-btn').forEach(b => b.addEventListener('click', ()=> activateTab(b.getAttribute('data-target')) ));
   // log refresh
-  $('#btnRefreshLog').addEventListener('click', loadLogs);
+  const btn = $('#btnRefreshLog'); if (btn) btn.addEventListener('click', loadLogs);
 
   // prima load
   loadAll();
-  // carica log alla prima visita della sezione o subito?
   loadLogs();
 
   // auto refresh
