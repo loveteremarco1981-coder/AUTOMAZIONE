@@ -1,7 +1,7 @@
 /* ===== Config & mapping ===== */
 
 const CONFIG = {
-  BASE_URL: 'CONFIG.BASE_URL',
+  BASE_URL: 'https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec',
   // per JSONP uso callback dinamico; qui è solo label
   DEFAULT_CB: 'cb',
   // refresh automatico del modello (ms). Metti 0 per disattivare.
