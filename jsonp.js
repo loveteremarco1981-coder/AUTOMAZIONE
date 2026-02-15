@@ -1,40 +1,58 @@
-// jsonp.js
-// Fetch JSON con fallback JSONP automatico (compatibile col tuo doGet)
+/* ===== JSONP helper ===== */
 
-(function(global){
-  async function getJSON(url){
-    try{
-      const r = await fetch(url, { cache: 'no-store' });
-      const ct = (r.headers.get('content-type') || '').toLowerCase();
-      if (ct.includes('application/json')) return await r.json();
+function buildUrl(base, params){
+  const usp = new URLSearchParams();
+  Object.keys(params||{}).forEach(k => {
+    if (params[k] !== undefined && params[k] !== null) usp.set(k, params[k]);
+  });
+  return base + (base.includes('?') ? '&' : '?') + usp.toString();
+}
 
-      // Se il server ritorna JSONP (application/javascript)
-      const txt = await r.text();
-      const m = txt.match(/^[\w$]+\((.*)\);?$/s);
-      if (m) return JSON.parse(m[1]);
+function jsonpRequest(baseUrl, params, onSuccess, onError){
+  const cbName = '__jp_cb_' + Math.random().toString(36).slice(2);
+  const cleanup = (node) => {
+    try { delete window[cbName]; } catch(_){}
+    try { node && node.remove(); } catch(_){}
+  };
+  const url = buildUrl(baseUrl, Object.assign({}, params, { callback: cbName }));
 
-      return JSON.parse(txt); // last resort
-    }catch(e){
-      // Fallback JSONP classico
-      return jsonp(url);
-    }
-  }
+  const script = document.createElement('script');
+  script.src = url;
+  script.async = true;
 
-  function jsonp(url){
-    return new Promise((resolve, reject)=>{
-      const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
-      function cleanup(){
-        try{ delete global[cb]; }catch(_){}
-        if (script && script.parentNode) script.parentNode.removeChild(script);
-      }
-      global[cb] = (data)=>{ resolve(data); cleanup(); };
-      const sep = url.includes('?') ? '&' : '?';
-      const script = document.createElement('script');
-      script.src = url + sep + 'callback=' + cb;
-      script.onerror = ()=>{ cleanup(); reject(new Error('JSONP error')); };
-      document.head.appendChild(script);
-    });
-  }
+  let done = false;
+  window[cbName] = (data) => {
+    if (done) return;
+    done = true;
+    cleanup(script);
+    try { onSuccess && onSuccess(data); }
+    catch(err){ console.error('JSONP success handler error:', err); }
+  };
 
-  global.JSONP_FETCH = { getJSON, jsonp };
-})(window);
+  script.onerror = (e) => {
+    if (done) return;
+    done = true;
+    cleanup(script);
+    try { onError && onError(e); }
+    catch(err){ console.error('JSONP error handler error:', err); }
+  };
+
+  document.head.appendChild(script);
+}
+
+/* Convenienze specifiche del tuo backend */
+function fetchModel(onSuccess, onError){
+  return jsonpRequest(CONFIG.BASE_URL, {}, onSuccess, onError);
+}
+function fetchTrend24h(onSuccess, onError){
+  return jsonpRequest(CONFIG.BASE_URL, { trend:'24h' }, onSuccess, onError);
+}
+function fetchLogs(onSuccess, onError){
+  return jsonpRequest(CONFIG.BASE_URL, { logs:'1' }, onSuccess, onError);
+}
+
+/* Admin (no PIN) & Vimar bridge */
+function callAdmin(eventName, extraParams, onSuccess, onError){
+  const p = Object.assign({ admin:'1', event:String(eventName||'') }, extraParams||{});
+  return jsonpRequest(CONFIG.BASE_URL, p, onSuccess, onError);
+}
