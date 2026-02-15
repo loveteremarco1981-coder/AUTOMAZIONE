@@ -1,153 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Automazione Casa</title>
-
-  <!-- CSS principale -->
-  <link rel="stylesheet" href="css/style.css?v=1">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Home Dashboard</title>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
-
 <body>
+  <header class="home-header">
+    <div class="home-title">
+      <h1 id="homeName">Casa di Marco</h1>
 
-  <!-- HEADER Apple Home -->
-  <header class="hk-header">
-    <h1 class="hk-title">Home</h1>
-    <div class="hk-subtitle" id="hk-daystate">– giorno</div>
+      <!-- Pillole persone (In/Out) -->
+      <div id="peoplePills" class="people"></div>
+
+      <!-- Timestamp aggiornamento -->
+      <div id="homeSummary" class="home-summary">Aggiornamento…</div>
+    </div>
   </header>
 
-  <!-- CONTENUTO SCORRIBILE -->
-  <main class="hk-main">
+  <main>
+    <!-- HOME: tile principali -->
+    <section class="tiles" id="tiles"></section>
 
-    <!-- TILE STATO CASA -->
-    <section class="hk-tile">
-      <div class="hk-tile-title">Stato Casa</div>
-
-      <div class="hk-tile-row">
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Modalità</div>
-          <div class="hk-box-value" id="state-pill">—</div>
-        </div>
-
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Ultimo evento</div>
-          <div class="hk-box-value" id="last-event">—</div>
-        </div>
-      </div>
+    <!-- STANZE -->
+    <section class="section">
+      <h2>Stanze</h2>
+      <div id="rooms"></div>
     </section>
 
-    <!-- TILE PERSONE -->
-    <section class="hk-tile">
-      <div class="hk-tile-title">Persone</div>
-      <ul id="people-list" class="hk-people"></ul>
+    <!-- AUTOMAZIONI -->
+    <section class="section">
+      <h2>Automazioni</h2>
+      <div id="automations"></div>
     </section>
-
-    <!-- TILE ALBA / TRAMONTO / ORA -->
-    <section class="hk-tile">
-      <div class="hk-tile-row">
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Alba</div>
-          <div class="hk-box-value" id="alba">—</div>
-        </div>
-
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Tramonto</div>
-          <div class="hk-box-value" id="tramonto">—</div>
-        </div>
-
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Ora</div>
-          <div class="hk-box-value" id="ora">—</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEZIONE COMANDI CASA -->
-    <section class="hk-section" id="section-cmd">
-      <div class="hk-section-title">Comandi Casa</div>
-
-      <div class="hk-tile">
-        <div class="hk-tile-title">Vacanza</div>
-        <div class="hk-button-row">
-          <button class="hk-btn" data-cmd="set_vacanza" data-val="true">ON</button>
-          <button class="hk-btn" data-cmd="set_vacanza" data-val="false">OFF</button>
-        </div>
-      </div>
-
-      <div class="hk-tile">
-        <div class="hk-tile-title">Override</div>
-        <div class="hk-button-row">
-          <button class="hk-btn" data-cmd="set_override" data-val="true">ON</button>
-          <button class="hk-btn" data-cmd="set_override" data-val="false">OFF</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEZIONE TAPPARELLE -->
-    <section class="hk-section" id="section-tapp">
-      <div class="hk-section-title">Tapparelle</div>
-
-      <div class="hk-tile">
-        <div class="hk-button-row">
-          <button class="hk-btn-big" data-cmd="alza_tutto" data-val="true">⬆️ Alza tutto</button>
-          <button class="hk-btn-big" data-cmd="abbassa_tutto" data-val="true">⬇️ Abbassa tutto</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEZIONE PIANTE -->
-    <section class="hk-section" id="section-plant">
-      <div class="hk-section-title">Piante</div">
-        <button class="hk-btn-big" data-cmd="piante" data-val="true">🌱 Avvia PIANTE</button>
-      </div>
-
-      <div class="hk-tile-row">
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Prossimo ALBA</div>
-          <div class="hk-box-value" id="next-piante-alba">—</div>
-        </div>
-
-        <div class="hk-tile-box">
-          <div class="hk-box-label">Post chiusura</div>
-          <div class="hk-box-value" id="next-piante-close">—</div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
-  <!-- TOAST -->
-  <div id="toast" class="hk-toast"></div>
-
-  <!-- BOTTOM BAR iOS -->
-  <nav class="hk-bottom-bar">
-    <button class="hk-tab active" data-target="home">
-      <span class="hk-tab-icon">🏠</span>
-      <span class="hk-tab-label">Casa</span>
-    </button>
-
-    <button class="hk-tab" data-target="cmd">
-      <span class="hk-tab-icon">🎛️</span>
-      <span class="hk-tab-label">Comandi</span>
-    </button>
-
-    <button class="hk-tab" data-target="tapp">
-      <span class="hk-tab-icon">🪟</span>
-      <span class="hk-tab-label">Tapparelle</span>
-    </button>
-
-    <button class="hk-tab" data-target="plant">
-      <span class="hk-tab-icon">🌱</span>
-      <span class="hk-tab-label">Piante</span>
-    </button>
-  </nav>
-
-<!-- SCRIPTS -->
-<script src="config.js?v=1"></script>
-<script src="js/jsonp.js?v=1"></script>
-<script src="js/app.js?v=1"></script>
-
+  <!-- Config & App -->
+  <script src="config.js"></script>
+  <script src="jsonp.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
-
