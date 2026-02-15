@@ -1,168 +1,165 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Casa di Marco — Dashboard</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Casa di Marco</title>
 
-  <!-- Il tuo CSS: NON modifico lo stile, resta tutto qui -->
-  <link rel="stylesheet" href="style.css?v=2" />
+  <!-- ===== CSS (incluso dal file "style.css") ===== -->
+  <style>
+    <?!= HtmlService.createHtmlOutputFromFile('style.css').getContent(); ?>
+  </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-left">
-      <!-- Badge stato (testo aggiornato dal backend se vuoi) -->
-      <span class="state-badge" id="stateBadge">COMFY_NIGHT</span>
-      <h1 class="app-title">Casa di Marco</h1>
-    </div>
-
-    <div class="header-actions">
-      <!-- Esempio icone (il tuo CSS gestisce stile/posizione) -->
-      <button class="icon-btn" aria-label="Notifiche">
-        <span>🔔</span><span class="badge" data-log-badge></span>
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="left">
+      <button class="home-btn" aria-label="Casa" id="btnHomeTitle">
+        <svg class="ico-home" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
+        <span class="home-title" id="homeName">Casa di Marco</span>
+        <svg class="ico-chev" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
       </button>
-      <button class="icon-btn" aria-label="Aggiungi"><span>＋</span></button>
+      <div id="chipState" class="chip state neutral">—</div>
+    </div>
+    <div class="right">
+      <button class="icon-btn" title="Notifiche" id="btnNotif">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a6 6 0 0 0-6 6v4.3l-1.7 3.3A1 1 0 0 0 5.2 17H19a1 1 0 0 0 .9-1.5L18 12.3V8a6 6 0 0 0-6-6zM8 19a4 4 0 0 0 8 0"/></svg>
+      </button>
+      <button class="icon-btn" title="Aggiungi" id="btnAdd">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>
+      </button>
+      <button class="icon-btn" title="Altro" id="btnMore">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
+      </button>
 
-      <!-- Meteo “chip”: clic su temperatura per °C/°F -->
-      <div class="weather-chip" title="Clic per cambiare unità">
-        <span data-weather-emoji>⛅</span>
-        <span data-weather-temp>— °C</span>
+      <!-- Meteo -->
+      <div id="weatherPill" class="weather-pill" title="Meteo">
+        <span class="dot" id="weatherDot"></span>
+        <span id="weatherTemp">— °C</span>
       </div>
     </div>
   </header>
 
-  <!-- SUBHEADER (provider + aggiornamento) -->
-  <section class="subheader">
-    <div class="sub-left">
-      <span class="muted">Provider: <b data-weather-provider>The Weather Channel</b></span>
-    </div>
-    <div class="sub-right">
-      <span class="muted">Aggiornamento: <b data-last-update>—:—:—</b></span>
-    </div>
-  </section>
+  <main>
+    <!-- ===== HOME ===== -->
+    <section id="view-home" class="view active">
+      <div class="label-ghost">Dashboard</div>
 
-  <!-- MAIN -->
-  <main class="content">
-    <!-- Titolo sezione -->
-    <h2 class="section-title">Dashboard</h2>
-
-    <!-- RIGA CARDS TOP -->
-    <div class="cards-row">
-      <!-- Persone -->
-      <article class="card tile tile-people">
-        <div class="tile-head">
-          <div class="tile-icon">🔒</div>
-          <div class="tile-title">Persone</div>
-        </div>
-        <div class="tile-body">
-          <div class="tile-value">
-            <b data-people-summary>—</b>
+      <!-- Grid no-scroll -->
+      <div class="cards-row">
+        <article class="pill-card" id="card-people">
+          <div class="pill-inner">
+            <div class="pill-icon">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-9 6a6 6 0 1 1 12 0v2H7v-2z"/></svg>
+            </div>
+            <div class="pill-text">
+              <div class="pill-caption">Persone</div>
+              <div class="pill-value"><strong id="peopleOnline">—</strong> · <span id="houseStatus">—</span></div>
+            </div>
           </div>
-          <!-- Opzionale: lista persone -->
-          <div class="people-list" data-people-list></div>
-        </div>
-      </article>
+        </article>
 
-      <!-- Energy -->
-      <article class="card tile tile-energy">
-        <div class="tile-head">
-          <div class="tile-icon">⚡</div>
-          <div class="tile-title">Energy</div>
-        </div>
-        <div class="tile-body">
-          <div class="tile-value">
-            <b data-energy-kwh>— kWh</b>
+        <article class="pill-card" id="card-energy">
+          <div class="pill-inner">
+            <div class="pill-icon energy">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13 2 3 14h7l-1 8 11-14h-7l1-6z"/></svg>
+            </div>
+            <div class="pill-text">
+              <div class="pill-caption">Energy</div>
+              <div class="pill-value"><strong id="energyKwh">—</strong> kWh</div>
+            </div>
           </div>
-          <!-- Opzionale: dispositivi offline -->
-          <div class="muted">Dispositivi offline: <b data-devices-offline>0</b></div>
-        </div>
-      </article>
-    </div>
+        </article>
+      </div>
 
-    <!-- Preferiti -->
-    <h2 class="section-title">Preferiti</h2>
+      <div class="label-ghost">Preferiti</div>
+      <section id="favoritesGrid" class="fav-grid"></section>
 
-    <div class="cards-grid favorites">
-      <!-- Vacanza -->
-      <article class="card fav">
-        <h3 class="fav-title">Vacanza</h3>
-        <div class="fav-actions">
-          <button class="btn ok"       data-admin="set_vacanza" data-value="true">Attiva</button>
-          <button class="btn outline"  data-admin="set_vacanza" data-value="false">Disattiva</button>
-        </div>
-      </article>
+      <div class="provider-row">
+        <div class="provider" id="weatherProvider">—</div>
+        <div id="ts" class="updated">Aggiornamento: —:—</div>
+      </div>
+    </section>
 
-      <!-- Override -->
-      <article class="card fav">
-        <h3 class="fav-title">Override</h3>
-        <div class="fav-actions">
-          <button class="btn warn"     data-admin="set_override" data-value="true">Attiva</button>
-          <button class="btn outline"  data-admin="set_override" data-value="false">Disattiva</button>
-        </div>
-      </article>
+    <!-- ===== DISPOSITIVI ===== -->
+    <section id="view-devices" class="view">
+      <h3 class="section-label">Persone</h3>
+      <div id="peopleChips" class="people-chips"></div>
 
-      <!-- Piante -->
-      <article class="card fav">
-        <h3 class="fav-title">Piante</h3>
-        <div class="fav-actions">
-          <button class="btn" data-admin="piante">Premi per eseguire</button>
-        </div>
-      </article>
+      <h3 class="section-label">Tapparelle</h3>
+      <div id="vimarShutters" class="list"></div>
 
-      <!-- Tapparelle ▲ -->
-      <article class="card fav">
-        <h3 class="fav-title">Tapparelle ▲</h3>
-        <div class="fav-actions">
-          <button class="btn" data-admin="alza_tutto">Premi per eseguire</button>
-        </div>
-      </article>
+      <h3 class="section-label">Termostati</h3>
+      <div id="vimarThermo" class="list"></div>
 
-      <!-- Tapparelle ▼ -->
-      <article class="card fav">
-        <h3 class="fav-title">Tapparelle ▼</h3>
-        <div class="fav-actions">
-          <button class="btn danger" data-admin="abbassa_tutto">Premi per eseguire</button>
-        </div>
-      </article>
+      <h3 class="section-label">Clivet</h3>
+      <div id="vimarHvac" class="list"></div>
+    </section>
 
-      <!-- (Facoltativo) VIMAR esempio per singolo ID -->
-      <!--
-      <article class="card fav">
-        <h3 class="fav-title">VIMAR — Sala</h3>
-        <div class="fav-actions">
-          <button class="btn"         data-vimar="shutter" data-id="SALA_01" data-cmd="up">Sala ↑</button>
-          <button class="btn danger"  data-vimar="shutter" data-id="SALA_01" data-cmd="down">Sala ↓</button>
-          <button class="btn outline" data-vimar="shutter" data-id="SALA_01" data-cmd="stop">Sala ■</button>
-        </div>
-      </article>
-      -->
-    </div>
+    <!-- ===== LOG ===== -->
+    <section id="view-log" class="view">
+      <div class="row-head">
+        <h3 class="section-label">Log errori automazioni</h3>
+        <button id="btnRefreshLog" class="pill-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.5-7.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M21 4v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Aggiorna
+        </button>
+      </div>
+      <div id="log" class="list"></div>
+      <div id="logEmpty" class="muted"></div>
+    </section>
+
+    <!-- ===== ROUTINE ===== -->
+    <section id="view-routine" class="view">
+      <div class="placeholder">Routine (coming soon)</div>
+    </section>
+
+    <!-- ===== MENU ===== -->
+    <section id="view-menu" class="view">
+      <div class="menu-grid">
+        <button class="menu-btn" data-target="home">Home</button>
+        <button class="menu-btn" data-target="devices">Dispositivi</button>
+        <button class="menu-btn" data-target="log">Log</button>
+        <button class="menu-btn" data-target="routine">Routine</button>
+      </div>
+    </section>
   </main>
 
-  <!-- BOTTOM NAV (la tua barra resta identica) -->
-  <nav class="bottom-nav">
-    <a class="nav-item active" href="#">
-      <span class="nav-ic">🏠</span><span class="nav-tx">Home</span>
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-ic">📟</span><span class="nav-tx">Dispositivi</span>
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-ic">🧾</span><span class="nav-tx">Log</span>
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-ic">🔁</span><span class="nav-tx">Routine</span>
-    </a>
-    <a class="nav-item" href="#">
-      <span class="nav-ic">☰</span><span class="nav-tx">Menu</span>
-    </a>
-  </nav>
+  <!-- ===== TAB BAR (5 icone) ===== -->
+  <footer class="tabbar">
+    <button class="tab active" data-target="home" title="Home">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="tab" data-target="devices" title="Dispositivi">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h18v6H3V5zm0 8h8v6H3v-6zm10 0h8v6h-8v-6z"/></svg>
+      <span>Dispositivi</span>
+    </button>
+    <button class="tab" data-target="log" title="Log" id="tabLog">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
+      <span>Log</span>
+      <span class="badge" id="badgeLog" hidden>!</span>
+    </button>
+    <button class="tab" data-target="routine" title="Routine">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg>
+      <span>Routine</span>
+    </button>
+    <button class="tab" data-target="menu" title="Menu">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      <span>Menu</span>
+    </button>
+  </footer>
 
-  <!-- SCRIPTS: ordine importante -->
-  <script src="config.js?v=2"></script>
-  <script src="jsonp.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <!-- ===== Scripts (inclusi dai relativi file) ===== -->
+  <script>
+    <?!= HtmlService.createHtmlOutputFromFile('config.js').getContent(); ?>
+  </script>
+  <script>
+    <?!= HtmlService.createHtmlOutputFromFile('jsonp.js').getContent(); ?>
+  </script>
+  <script>
+    <?!= HtmlService.createHtmlOutputFromFile('app.js').getContent(); ?>
+  </script>
 </body>
 </html>
