@@ -74,34 +74,35 @@
   <pre id="dbg" class="dbg"></pre>
 
 <script>
-/* ============ CONFIG ============ */
+/* ============ CONFIG per il TUO GAS ============ */
 const CONFIG = {
   title: "Casa di Marco",
   endpoint: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec",
   pollMs: 4000,
   jsonp: { enabled: true, param: "callback" },
+
+  /* Tile principali (matching con il tuo doGet) */
   tiles: [
     { id:"vacanza",  type:"switch", label:"Vacanza",  path:"vacanza",
-      on:{ url:"?cmd=set_vacanza&value=true&pin=1526" },
-      off:{url:"?cmd=set_vacanza&value=false&pin=1526"} },
-    { id:"presenza", type:"sensor", label:"Presenza", path:"present",
+      on:{ url:"admin=1&event=set_vacanza&value=true"  },
+      off:{url:"admin=1&event=set_vacanza&value=false" } },
+    { id:"presenza", type:"sensor", label:"Presenza", path:"presenzaEffettiva",
       format:v=>v?"In casa":"Assente" },
     { id:"piante",   type:"scene",  label:"Piante",   subtitle:"Apertura Tapparelle",
-      action:{ url:"?cmd=apri_tapparelle_modalita_piante&pin=1526", confirm:"Attivo modalità Apertura Tapparelle?" } },
+      action:{ url:"admin=1&event=piante", confirm:"Attivo modalità Apertura Tapparelle?" } },
     { id:"override", type:"switch", label:"Override", path:"override",
-      on:{ url:"?cmd=set_override&value=true&pin=1526" },
-      off:{url:"?cmd=set_override&value=false&pin=1526"} },
+      on:{ url:"admin=1&event=set_override&value=true"  },
+      off:{url:"admin=1&event=set_override&value=false" } },
   ],
-  persons: [
-    { label:"Marco",  path:"persone.marco"  },
-    { label:"Sonia",  path:"persone.sonia"  },
-    { label:"Matteo", path:"persone.matteo" }
-  ],
+
+  /* Stanze (Alba/Tramonto dal tuo modello) */
   rooms: [
     { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
     { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] },
   ],
   virtual: { alba:{label:"Alba",path:"alba"}, tramonto:{label:"Tramonto",path:"tramonto"} },
+
+  /* Log: il tuo doGet attuale non li fornisce → lasciamo vuoto/placeholder */
   logLimit: 20
 };
 /* ============ UTILS ============ */
@@ -109,20 +110,16 @@ const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const pick=(o,p)=>p.split('.').reduce((x,k)=>(x&&x[k]!==undefined)?x[k]:undefined,o);
 const log=(...a)=>{const el=$("#dbg"); el.textContent=[new Date().toLocaleTimeString(),...a].join(" ")+"\n"+el.textContent;}
 const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600);};
-const joinUrl=(base,tail)=> tail.startsWith("http")?tail : base + (base.includes("?")?"&":"?") + tail.slice(1);
+const append=(base,qs)=> base + (base.includes("?")?"&":"?") + qs;
 
 /* ============ SKELETON (visibile SUBITO) ============ */
 function renderSkeleton(){
   $("#homeName").textContent=CONFIG.title;
   $("#homeTiles").innerHTML = CONFIG.tiles.map(t=>`
     <article class="tile ${t.type} ${t.type!=="sensor"?"click":""}" data-id="${t.id}">
-      <div>
-        <div class="label">${t.label}</div>
-        ${t.subtitle?`<div class="muted">${t.subtitle}</div>`:""}
-      </div>
+      <div><div class="label">${t.label}</div>${t.subtitle?`<div class="muted">${t.subtitle}</div>`:""}</div>
       <div class="value muted">${t.type==="sensor"?"—":(t.type==="switch"?"Off":"Esegui")}</div>
     </article>`).join('');
-
   $("#rooms").innerHTML = CONFIG.rooms.map(r=>`
     <section class="room">
       <h3>${r.name}</h3>
@@ -130,8 +127,6 @@ function renderSkeleton(){
         ${r.tiles.map(id=>`<div class="tile-ref" data-ref="${id}"></div>`).join("")}
       </div>
     </section>`).join('');
-
-  // Clona nella stanza eventuali tile reali
   CONFIG.rooms.forEach(r=>{
     r.tiles.forEach(id=>{
       const host=document.querySelector(`.tile-ref[data-ref="${id}"]`);
@@ -151,7 +146,7 @@ function renderSkeleton(){
 }
 renderSkeleton();
 
-/* ============ BIND AZIONI (funziona anche senza dati) ============ */
+/* ============ BIND AZIONI con i TUOI event=... ============ */
 function bindActions(){
   CONFIG.tiles.forEach(t=>{
     const el=document.querySelector(`.tile[data-id="${t.id}"]`);
@@ -159,12 +154,11 @@ function bindActions(){
     if(t.type==="switch"){
       el.onclick=async ()=>{
         const isOn=el.classList.contains("on");
-        const action=isOn?t.off:t.on;
-        if(!action?.url) return;
+        const qs=isOn?t.off.url:t.on.url;               // admin=1&event=set_xxx&value=...
+        const url=append(CONFIG.endpoint, qs);
         try{
-          const url=joinUrl(CONFIG.endpoint, action.url);
           log("SWITCH", t.label, "→", url);
-          await fetch(url,{method:"GET",mode:"no-cors"});
+          await fetch(url,{method:"GET",mode:"no-cors"});  // non ci serve la risposta
           toast(`${t.label}: ${isOn?"Off":"On"}`);
         }catch(e){ toast(`Errore ${t.label}`); log("ERR switch",e.message); }
       };
@@ -172,8 +166,8 @@ function bindActions(){
     if(t.type==="scene"){
       el.onclick=async ()=>{
         if(t.action?.confirm && !confirm(t.action.confirm)) return;
+        const url=append(CONFIG.endpoint, t.action.url);   // admin=1&event=piante
         try{
-          const url=joinUrl(CONFIG.endpoint, t.action.url);
           log("SCENE", t.label, "→", url);
           await fetch(url,{method:"GET",mode:"no-cors"});
           toast(`${t.label}: eseguita`);
@@ -185,11 +179,11 @@ function bindActions(){
 }
 bindActions();
 
-/* ============ DATI LIVE (JSONP → fallback fetch) ============ */
-function jsonp(url,cbParam="callback",timeoutMs=3500){
+/* ============ JSONP loader (per data) ============ */
+function jsonp(url,cbParam="callback",timeoutMs=4000){
   return new Promise((res,rej)=>{
     const cb="cb_"+Math.random().toString(36).slice(2);
-    const sep = url.includes("?")?"&":"?";
+    const sep=url.includes("?")?"&":"?";
     const s=document.createElement("script");
     s.src=`${url}${sep}${cbParam}=${cb}`;
     const timer=setTimeout(()=>{cleanup(); rej(new Error("JSONP timeout"));}, timeoutMs);
@@ -200,48 +194,41 @@ function jsonp(url,cbParam="callback",timeoutMs=3500){
   });
 }
 
+/* ============ DATI LIVE (model da doGet) ============ */
 async function loadState(){
-  const url=CONFIG.endpoint;
   $("#ts").textContent="Aggiornamento…";
   try{
-    let data;
-    if(CONFIG.jsonp.enabled){
-      log("GET JSONP", url);
-      data = await jsonp(url, CONFIG.jsonp.param);
-    }else{
-      log("GET fetch", url);
-      const r=await fetch(url,{headers:{Accept:"application/json"}});
-      data=await r.json();
-    }
+    const model = await jsonp(CONFIG.endpoint, CONFIG.jsonp.param);
     $("#ts").textContent="Aggiornato: "+new Date().toLocaleTimeString();
-    applyState(data);
+    log("MODEL", JSON.stringify(model).slice(0,120)+"...");
+    applyState(model);
   }catch(e){
     log("DATA ERR", e.message);
     $("#ts").textContent="Errore di connessione";
   }
 }
 
-/* ============ RENDER DATI SULLE TILE ============ */
-function applyState(data){
-  // Persone
-  $("#people").innerHTML = CONFIG.persons.map(p=>{
-    const v=!!pick(data, p.path);
-    const text=v?"In":"Out";
-    const cls=v?"in":"out";
-    return `<span class="pill ${cls}">${p.label} · ${text}</span>`;
+/* ============ RENDER ============ */
+function applyState(model){
+  // Persone → dal tuo array model.people
+  const ppl = Array.isArray(model.people)? model.people : [];
+  $("#people").innerHTML = ppl.map(p=>{
+    const v = !!(p.onlineSmart || p.onlineRaw);
+    return `<span class="pill ${v?'in':'out'}">${p.name} · ${v?'In':'Out'}</span>`;
   }).join("");
 
   // HOME tiles
   CONFIG.tiles.forEach(t=>{
     const el=document.querySelector(`.tile[data-id="${t.id}"]`);
     if(!el) return;
+
     if(t.type==="sensor"){
-      const v=pick(data,t.path);
+      const v=pick(model,t.path);
       el.querySelector(".value").textContent = (t.format?t.format(v):v) ?? "—";
       el.classList.toggle("on", false);
     }
     if(t.type==="switch"){
-      const on=!!pick(data,t.path);
+      const on=!!pick(model,t.path);   // vacanza/override dal model
       el.querySelector(".value").textContent= on?"On":"Off";
       el.classList.toggle("on", on);
     }
@@ -255,21 +242,14 @@ function applyState(data){
   Object.entries(CONFIG.virtual).forEach(([id,vc])=>{
     const node=[...$$(".room .tile")].find(n=>n.querySelector(".label")?.textContent===vc.label);
     if(node){
-      const val=pick(data, vc.path);
-      node.querySelector(".value").textContent = val ?? "—";
+      const val=pick(model, vc.path);
+      node.querySelector(".value").textContent = (val==null || val==="") ? "—" : String(val).slice(0,16);
     }
   });
-  // Log automazioni: solo arrivi/uscite
-  const raw=Array.isArray(data.log)?data.log:[];
-  const filt=raw.filter(e=>{
-    const ev=String(e.evento||e.event||e.tipo||"").toLowerCase();
-    return ev==="arriva"||ev==="entra"||ev==="esce"||ev==="uscita";
-  }).slice(0, CONFIG.logLimit||20);
-  $("#log").innerHTML = filt.map(e=>`
-    <div class="row">
-      <div class="name">${e.chi||e.persona||"—"}</div>
-      <div class="muted">${(e.evento||e.event||"").toUpperCase()} · ${e.ora||e.time||""}</div>
-    </div>`).join("");
+
+  // Automazioni — il tuo doGet non espone i log → placeholder
+  $("#log").innerHTML = `<div class="row"><div class="name">Nessun evento</div>
+                         <div class="muted">Aggiungi endpoint log</div></div>`;
 }
 
 /* ============ LOOP ============ */
