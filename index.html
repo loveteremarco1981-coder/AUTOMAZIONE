@@ -1,431 +1,279 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Casa di Marco · Dashboard</title>
-  <style>
-    :root{
-      --bg: #0b0b0d;
-      --card: rgba(255,255,255,.08);
-      --text: #e7e7eb;
-      --muted: #a0a0aa;
-      --radius: 22px;
-      --blur: 18px;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --tile-size: min(44vw, 180px);
-      --tile-gap: 14px;
-      --accent: #0a84ff;
-      --ok: #2eaa4e;
-    }
-
-    *{ box-sizing: border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      background: radial-gradient(1000px 600px at 70% -20%, #1b1b22 0%, #0b0b0d 55%, #000 100%);
-      color: var(--text);
-      font: 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI",
-            Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    }
-
-    /* Header */
-    .home-header{
-      position: sticky; top:0; z-index:10;
-      padding: 22px 18px 10px;
-      backdrop-filter: blur(var(--blur));
-      background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.2) 70%, transparent);
-    }
-    .home-title h1{ margin:0 0 6px; font-size: 28px; font-weight: 700; }
-    .home-summary{ color: var(--muted); font-size: 14px; }
-
-    .people{ display:flex; gap:8px; margin: 6px 0 8px; flex-wrap: wrap; }
-    .person-pill{
-      padding: 6px 10px; border-radius: 999px; font-size: 13px;
-      background: rgba(255,255,255,.1); color: var(--text);
-    }
-    .person-pill.in{ background: rgba(46,170,78,.9); color:#fff; }
-    .person-pill.out{ background: rgba(120,120,130,.35); }
-
-    /* Grid tiles */
-    .tiles{
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(var(--tile-size),1fr));
-      gap: var(--tile-gap);
-      padding: 12px 16px 30px;
-    }
-    .tiles-room{ grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 12px; }
-
-    .tile{
-      border-radius: var(--radius);
-      background: var(--card);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      min-height: 120px;
-      display:flex; flex-direction:column; justify-content:space-between;
-      transition: transform .18s ease, background .18s ease, filter .18s ease, opacity .18s ease;
-      cursor: default;
-      user-select: none;
-    }
-    .tile:hover{ transform: translateY(-2px); }
-    .tile .label{ font-weight:600; }
-    .tile .value{ font-size: 26px; font-weight: 700; margin-top: 8px; }
-    .tile .muted{ color: var(--muted); font-size: 13px; }
-
-    /* Stato ON (accent stile iOS) */
-    .tile.on{
-      background: linear-gradient(180deg, rgba(10,132,255,.92), rgba(10,132,255,.65));
-      color: #fff;
-    }
-    .tile.on .muted{ color: rgba(255,255,255,.92); }
-
-    /* Interruttori: OFF = “sfocato” */
-    .tile.switch:not(.on){
-      filter: saturate(.55) brightness(.85);
-      opacity: .88;
-    }
-    .tile.clickable{ cursor: pointer; }
-
-    /* Sezioni */
-    .section{ padding: 6px 16px 16px; }
-    .section h2{ margin: 0 0 12px; font-size: 20px; }
-    .room{ margin-bottom: 10px; }
-    .room h3{ margin: 8px 0 6px; font-size: 16px; color: var(--muted); }
-
-    /* Lista log automazioni */
-    .list .log-row{
-      display:flex; align-items:baseline; justify-content:space-between;
-      background: rgba(255,255,255,.05);
-      padding:10px 12px; border-radius:14px; margin:6px 0;
-    }
-    .log-row .name{ font-weight:600; }
-    .log-row .muted{ color: var(--muted); }
-
-    /* Toast */
-    .toast{
-      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
-      background: rgba(0,0,0,.8); color: #fff; padding: 10px 14px; border-radius: 12px;
-      box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .2s ease;
-      z-index: 9999; font-size: 14px;
-    }
-    .toast.show{ opacity: 1; }
-    .hidden{ display:none; }
-
-    /* Light mode */
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f2f2f7; --text:#101014; --card: rgba(255,255,255,.92); --muted:#6b6b76; }
-      body{ background: linear-gradient(180deg, #f8f8fb, #ececf2); }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Casa di Marco · Dashboard</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --text:#e7e7eb; --muted:#a0a0aa;
+    --card:rgba(255,255,255,.08); --accent:#0a84ff;
+    --r:22px; --blur:18px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --tile:min(44vw,180px); --gap:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1000px 600px at 70% -20%,#1b1b22 0,#0b0b0d 55%,#000);
+       color:var(--text);font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
+  .hdr{position:sticky;top:0;z-index:10;padding:22px 18px 12px;
+       background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.2) 70%,transparent);
+       backdrop-filter:blur(var(--blur))}
+  .hdr h1{margin:0 0 6px;font-size:28px;font-weight:700}
+  .muted{color:var(--muted);font-size:14px}
+  .people{display:flex;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
+  .pill{padding:6px 10px;border-radius:999px;font-size:13px;background:rgba(255,255,255,.1)}
+  .pill.in{background:rgba(46,170,78,.9);color:#fff}
+  .pill.out{background:rgba(120,120,130,.35)}
+  .tiles{display:grid;gap:var(--gap);padding:12px 16px 30px;
+         grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr))}
+  .tiles-room{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+  .tile{border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);padding:14px;min-height:120px;
+        display:flex;flex-direction:column;justify-content:space-between;transition:.18s;user-select:none}
+  .tile:hover{transform:translateY(-2px)}
+  .label{font-weight:600}.value{font-size:26px;font-weight:700;margin-top:8px}
+  .tile.on{background:linear-gradient(180deg,rgba(10,132,255,.92),rgba(10,132,255,.65));color:#fff}
+  .tile.switch:not(.on){filter:saturate(.55) brightness(.85);opacity:.88}
+  .click{cursor:pointer}
+  .sec{padding:6px 16px 16px}.sec h2{margin:0 0 12px;font-size:20px}
+  .room{margin-bottom:10px}.room h3{margin:8px 0 6px;font-size:16px;color:var(--muted)}
+  .list .row{display:flex;justify-content:space-between;align-items:baseline;background:rgba(255,255,255,.05);
+             padding:10px 12px;border-radius:14px;margin:6px 0}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;
+         padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s;z-index:9999}
+  .toast.show{opacity:1}
+  .dbg{position:fixed;right:8px;bottom:8px;font:12px/1.35 monospace;background:rgba(0,0,0,.5);color:#9ad8ff;
+       padding:6px 8px;border-radius:8px;max-width:48vw;max-height:30vh;overflow:auto}
+  @media (prefers-color-scheme:light){
+    :root{--bg:#f2f2f7;--text:#101014;--card:rgba(255,255,255,.92);--muted:#6b6b76}
+    body{background:linear-gradient(180deg,#f8f8fb,#ececf2)}
+  }
+</style>
 </head>
 <body>
-  <header class="home-header">
-    <div class="home-title">
-      <h1 id="homeName">Casa di Marco</h1>
-      <!-- Pillole persone (In/Out) -->
-      <div id="peoplePills" class="people"></div>
-      <!-- Timestamp aggiornamento -->
-      <div id="homeSummary" class="home-summary">Aggiornamento…</div>
-    </div>
+  <header class="hdr">
+    <h1 id="homeName">Casa di Marco</h1>
+    <div id="people" class="people"></div>
+    <div id="ts" class="muted">Aggiornamento…</div>
   </header>
 
-  <main>
-    <!-- HOME: tile principali -->
-    <section class="tiles" id="tiles"></section>
+  <!-- HOME -->
+  <section class="tiles" id="homeTiles"></section>
 
-    <!-- STANZE -->
-    <section class="section">
-      <h2>Stanze</h2>
-      <div id="rooms"></div>
-    </section>
+  <!-- STANZE -->
+  <section class="sec">
+    <h2>Stanze</h2>
+    <div id="rooms"></div>
+  </section>
 
-    <!-- AUTOMAZIONI -->
-    <section class="section">
-      <h2>Automazioni</h2>
-      <div id="automations"></div>
-    </section>
-  </main>
+  <!-- AUTOMAZIONI -->
+  <section class="sec">
+    <h2>Automazioni</h2>
+    <div id="log" class="list"></div>
+  </section>
 
-  <!-- Toast -->
-  <div id="toast" class="toast hidden"></div>
+  <div id="toast" class="toast"></div>
+  <pre id="dbg" class="dbg"></pre>
 
-  <!-- =======================
-       CONFIG (puoi modificare qui)
-       ======================= -->
-  <script>
-  window.APP_CONFIG = {
-    title: "Casa di Marco",
+<script>
+/* ============ CONFIG ============ */
+const CONFIG = {
+  title: "Casa di Marco",
+  endpoint: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec",
+  pollMs: 4000,
+  jsonp: { enabled: true, param: "callback" },
+  tiles: [
+    { id:"vacanza",  type:"switch", label:"Vacanza",  path:"vacanza",
+      on:{ url:"?cmd=set_vacanza&value=true&pin=1526" },
+      off:{url:"?cmd=set_vacanza&value=false&pin=1526"} },
+    { id:"presenza", type:"sensor", label:"Presenza", path:"present",
+      format:v=>v?"In casa":"Assente" },
+    { id:"piante",   type:"scene",  label:"Piante",   subtitle:"Apertura Tapparelle",
+      action:{ url:"?cmd=apri_tapparelle_modalita_piante&pin=1526", confirm:"Attivo modalità Apertura Tapparelle?" } },
+    { id:"override", type:"switch", label:"Override", path:"override",
+      on:{ url:"?cmd=set_override&value=true&pin=1526" },
+      off:{url:"?cmd=set_override&value=false&pin=1526"} },
+  ],
+  persons: [
+    { label:"Marco",  path:"persone.marco"  },
+    { label:"Sonia",  path:"persone.sonia"  },
+    { label:"Matteo", path:"persone.matteo" }
+  ],
+  rooms: [
+    { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
+    { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] },
+  ],
+  virtual: { alba:{label:"Alba",path:"alba"}, tramonto:{label:"Tramonto",path:"tramonto"} },
+  logLimit: 20
+};
+/* ============ UTILS ============ */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const pick=(o,p)=>p.split('.').reduce((x,k)=>(x&&x[k]!==undefined)?x[k]:undefined,o);
+const log=(...a)=>{const el=$("#dbg"); el.textContent=[new Date().toLocaleTimeString(),...a].join(" ")+"\n"+el.textContent;}
+const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600);};
+const joinUrl=(base,tail)=> tail.startsWith("http")?tail : base + (base.includes("?")?"&":"?") + tail.slice(1);
 
-    // TUO endpoint Google Apps Script (JSONP)
-    endpoint: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec",
-
-    // Polling
-    pollMs: 4000,
-
-    // JSONP
-    transport: "jsonp",
-    jsonpCallbackParam: "callback",
-
-    // ====== Tile principali (HOME) ======
-    tiles: [
-      {
-        id: "vacanza",
-        type: "switch",
-        label: "Vacanza",
-        path: "vacanza",
-        on:  { url: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec?cmd=set_vacanza&value=true&pin=1526" },
-        off: { url: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec?cmd=set_vacanza&value=false&pin=1526" }
-      },
-      {
-        id: "presenza",
-        type: "sensor",
-        label: "Presenza",
-        path: "present",
-        format: v => v ? "In casa" : "Assente"
-      },
-      {
-        id: "piante",
-        type: "scene",
-        label: "Piante",
-        subtitle: "Apertura Tapparelle",
-        action: {
-          url: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec?cmd=apri_tapparelle_modalita_piante&pin=1526",
-          confirm: "Attivo modalità Apertura Tapparelle?"
-        }
-      },
-      {
-        id: "override",
-        type: "switch",
-        label: "Override",
-        path: "override",
-        on:  { url: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec?cmd=set_override&value=true&pin=1526" },
-        off: { url: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec?cmd=set_override&value=false&pin=1526" }
-      }
-    ],
-
-    // ====== Persone (pillole in alto) ======
-    persons: [
-      { id:"marco",  label:"Marco",  path:"persone.marco",  format:v=>v?"In":"Out" },
-      { id:"sonia",  label:"Sonia",  path:"persone.sonia",  format:v=>v?"In":"Out" },
-      { id:"matteo", label:"Matteo", path:"persone.matteo", format:v=>v?"In":"Out" }
-    ],
-
-    // ====== Stanze ======
-    rooms: [
-      { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
-      { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] }
-    ],
-
-    //  "Virtual tiles" per Stanze (lettura diretta dal JSON)
-    virtual: {
-      alba:     { label: "Alba",     path: "alba" },
-      tramonto: { label: "Tramonto", path: "tramonto" }
-    },
-
-    // ====== Automazioni: SOLO Entrate/Uscite (no LIFE) ======
-    logLimit: 20
-  };
-  </script>
-
-  <!-- =======================
-       JSONP LOADER
-       ======================= -->
-  <script>
-  function jsonp(url, callbackParam='callback'){
-    return new Promise((resolve, reject)=>{
-      const cb = 'cb_' + Math.random().toString(36).slice(2);
-      const sep = url.includes('?') ? '&' : '?';
-      const s = document.createElement('script');
-      s.src = `${url}${sep}${callbackParam}=${cb}`;
-      window[cb] = (data)=>{ resolve(data); s.remove(); delete window[cb]; };
-      s.onerror = ()=>{ reject(new Error('JSONP error')); s.remove(); delete window[cb]; };
-      document.head.appendChild(s);
-    });
-  }
-  </script>
-
-  <!-- =======================
-       APP
-       ======================= -->
-  <script>
-  const $  = s => document.querySelector(s);
-  const $$ = s => document.querySelectorAll(s);
-  const pick = (o,p)=> p.split('.').reduce((x,k)=> (x && x[k]!==undefined)?x[k]:undefined, o);
-
-  function toast(msg, ms=1800){
-    const t=$("#toast"); t.textContent=msg; t.classList.remove('hidden');
-    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms);
-    setTimeout(()=>t.classList.add('hidden'), ms+250);
-  }
-
-  // Skeleton iniziale
-  function renderSkeleton(){
-    $("#tiles").innerHTML = APP_CONFIG.tiles.map(t => `
-      <article class="tile ${t.type} ${t.type!=='sensor'?'clickable':''}" data-id="${t.id}">
-        <div>
-          <div class="label">${t.label}</div>
-          ${t.subtitle ? `<div class="muted">${t.subtitle}</div>` : ``}
-        </div>
-        <div class="value muted">—</div>
-      </article>
-    `).join('');
-
-    const rooms = $("#rooms");
-    if (rooms && APP_CONFIG.rooms?.length){
-      rooms.innerHTML = APP_CONFIG.rooms.map(r => `
-        <section class="room">
-          <h3>${r.name}</h3>
-          <div class="tiles tiles-room">
-            ${r.tiles.map(id => `<div class="tile-ref" data-ref="${id}"></div>`).join('')}
-          </div>
-        </section>
-      `).join('');
-    }
-
-    $("#automations").innerHTML = `<div class="list" id="logList"></div>`;
-  }
-  renderSkeleton();
-
-  async function loadState(){
-    if (APP_CONFIG.transport === 'jsonp'){
-      try{
-        return await jsonp(APP_CONFIG.endpoint, APP_CONFIG.jsonpCallbackParam || 'callback');
-      }catch(e){
-        // fallback opzionale via fetch
-        const r = await fetch(APP_CONFIG.endpoint, { headers: { 'Accept':'application/json' }});
-        if(!r.ok) throw new Error(`HTTP ${r.status}`);
-        return await r.json();
-      }
-    }else{
-      const r = await fetch(APP_CONFIG.endpoint, { headers: { 'Accept':'application/json' }});
-      if(!r.ok) throw new Error(`HTTP ${r.status}`);
-      return await r.json();
-    }
-  }
-
-  function bindActions(tileEl, tileCfg){
-    if (tileCfg.type === "switch"){
-      tileEl.classList.add('switch');
-      tileEl.onclick = async ()=>{
-        const isOn = tileEl.classList.contains('on');
-        const target = isOn ? tileCfg.off : tileCfg.on;
-        if (!target?.url) return;
-        tileEl.classList.add('busy');
-        try {
-          await fetch(target.url, { method:'GET' });
-          toast(`${tileCfg.label}: ${isOn?'Off':'On'}`);
-        } catch(e){
-          toast(`Errore ${tileCfg.label}`);
-        } finally {
-          tileEl.classList.remove('busy');
-        }
-      };
-    }
-    if (tileCfg.type === "scene"){
-      tileEl.onclick = async ()=>{
-        if (tileCfg.action?.confirm && !confirm(tileCfg.action.confirm)) return;
-        tileEl.classList.add('busy');
-        try {
-          await fetch(tileCfg.action.url, { method:'GET' });
-          toast(`${tileCfg.label}: eseguita`);
-        } catch(e){
-          toast(`Errore scena ${tileCfg.label}`);
-        } finally {
-          tileEl.classList.remove('busy');
-        }
-      };
-    }
-  }
-
-  function applyState(data){
-    $("#homeName").textContent = APP_CONFIG.title || "Casa";
-    $("#homeSummary").textContent = `Aggiornato: ${new Date().toLocaleTimeString()}`;
-
-    // Persone (pillole)
-    const ppl = $("#peoplePills");
-    if (ppl && APP_CONFIG.persons?.length){
-      ppl.innerHTML = APP_CONFIG.persons.map(p => {
-        const v = pick(data, p.path);
-        const txt = p.format ? p.format(v) : (v ? "In":"Out");
-        const cls = (String(txt).toLowerCase().startsWith('in') || v===true) ? 'in' : 'out';
-        return `<span class="person-pill ${cls}">${p.label} · ${txt}</span>`;
-      }).join('');
-    }
-
-    // HOME tiles
-    APP_CONFIG.tiles.forEach(cfg => {
-      const el = $(`.tile[data-id="${cfg.id}"]`); if(!el) return;
-      if (!el.dataset.bound){ bindActions(el, cfg); el.dataset.bound = "1"; }
-
-      if (cfg.type === "sensor"){
-        const raw = pick(data, cfg.path);
-        const txt = cfg.format ? cfg.format(raw) : raw;
-        el.querySelector('.value').textContent = (txt ?? "—") + (cfg.unit ? ` ${cfg.unit}`:"");
-        el.classList.toggle('on', false);
-      }
-
-      if (cfg.type === "switch"){
-        const on = !!pick(data, cfg.path);
-        el.querySelector('.value').textContent = on ? "On" : "Off";
-        el.classList.toggle('on', on);
-      }
-
-      if (cfg.type === "scene"){
-        el.querySelector('.value').textContent = "Esegui";
-        el.classList.toggle('on', false);
-      }
-    });
-
-    // STANZE: virtual tiles + clone delle tile reali
-    APP_CONFIG.rooms?.forEach(r => {
-      r.tiles.forEach(id => {
-        const host = $(`.tile-ref[data-ref="${id}"]`); if(!host) return;
-
-        if (APP_CONFIG.virtual?.[id]){
-          const vconf = APP_CONFIG.virtual[id];
-          const val = pick(data, vconf.path);
-          host.outerHTML = `
-            <article class="tile sensor" data-virtual="${id}">
-              <div class="label">${vconf.label}</div>
-              <div class="value">${val ?? "—"}</div>
-            </article>`;
-          return;
-        }
-
-        const src = $(`.tile[data-id="${id}"]`);
-        if (src){
-          const clone = src.cloneNode(true);
-          clone.classList.add('is-room');
-          // ricollego l'handler anche al clone
-          clone.dataset.bound = "";
-          bindActions(clone, APP_CONFIG.tiles.find(t=>t.id===id));
-          host.replaceWith(clone);
-        }
-      });
-    });
-
-    // AUTOMAZIONI: solo Entrate/Uscite (no LIFE)
-    const log = Array.isArray(data.log) ? data.log : [];
-    const filtered = log.filter(e => {
-      const ev = String(e.evento || e.event || e.tipo || '').toLowerCase();
-      return ev === 'arriva' || ev === 'entra' || ev === 'esce' || ev === 'uscita';
-    }).slice(0, APP_CONFIG.logLimit || 20);
-
-    $("#logList").innerHTML = filtered.map(e => `
-      <div class="log-row">
-        <div class="name">${e.chi || e.persona || '—'}</div>
-        <div class="muted">${(e.evento || e.event || '').toUpperCase()} · ${e.ora || e.time || ''}</div>
+/* ============ SKELETON (visibile SUBITO) ============ */
+function renderSkeleton(){
+  $("#homeName").textContent=CONFIG.title;
+  $("#homeTiles").innerHTML = CONFIG.tiles.map(t=>`
+    <article class="tile ${t.type} ${t.type!=="sensor"?"click":""}" data-id="${t.id}">
+      <div>
+        <div class="label">${t.label}</div>
+        ${t.subtitle?`<div class="muted">${t.subtitle}</div>`:""}
       </div>
-    `).join('');
-  }
+      <div class="value muted">${t.type==="sensor"?"—":(t.type==="switch"?"Off":"Esegui")}</div>
+    </article>`).join('');
 
-  function loop(){
-    loadState()
-      .then(applyState)
-      .catch(err => { console.error(err); $("#homeSummary").textContent = "Errore di connessione"; })
-      .finally(()=> setTimeout(loop, APP_CONFIG.pollMs || 4000));
+  $("#rooms").innerHTML = CONFIG.rooms.map(r=>`
+    <section class="room">
+      <h3>${r.name}</h3>
+      <div class="tiles tiles-room">
+        ${r.tiles.map(id=>`<div class="tile-ref" data-ref="${id}"></div>`).join("")}
+      </div>
+    </section>`).join('');
+
+  // Clona nella stanza eventuali tile reali
+  CONFIG.rooms.forEach(r=>{
+    r.tiles.forEach(id=>{
+      const host=document.querySelector(`.tile-ref[data-ref="${id}"]`);
+      if(!host) return;
+      if(CONFIG.virtual[id]){
+        host.outerHTML=`
+          <article class="tile sensor">
+            <div class="label">${CONFIG.virtual[id].label}</div>
+            <div class="value muted">—</div>
+          </article>`;
+        return;
+      }
+      const src=document.querySelector(`.tile[data-id="${id}"]`);
+      if(src){ host.replaceWith(src.cloneNode(true)); }
+    });
+  });
+}
+renderSkeleton();
+
+/* ============ BIND AZIONI (funziona anche senza dati) ============ */
+function bindActions(){
+  CONFIG.tiles.forEach(t=>{
+    const el=document.querySelector(`.tile[data-id="${t.id}"]`);
+    if(!el || el.dataset.bound) return;
+    if(t.type==="switch"){
+      el.onclick=async ()=>{
+        const isOn=el.classList.contains("on");
+        const action=isOn?t.off:t.on;
+        if(!action?.url) return;
+        try{
+          const url=joinUrl(CONFIG.endpoint, action.url);
+          log("SWITCH", t.label, "→", url);
+          await fetch(url,{method:"GET",mode:"no-cors"});
+          toast(`${t.label}: ${isOn?"Off":"On"}`);
+        }catch(e){ toast(`Errore ${t.label}`); log("ERR switch",e.message); }
+      };
+    }
+    if(t.type==="scene"){
+      el.onclick=async ()=>{
+        if(t.action?.confirm && !confirm(t.action.confirm)) return;
+        try{
+          const url=joinUrl(CONFIG.endpoint, t.action.url);
+          log("SCENE", t.label, "→", url);
+          await fetch(url,{method:"GET",mode:"no-cors"});
+          toast(`${t.label}: eseguita`);
+        }catch(e){ toast(`Errore scena ${t.label}`); log("ERR scene",e.message); }
+      };
+    }
+    el.dataset.bound="1";
+  });
+}
+bindActions();
+
+/* ============ DATI LIVE (JSONP → fallback fetch) ============ */
+function jsonp(url,cbParam="callback",timeoutMs=3500){
+  return new Promise((res,rej)=>{
+    const cb="cb_"+Math.random().toString(36).slice(2);
+    const sep = url.includes("?")?"&":"?";
+    const s=document.createElement("script");
+    s.src=`${url}${sep}${cbParam}=${cb}`;
+    const timer=setTimeout(()=>{cleanup(); rej(new Error("JSONP timeout"));}, timeoutMs);
+    function cleanup(){clearTimeout(timer); s.remove(); delete window[cb];}
+    window[cb]=(data)=>{cleanup(); res(data);};
+    s.onerror=()=>{cleanup(); rej(new Error("JSONP error"));};
+    document.head.appendChild(s);
+  });
+}
+
+async function loadState(){
+  const url=CONFIG.endpoint;
+  $("#ts").textContent="Aggiornamento…";
+  try{
+    let data;
+    if(CONFIG.jsonp.enabled){
+      log("GET JSONP", url);
+      data = await jsonp(url, CONFIG.jsonp.param);
+    }else{
+      log("GET fetch", url);
+      const r=await fetch(url,{headers:{Accept:"application/json"}});
+      data=await r.json();
+    }
+    $("#ts").textContent="Aggiornato: "+new Date().toLocaleTimeString();
+    applyState(data);
+  }catch(e){
+    log("DATA ERR", e.message);
+    $("#ts").textContent="Errore di connessione";
   }
-  loop();
-  </script>
+}
+
+/* ============ RENDER DATI SULLE TILE ============ */
+function applyState(data){
+  // Persone
+  $("#people").innerHTML = CONFIG.persons.map(p=>{
+    const v=!!pick(data, p.path);
+    const text=v?"In":"Out";
+    const cls=v?"in":"out";
+    return `<span class="pill ${cls}">${p.label} · ${text}</span>`;
+  }).join("");
+
+  // HOME tiles
+  CONFIG.tiles.forEach(t=>{
+    const el=document.querySelector(`.tile[data-id="${t.id}"]`);
+    if(!el) return;
+    if(t.type==="sensor"){
+      const v=pick(data,t.path);
+      el.querySelector(".value").textContent = (t.format?t.format(v):v) ?? "—";
+      el.classList.toggle("on", false);
+    }
+    if(t.type==="switch"){
+      const on=!!pick(data,t.path);
+      el.querySelector(".value").textContent= on?"On":"Off";
+      el.classList.toggle("on", on);
+    }
+    if(t.type==="scene"){
+      el.querySelector(".value").textContent="Esegui";
+      el.classList.toggle("on", false);
+    }
+  });
+
+  // STANZE virtual (alba/tramonto)
+  Object.entries(CONFIG.virtual).forEach(([id,vc])=>{
+    const node=[...$$(".room .tile")].find(n=>n.querySelector(".label")?.textContent===vc.label);
+    if(node){
+      const val=pick(data, vc.path);
+      node.querySelector(".value").textContent = val ?? "—";
+    }
+  });
+  // Log automazioni: solo arrivi/uscite
+  const raw=Array.isArray(data.log)?data.log:[];
+  const filt=raw.filter(e=>{
+    const ev=String(e.evento||e.event||e.tipo||"").toLowerCase();
+    return ev==="arriva"||ev==="entra"||ev==="esce"||ev==="uscita";
+  }).slice(0, CONFIG.logLimit||20);
+  $("#log").innerHTML = filt.map(e=>`
+    <div class="row">
+      <div class="name">${e.chi||e.persona||"—"}</div>
+      <div class="muted">${(e.evento||e.event||"").toUpperCase()} · ${e.ora||e.time||""}</div>
+    </div>`).join("");
+}
+
+/* ============ LOOP ============ */
+loadState(); setInterval(loadState, CONFIG.pollMs);
+</script>
 </body>
 </html>
