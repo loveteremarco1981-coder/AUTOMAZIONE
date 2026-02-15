@@ -33,7 +33,6 @@ function initTabbar(){
     if(target==='devices') renderDevicesCached();
     if(target==='log') loadLogs();
   });
-  // quick from menu
   $('#view-menu').addEventListener('click', e=>{
     const b=e.target.closest('.menu-btn'); if(!b) return;
     document.querySelector(`.tab[data-target="${b.dataset.target}"]`)?.click();
@@ -69,7 +68,6 @@ async function loadState(){
     window.__lastModel = model;
     apply(model);
     $('#ts').textContent = 'Aggiornamento: ' + new Date().toLocaleTimeString();
-    // badge su Log se errori
     const hasErr = Number(pick(model,'alerts.logErrors')||0) > 0;
     document.querySelector('.tab[data-target="log"]')?.classList.toggle('has-dot', hasErr);
   }catch(e){
@@ -79,7 +77,7 @@ async function loadState(){
 
 /* ---------- APPLY UI ---------- */
 function apply(m){
-  // Nome & Stato Casa
+  // Stato casa
   $('#homeName').textContent = APP_CONFIG.title || 'Casa';
   const stRaw = String(pick(m, APP_CONFIG.paths.homeState)||'').toUpperCase();
   const chip = $('#chipState');
@@ -89,16 +87,23 @@ function apply(m){
   else if(/^SECURITY|NIGHT/.test(stRaw)) chip.classList.add('security');
   else                              chip.classList.add('neutral');
 
-  // Meteo
+  // Meteo (numerico)
   const t = pick(m, APP_CONFIG.paths.weatherTemp);
-  $('#weatherTemp').textContent = (t!=null) ? `${Math.round(t)} °C` : '— °C';
+  $('#weatherTemp').textContent = (t!=null && isFinite(+t)) ? `${Math.round(+t)} °C` : '— °C';
   $('#weatherProvider').textContent = pick(m,'weather.provider') || 'The Weather Channel';
 
-  // Dashboard
-  const off = pick(m, APP_CONFIG.paths.offlineCount);
-  $('#offlineCount').textContent = (off!=null) ? off : '—';
+  // Dashboard Persone = casa occupata/vuota
+  const people = Array.isArray(m.people) ? m.people : [];
+  const onlineCount = people.filter(p => !!(p.onlineSmart || p.onlineRaw)).length;
+  const occupied = onlineCount > 0;
+  const peopleOnlineEl = document.getElementById('peopleOnline');
+  if (peopleOnlineEl) peopleOnlineEl.textContent = String(onlineCount);
+  const houseStatusEl = document.getElementById('houseStatus');
+  if (houseStatusEl) houseStatusEl.textContent = occupied ? 'Casa occupata' : 'Casa vuota';
+
+  // Energy
   const kwh = pick(m, APP_CONFIG.paths.energyKwh);
-  $('#energyKwh').textContent = (kwh!=null) ? Number(kwh).toFixed(2) : '—';
+  $('#energyKwh').textContent = (kwh!=null && isFinite(+kwh)) ? Number(kwh).toFixed(2) : '—';
 
   // Favorites
   (APP_CONFIG.tiles||[]).forEach(t=>{
@@ -120,7 +125,7 @@ function apply(m){
 /* ---------- DEVICES VIEW (Vimar + Persone) ---------- */
 function renderDevicesCached(){
   const m = window.__lastModel || {};
-  // Persone chips
+  // Persone
   const arr = Array.isArray(m.people) ? m.people : [];
   $('#peopleChips').innerHTML = arr.length
     ? arr.map(p=>{
@@ -129,7 +134,7 @@ function renderDevicesCached(){
       }).join('')
     : `<span class="muted" style="margin:6px">Nessuna persona</span>`;
 
-  // Tapparelle con controlli up/stop/down
+  // Tapparelle con controlli
   const shutters = pick(m, 'vimar.shutters') || [];
   $('#vimarShutters').innerHTML = shutters.length ? shutters.map(s=>`
     <div class="row">
@@ -144,14 +149,14 @@ function renderDevicesCached(){
         <button class="ctl-btn" title="Stop" onclick="cmdShutter('${encodeURIComponent(s.id)}','stop')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
         </button>
-        <button class="ctl-btn" title="Giu" onclick="cmdShutter('${encodeURIComponent(s.id)}','down')">
+        <button class="ctl-btn" title="Giù" onclick="cmdShutter('${encodeURIComponent(s.id)}','down')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
         </button>
       </div>
     </div>
   `).join('') : `<div class="muted" style="margin:6px">Nessuna tapparella</div>`;
 
-  // Termostati con setpoint +/- e mode cycle
+  // Termostati
   const ths = pick(m, 'vimar.thermostats') || [];
   $('#vimarThermo').innerHTML = ths.length ? ths.map(t=>`
     <div class="row">
@@ -163,7 +168,7 @@ function renderDevicesCached(){
         <button class="ctl-btn" title="Setpoint -" onclick="cmdThermo('${encodeURIComponent(t.id)}','dec')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>
         </button>
-        <div class="muted">${fmtTemp(t.setpoint)}</div>
+        <div class="sub">${fmtTemp(t.setpoint)}</div>
         <button class="ctl-btn" title="Setpoint +" onclick="cmdThermo('${encodeURIComponent(t.id)}','inc')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 5h2v14h-2zM5 11h14v2H5z"/></svg>
         </button>
@@ -174,7 +179,7 @@ function renderDevicesCached(){
     </div>
   `).join('') : `<div class="muted" style="margin:6px">Nessun termostato</div>`;
 
-  // Clivet HVAC: power, setpoint, mode, fan
+  // Clivet
   const hvac = pick(m, 'vimar.hvac') || [];
   $('#vimarHvac').innerHTML = hvac.length ? hvac.map(h=>`
     <div class="row">
@@ -189,7 +194,7 @@ function renderDevicesCached(){
         <button class="ctl-btn" title="Setpoint -" onclick="cmdHvac('${encodeURIComponent(h.id)}','dec')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5 11h14v2H5z"/></svg>
         </button>
-        <div class="muted">${fmtTemp(h.setpoint)}</div>
+        <div class="sub">${fmtTemp(h.setpoint)}</div>
         <button class="ctl-btn" title="Setpoint +" onclick="cmdHvac('${encodeURIComponent(h.id)}','inc')">
           <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 5h2v14h-2zM5 11h14v2H5z"/></svg>
         </button>
