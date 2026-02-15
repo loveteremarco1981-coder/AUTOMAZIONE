@@ -5,34 +5,62 @@ window.APP_CONFIG = {
   transport: "jsonp",
   jsonpCallbackParam: "callback",
 
-  // Tile principali (ordine di rendering = posizione in griglia)
+  /* === PERCORSI LETTI DALLA UI ===
+     - state: COMFY_DAY / SECURITY_NIGHT ecc. (mostrato nel chip in alto)
+     - weather.tempC: temperatura per la pill meteo (°C)
+     - devicesOfflineCount: numero dispositivi offline
+     - energy.kwh: consumo energia per la pill Energy
+  */
+  paths: {
+    homeState:   "state",
+    weatherTemp: "weather.tempC",
+    offlineCount:"devicesOfflineCount",
+    energyKwh:   "energy.kwh"
+  },
+
+  /* === PREFERITI (HOME) ===
+     - "pushToggle": un solo bottone che attiva/disattiva in base allo stato corrente
+     - "push": un solo bottone che esegue l’azione
+     - path punta al booleano pubblicato dal tuo doGet (vacanza/override)
+  */
   tiles: [
-    { id:"vacanza",  type:"switch", label:"Vacanza",  path:"vacanza",
-      on:{  url:"admin=1&event=set_vacanza&value=true"  },
-      off:{ url:"admin=1&event=set_vacanza&value=false" } },
+    {
+      id: "vacanza",
+      type: "pushToggle",
+      label: "Vacanza",
+      path: "vacanza",
+      toggle: {
+        on:  "admin=1&event=set_vacanza&value=true",
+        off: "admin=1&event=set_vacanza&value=false"
+      }
+    },
+    {
+      id: "override",
+      type: "pushToggle",
+      label: "Override",
+      path: "override",
+      toggle: {
+        on:  "admin=1&event=set_override&value=true",
+        off: "admin=1&event=set_override&value=false"
+      }
+    },
+    {
+      id: "piante",
+      type: "push",
+      label: "Piante",
+      action: { url: "admin=1&event=piante" }
+    }
 
-    { id:"presenza", type:"sensor", label:"Presenza", path:"presenzaEffettiva",
-      format:v=>v?"In casa":"Assente" },
-
-    { id:"piante",   type:"scene",  label:"Piante",   subtitle:"Apertura Tapparelle",
-      action:{ url:"admin=1&event=piante", confirm:"Attivo modalità Apertura Tapparelle?" } },
-
-    { id:"override", type:"switch", label:"Override", path:"override",
-      on:{  url:"admin=1&event=set_override&value=true"  },
-      off:{ url:"admin=1&event=set_override&value=false" } },
-
-    // 👇 la nuova TILE STATO (accanto a Override nella griglia)
-    { id:"statoCasa", type:"state", label:"Stato", path:"state" }
+    // Se vuoi aggiungere un indicatore in sola lettura, puoi rimettere:
+    // { id:"presenza", type:"sensor", label:"Presenza", path:"presenzaEffettiva",
+    //   format: v => v ? "In casa" : "Assente" }
+    //
+    // La tile "statoCasa" NON serve più: lo stato è nel chip in alto (paths.homeState).
   ],
 
-  persons: [],   // user: i nomi arrivano già in model.people dal tuo doGet
+  // Ordine delle card Preferiti
+  favorites: ["vacanza", "override", "piante"],
 
-  rooms: [
-    { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
-    { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] },
-  ],
-
-  virtual: { alba:{label:"Alba",path:"alba"}, tramonto:{label:"Tramonto",path:"tramonto"} },
-
-  logLimit: 20
+  // Quante righe massimo mostrare nella vista Log
+  logLimit: 30
 };
