@@ -1,14 +1,12 @@
-/* ===== Config & mapping ===== */
+/* ===== Config & mapping (GitHub Pages) ===== */
 
+// URL del tuo Web App (/exec) per JSONP
 const CONFIG = {
   BASE_URL: 'https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec',
-  // per JSONP uso callback dinamico; qui è solo label
-  DEFAULT_CB: 'cb',
-  // refresh automatico del modello (ms). Metti 0 per disattivare.
-  AUTO_REFRESH_MS: 60_000
+  AUTO_REFRESH_MS: 60_000 // 1 min; metti 0 per disattivare
 };
 
-// Mappa stati → classi chip
+// Stati -> classi chip
 const STATE_CLASS = {
   'COMFY_DAY': 'good',
   'COMFY_NIGHT': 'good',
@@ -16,7 +14,7 @@ const STATE_CLASS = {
   'SECURITY_NIGHT': 'sec'
 };
 
-// WMO → emoji/label (ridotta)
+// WMO -> emoji/label breve
 function mapWeatherCode(wc){
   const m = {
     '0': {icon:'☀️', text:'Sereno'},
