@@ -1,155 +1,581 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Casa di Marco</title>
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Casa di Marco — Dashboard</title>
+
+  <!-- Chart.js per il trend (fallback gestito sotto se non carica) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+
+  <style>
+    :root{
+      --bg-1: #0c1b2a;
+      --bg-2: #0f2436;
+      --card: rgba(255,255,255,0.06);
+      --card-hover: rgba(255,255,255,0.10);
+      --accent: #4cc9f0;
+      --ok: #21c55d;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --muted: #a6b1bb;
+      --text: #e6eef6;
+    }
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      color: var(--text); background: radial-gradient(1200px 600px at 20% -20%, #18324b 0, transparent 70%), 
+                           radial-gradient(800px 500px at 100% 0%, #102538 20%, transparent 60%),
+                           linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    }
+    .wrap{ max-width: 1080px; margin: 0 auto; padding: 20px; }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 12px; padding: 8px 0 18px;
+    }
+    .state-badge{
+      font-weight:700; padding:6px 10px; border-radius:20px; background: var(--card); color:#7ef5b2;
+      border:1px solid rgba(255,255,255,0.08); letter-spacing:.3px;
+    }
+    .title{
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+    .title h1{ margin:0; font-size:20px; }
+    .top-right{
+      display:flex; align-items:center; gap:12px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:16px;
+      background: var(--card); color: var(--text); border:1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+    }
+    .chip .badge{
+      display:inline-flex; min-width: 18px; height:18px; align-items:center; justify-content:center;
+      padding:0 6px; border-radius:10px; background: var(--danger); color:#fff; font-weight:700; font-size:12px;
+    }
+    .unit-toggle{ cursor:pointer; user-select:none; }
+    .unit-toggle b{ color: var(--accent); }
+
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .card{
+      background: var(--card); border: 1px solid rgba(255,255,255,0.08); border-radius:14px; padding:14px;
+      transition: background .2s ease, border-color .2s ease;
+    }
+    .card:hover{ background: var(--card-hover); border-color: rgba(255,255,255,0.16); }
+    .card h3{ margin:0 0 10px; font-size:14px; color: var(--muted); font-weight:600; letter-spacing:.3px; }
+
+    /* Layout */
+    .col-6{ grid-column: span 6; }
+    .col-4{ grid-column: span 4; }
+    .col-3{ grid-column: span 3; }
+    .col-8{ grid-column: span 8; }
+    .col-12{ grid-column: span 12; }
+
+    /* Tiles */
+    .tile{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px; border-radius:12px; background: rgba(255,255,255,0.04);
+      border:1px dashed rgba(255,255,255,0.08);
+    }
+    .tile .left{ display:flex; align-items:center; gap:10px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px;
+      background: rgba(255,255,255,0.08); font-size:12px; color:#d6dee6; border:1px solid rgba(255,255,255,0.10);
+    }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; cursor:pointer;
+      border:1px solid rgba(255,255,255,0.14); background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      color: var(--text); font-weight:600;
+    }
+    .btn:hover{ background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)); }
+    .btn.outline{ background: transparent; }
+    .btn.ok{ border-color: rgba(33,197,93,.5); color:#b0ffd2; }
+    .btn.warn{ border-color: rgba(245,158,11,.5); color:#ffe4b8; }
+    .btn.danger{ border-color: rgba(239,68,68,.5); color:#ffc2c2; }
+
+    /* Weather block */
+    .weather{
+      display:flex; align-items:center; justify-content:flex-start; gap:16px;
+    }
+    .weather .big{
+      font-size:42px; font-weight:800; letter-spacing:.5px;
+    }
+    .weather .emoji{ font-size:32px; filter: drop-shadow(0 0 10px rgba(255,255,255,.1)); }
+    .muted{ color: var(--muted); font-size: 12px; }
+
+    /* People status */
+    .people{
+      display:flex; flex-wrap:wrap; gap:10px;
+    }
+    .avatar{
+      display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:12px; background: rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08); font-weight:600;
+    }
+    .dot{ width:10px; height:10px; border-radius:50%; background:#777; box-shadow:0 0 0 2px rgba(255,255,255,0.08) inset; }
+    .dot.online{ background: var(--ok); }
+    .dot.offline{ background: #666; }
+
+    /* Favorites (Admin) */
+    .fav-grid{
+      display:grid; gap:12px; grid-template-columns: repeat(3, 1fr);
+    }
+    .fav{ padding:12px; border-radius:12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+    .fav h4{ margin:0 0 8px; font-size:14px; color:#cdd7e1; }
+    .row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+    /* Trend */
+    .chart-wrap{ position:relative; height:180px; }
+    canvas{ width:100%; height:100%; }
+
+    /* Toast */
+    .toast{
+      position:fixed; right:16px; bottom:16px; background:#111a24; color:#eafff5; padding:10px 12px; border-radius:10px;
+      border:1px solid rgba(255,255,255,0.18); box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; opacity:0; transform: translateY(10px);
+      transition: all .25s ease;
+    }
+    .toast.show{ opacity:1; transform: translateY(0); }
+
+    /* Skeleton */
+    .skeleton{ position:relative; overflow:hidden; background: rgba(255,255,255,0.04); }
+    .skeleton::after{
+      content:''; position:absolute; inset:0; transform: translateX(-100%); 
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+      animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer{ 100%{ transform: translateX(100%);} }
+
+    @media (max-width: 900px){
+      .col-6, .col-4, .col-3, .col-8, .col-12{ grid-column: span 12; }
+      .fav-grid{ grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
-
-  <!-- ===== TOP BAR ===== -->
-  <header class="topbar">
-    <div class="left">
-      <button class="home-btn" aria-label="Casa">
-        <svg class="ico-home" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
-        <span class="home-title" id="homeName">Casa di Marco</span>
-        <svg class="ico-chev" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
-      </button>
-      <div id="chipState" class="chip state neutral">—</div>
-    </div>
-    <div class="right">
-      <button class="icon-btn" title="Notifiche">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a6 6 0 0 0-6 6v4.3l-1.7 3.3A1 1 0 0 0 5.2 17H19a1 1 0 0 0 .9-1.5L18 12.3V8a6 6 0 0 0-6-6zM8 19a4 4 0 0 0 8 0"/></svg>
-      </button>
-      <button class="icon-btn" title="Aggiungi">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>
-      </button>
-      <button class="icon-btn" title="Altro">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
-      </button>
-
-      <!-- Meteo -->
-      <div id="weatherPill" class="weather-pill">
-        <span class="dot"></span>
-        <span id="weatherTemp">— °C</span>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <span class="state-badge" id="stateBadge">—</span>
+        <h1>Casa di Marco</h1>
       </div>
-    </div>
-  </header>
+      <div class="top-right">
+        <div class="chip">
+          <span id="logBadgeLabel">Log</span>
+          <span class="badge" id="logBadge"></span>
+        </div>
+        <div class="chip unit-toggle" id="unitToggle">Unità: <b id="unitLabel">°C</b></div>
+        <div class="chip" title="Aggiorna ora">
+          <span id="nowIso">—</span>
+        </div>
+      </div>
+    </header>
 
-  <main>
-    <!-- ===== HOME ===== -->
-    <section id="view-home" class="view active">
-      <div class="label-ghost">Dashboard</div>
-
-      <!-- Grid no-scroll -->
-      <div class="cards-row">
-        <article class="pill-card" id="card-people">
-          <div class="pill-inner">
-            <div class="pill-icon">
-              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-9 6a6 6 0 1 1 12 0v2H7v-2z"/></svg>
+    <section class="grid">
+      <!-- People + Energy -->
+      <div class="card col-6">
+        <h3>Dashboard</h3>
+        <div class="grid">
+          <div class="card col-6">
+            <div class="tile">
+              <div class="left">
+                <div class="pill">Persone</div>
+              </div>
+              <div><b id="peopleSummary">—</b></div>
             </div>
-            <div class="pill-text">
-              <div class="pill-caption">Persone</div>
-              <div class="pill-value"><strong id="peopleOnline">—</strong> · <span id="houseStatus">—</span></div>
+            <div class="people" id="peopleList"></div>
+          </div>
+          <div class="card col-6">
+            <div class="tile">
+              <div class="left">
+                <div class="pill">Energy</div>
+              </div>
+              <div><b id="energyKwh">— kWh</b></div>
+            </div>
+            <div class="muted">Dispositivi offline: <b id="devicesOffline">0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather -->
+      <div class="card col-6">
+        <h3>Meteo</h3>
+        <div class="weather">
+          <div class="emoji" id="weatherEmoji">⛅</div>
+          <div class="big" id="tempNow">— °C</div>
+        </div>
+        <div class="muted" style="margin-top:8px;">
+          Provider: <span id="weatherProvider">N/A</span>
+          &nbsp;•&nbsp; Stato: <span id="dayNight">—</span>
+        </div>
+      </div>
+
+      <!-- Preferiti (Admin) -->
+      <div class="card col-12">
+        <h3>Preferiti</h3>
+        <div class="fav-grid">
+          <div class="fav">
+            <h4>Vacanza</h4>
+            <div class="row">
+              <button class="btn ok"    data-admin="set_vacanza" data-value="true">Attiva</button>
+              <button class="btn outline" data-admin="set_vacanza" data-value="false">Disattiva</button>
             </div>
           </div>
-        </article>
-
-        <article class="pill-card" id="card-energy">
-          <div class="pill-inner">
-            <div class="pill-icon energy">
-              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13 2 3 14h7l-1 8 11-14h-7l1-6z"/></svg>
-            </div>
-            <div class="pill-text">
-              <div class="pill-caption">Energy</div>
-              <div class="pill-value"><strong id="energyKwh">—</strong> kWh</div>
+          <div class="fav">
+            <h4>Override</h4>
+            <div class="row">
+              <button class="btn warn"  data-admin="set_override" data-value="true">Attiva</button>
+              <button class="btn outline" data-admin="set_override" data-value="false">Disattiva</button>
             </div>
           </div>
-        </article>
+          <div class="fav">
+            <h4>Piante</h4>
+            <div class="row">
+              <button class="btn" data-admin="piante">Esegui ora</button>
+            </div>
+          </div>
+          <div class="fav">
+            <h4>Tapparelle ▲</h4>
+            <div class="row">
+              <button class="btn" data-admin="alza_tutto">Alza tutto</button>
+            </div>
+          </div>
+          <div class="fav">
+            <h4>Tapparelle ▼</h4>
+            <div class="row">
+              <button class="btn danger" data-admin="abbassa_tutto">Abbassa tutto</button>
+            </div>
+          </div>
+          <div class="fav">
+            <h4>VIMAR (esempio)</h4>
+            <div class="row">
+              <button class="btn" data-vimar="shutter" data-id="SALA_01" data-cmd="up">SALA ↑</button>
+              <button class="btn" data-vimar="shutter" data-id="SALA_01" data-cmd="down">SALA ↓</button>
+              <button class="btn outline" data-vimar="shutter" data-id="SALA_01" data-cmd="stop">SALA ■</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="label-ghost">Preferiti</div>
-      <section id="favoritesGrid" class="fav-grid"></section>
+      <!-- Trend 24h -->
+      <div class="card col-8">
+        <h3>Trend 24h (presenza)</h3>
+        <div class="chart-wrap skeleton" id="trendSkeleton"><canvas id="trend24h"></canvas></div>
+      </div>
 
-      <div class="provider-row">
-        <div class="provider" id="weatherProvider">The Weather Channel</div>
-        <div id="ts" class="updated">Aggiornamento: —:—</div>
+      <!-- Log ultimi -->
+      <div class="card col-4">
+        <h3>Log recenti</h3>
+        <div id="logList" style="display:grid; gap:8px; max-height:200px; overflow:auto;"></div>
+        <div class="muted" id="logEmpty" style="display:none;">Nessun log recente.</div>
       </div>
     </section>
+  </div>
 
-    <!-- ===== DISPOSITIVI ===== -->
-    <section id="view-devices" class="view">
-      <h3 class="section-label">Persone</h3>
-      <div id="peopleChips" class="people-chips"></div>
+  <div class="toast" id="toast"></div>
 
-      <h3 class="section-label">Tapparelle</h3>
-      <div id="vimarShutters" class="list"></div>
+<script>
+/* ================================
+ *  CONFIG
+ * ================================ */
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec';
+const REFRESH_MS = 60_000;  // 1 minuto
+const UNIT_LS_KEY = 'dash.unit'; // 'C' o 'F'
 
-      <h3 class="section-label">Termostati</h3>
-      <div id="vimarThermo" class="list"></div>
+/* ================================
+ *  UTILS
+ * ================================ */
+function toast(msg, ms=2200){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), ms);
+}
+function qs(sel){ return document.querySelector(sel); }
+function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }
 
-      <h3 class="section-label">Clivet</h3>
-      <div id="vimarHvac" class="list"></div>
-    </section>
+function toNum(val){
+  if (typeof val === 'number') return val;
+  const s = String(val||'').replace(',', '.').replace(/[^\d.\-]/g,'').trim();
+  const n = Number(s); return isFinite(n)?n:null;
+}
+function cToF(c){ return c==null? null : (c*9/5 + 32); }
+function fmtTemp(n, unit='C'){
+  if (n==null || !isFinite(n)) return '—';
+  const v = (unit==='F') ? cToF(n) : n;
+  return Math.round(v) + '°' + unit;
+}
+function wmoEmoji(code){
+  const m = {
+    '0':'☀️','1':'🌤️','2':'⛅','3':'☁️',
+    '45':'🌫️','48':'🌫️',
+    '51':'🌦️','53':'🌦️','55':'🌦️',
+    '61':'🌧️','63':'🌧️','65':'🌧️',
+    '66':'🌧️❄️','67':'🌧️❄️',
+    '71':'🌨️','73':'🌨️','75':'🌨️',
+    '77':'❄️',
+    '80':'🌦️','81':'🌧️','82':'⛈️',
+    '85':'❄️','86':'❄️',
+    '95':'⛈️','96':'⛈️','99':'⛈️'
+  };
+  return m[String(code)] || '⛅';
+}
+function stateColor(state){
+  const s = String(state||'').toUpperCase();
+  if (s.includes('COMFY')) return '#7ef5b2';
+  if (s.includes('SECURITY_NIGHT')) return '#ffd1a6';
+  if (s.includes('SECURITY')) return '#ffe28a';
+  return '#cde3ff';
+}
 
-    <!-- ===== LOG ===== -->
-    <section id="view-log" class="view">
-      <div class="row-head">
-        <h3 class="section-label">Log errori automazioni</h3>
-        <button id="btnRefreshLog" class="pill-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.5-7.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M21 4v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Aggiorna
-        </button>
+/* JSON first, JSONP fallback */
+async function getJSON(url){
+  try{
+    const r = await fetch(url, { cache:'no-store' });
+    const ct = r.headers.get('content-type')||'';
+    if (ct.includes('application/json')) return await r.json();
+    // se torna JS/JSONP, proviamo a estrarre
+    const txt = await r.text();
+    const m = txt.match(/^[\w$]+\((.*)\);?$/s);
+    if (m) return JSON.parse(m[1]);
+    return JSON.parse(txt);
+  }catch(e){
+    // fallback JSONP classico
+    return jsonp(url);
+  }
+}
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb = 'cb_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    window[cb] = (data)=>{ resolve(data); cleanup(); };
+    function cleanup(){ try{ delete window[cb]; }catch(_){}
+      if (script && script.parentNode) script.parentNode.removeChild(script); }
+    const script = document.createElement('script');
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + cb;
+    script.onerror = ()=>{ cleanup(); reject(new Error('JSONP error')); };
+    document.head.appendChild(script);
+  });
+}
+
+/* ================================
+ *  DATA LOADERS
+ * ================================ */
+async function loadModel(){
+  const url = WEBAPP_URL + '?t=' + Date.now();
+  return await getJSON(url);
+}
+async function loadTrend(){
+  const url = WEBAPP_URL + '?trend=24h&t=' + Date.now();
+  return await getJSON(url);
+}
+async function loadLogs(){
+  const url = WEBAPP_URL + '?logs=1&t=' + Date.now();
+  return await getJSON(url);
+}
+
+/* ================================
+ *  RENDER
+ * ================================ */
+let trendChart = null;
+function render(model){
+  // meta
+  qs('#nowIso').textContent = (model.meta && model.meta.nowIso) ? new Date(model.meta.nowIso).toLocaleString() : '—';
+
+  // state
+  qs('#stateBadge').textContent = String(model.state||'—');
+  qs('#stateBadge').style.color = stateColor(model.state);
+
+  // notte/giorno
+  qs('#dayNight').textContent = model.notte ? 'NOTTE' : 'GIORNO';
+
+  // people
+  const people = Array.isArray(model.people) ? model.people : [];
+  const online = people.filter(p => p.onlineSmart || p.onlineRaw);
+  qs('#peopleSummary').textContent = `${people.length} · ${online.length>0 ? 'Casa occupata' : 'Casa vuota'}`;
+  const list = qs('#peopleList'); list.innerHTML = '';
+  people.forEach(p=>{
+    const el = document.createElement('div');
+    el.className='avatar';
+    el.innerHTML = `<span class="dot ${ (p.onlineSmart || p.onlineRaw) ? 'online':'offline' }"></span>${p.name}`;
+    list.appendChild(el);
+  });
+
+  // energy
+  const kwh = model.energy && model.energy.kwh;
+  qs('#energyKwh').textContent = (kwh==null || !isFinite(kwh)) ? '— kWh' : `${kwh.toFixed(1)} kWh`;
+  const off = (model.devicesOfflineCount==null?0:model.devicesOfflineCount);
+  qs('#devicesOffline').textContent = off;
+
+  // alerts
+  const errs = model.alerts && model.alerts.logErrors || 0;
+  qs('#logBadge').textContent = errs>0 ? String(errs) : '';
+  qs('#logBadge').style.display = errs>0 ? 'inline-flex' : 'none';
+
+  // weather
+  const unit = (localStorage.getItem(UNIT_LS_KEY)||'C').toUpperCase();
+  qs('#unitLabel').textContent = '°'+unit;
+
+  const w = model.weather || {};
+  qs('#weatherEmoji').textContent = wmoEmoji(w.icon);
+  qs('#tempNow').textContent = fmtTemp(w.tempC, unit);
+  qs('#weatherProvider').textContent = (w.provider||'').replace('Open‑','Open-');
+
+  // trend (loaded separatamente)
+}
+
+function renderTrend(tr){
+  const el = qs('#trend24h').getContext('2d');
+  const data = Array.isArray(tr.trend24h) ? tr.trend24h : [];
+  const labels = data.map(x => x.t.slice(11,16));
+  const values = data.map(x => Number(x.present)||0);
+
+  // fine skeleton
+  const sk = qs('#trendSkeleton'); sk.classList.remove('skeleton');
+
+  try{
+    if (trendChart){ trendChart.destroy(); }
+    trendChart = new Chart(el, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Presenza (5min)',
+          data: values,
+          tension: .25,
+          fill: true,
+          borderColor: '#4cc9f0',
+          backgroundColor: 'rgba(76,201,240,.25)',
+          pointRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { display:false },
+          y: { suggestedMin:0, suggestedMax:1, ticks:{ stepSize:1 } }
+        },
+        plugins: { legend:{ display:false } }
+      }
+    });
+  }catch(e){
+    // fallback semplice
+    el.canvas.outerHTML = `<div class="muted">Trend non disponibile (${e})</div>`;
+  }
+}
+
+function renderLogs(payload){
+  const arr = Array.isArray(payload.logs) ? payload.logs : [];
+  const box = qs('#logList'); box.innerHTML = '';
+  if (arr.length===0){ qs('#logEmpty').style.display='block'; return; }
+  qs('#logEmpty').style.display='none';
+  arr.slice(0,30).forEach(l=>{
+    const d = (l.ts ? new Date(l.ts) : null);
+    const when = d ? d.toLocaleString() : '—';
+    const el = document.createElement('div');
+    el.className='tile';
+    el.innerHTML = `
+      <div class="left">
+        <div class="pill">${when}</div>
+        <div>${(l.code||'').toUpperCase()}</div>
       </div>
-      <div id="log" class="list"></div>
-      <div id="logEmpty" class="muted"></div>
-    </section>
+      <div class="muted">${l.desc||''}</div>
+    `;
+    box.appendChild(el);
+  });
+}
 
-    <!-- ===== ROUTINE ===== -->
-    <section id="view-routine" class="view">
-      <div class="placeholder">Routine (coming soon)</div>
-    </section>
+/* ================================
+ *  ACTIONS (Admin + VIMAR)
+ * ================================ */
+async function callAdmin(eventName, extra={}){
+  const params = new URLSearchParams({ admin:'1', event: eventName, t: Date.now() });
+  Object.entries(extra).forEach(([k,v]) => params.set(k, v));
+  const url = WEBAPP_URL + '?' + params.toString();
+  const res = await getJSON(url);
+  return res;
+}
+function bindAdminButtons(){
+  qsa('[data-admin]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const evt = btn.getAttribute('data-admin');
+      const val = btn.getAttribute('data-value');
+      try{
+        const payload = {};
+        if (val!=null) payload.value = String(val);
+        await callAdmin(evt, payload);
+        toast('OK: '+evt+(val!=null? ' → '+val:''));
+        // dopo admin state cambia → refresh model
+        await refreshAll();
+      }catch(e){
+        toast('Errore: '+e.message);
+      }
+    });
+  });
+  qsa('[data-vimar]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const type = btn.getAttribute('data-vimar'); // shutter|thermo|hvac
+      const id   = btn.getAttribute('data-id');
+      const cmd  = btn.getAttribute('data-cmd') || btn.getAttribute('data-op');
+      try{
+        if (type==='shutter'){
+          await callAdmin('vimar_shutter', { id, cmd });
+        }else if (type==='thermo'){
+          await callAdmin('vimar_thermo', { id, op: cmd });
+        }else if (type==='hvac'){
+          await callAdmin('vimar_hvac', { id, op: cmd });
+        }
+        toast(`VIMAR ${type} ${id} → ${cmd}`);
+      }catch(e){
+        toast('Errore VIMAR: '+e.message);
+      }
+    });
+  });
+}
 
-    <!-- ===== MENU ===== -->
-    <section id="view-menu" class="view">
-      <div class="menu-grid">
-        <button class="menu-btn" data-target="home">Home</button>
-        <button class="menu-btn" data-target="devices">Dispositivi</button>
-        <button class="menu-btn" data-target="log">Log</button>
-        <button class="menu-btn" data-target="routine">Routine</button>
-      </div>
-    </section>
-  </main>
+/* ================================
+ *  INIT + REFRESH
+ * ================================ */
+async function refreshAll(){
+  // skeleton attivo solo sul trend
+  try{
+    const [model, trend, logs] = await Promise.all([
+      loadModel(),
+      loadTrend(),
+      loadLogs()
+    ]);
+    render(model);
+    renderTrend(trend);
+    renderLogs(logs);
+  }catch(e){
+    toast('Errore caricamento: '+e.message);
+  }
+}
 
-  <!-- ===== TAB BAR ===== -->
-  <footer class="tabbar">
-    <button class="tab active" data-target="home" title="Home">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
-      <span>Home</span>
-    </button>
-    <button class="tab" data-target="devices" title="Dispositivi">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h18v6H3V5zm0 8h8v6H3v-6zm10 0h8v6h-8v-6z"/></svg>
-      <span>Dispositivi</span>
-    </button>
-    <button class="tab" data-target="log" title="Log">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
-      <span>Log</span>
-    </button>
-    <button class="tab" data-target="routine" title="Routine">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg>
-      <span>Routine</span>
-    </button>
-    <button class="tab" data-target="menu" title="Menu">
-      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
-      <span>Menu</span>
-    </button>
-  </footer>
+function init(){
+  // toggle unità
+  const unit = (localStorage.getItem(UNIT_LS_KEY)||'C').toUpperCase();
+  localStorage.setItem(UNIT_LS_KEY, unit);
+  qs('#unitLabel').textContent = '°'+unit;
+  qs('#unitToggle').addEventListener('click', ()=>{
+    const cur = (localStorage.getItem(UNIT_LS_KEY)||'C').toUpperCase();
+    const next = (cur==='C') ? 'F' : 'C';
+    localStorage.setItem(UNIT_LS_KEY, next);
+    qs('#unitLabel').textContent = '°'+next;
+    // re-render solo temp se abbiamo già un model in pagina:
+    refreshAll();
+  });
 
-  <!-- Scripts -->
-  <script src="config.js"></script>
-  <script src="jsonp.js"></script>
-  <script src="app.js"></script>
+  bindAdminButtons();
+  refreshAll();
+  setInterval(refreshAll, REFRESH_MS);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
+``
