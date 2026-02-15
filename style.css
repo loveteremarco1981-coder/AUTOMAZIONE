@@ -31,11 +31,15 @@ body{
 .pill.in{background:rgba(46,170,78,.9);color:#fff}
 .pill.out{background:rgba(120,120,130,.35)}
 
-/* Griglia tile */
-.tiles{display:grid;gap:var(--gap);padding:12px 16px 90px;
-       grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr))}
-.tiles-room{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+/* Views */
+.view{display:none;padding:12px 16px 90px}
+.view.active{display:block}
 
+.sec-title{margin:4px 0 12px;font-size:20px}
+
+/* Griglia HOME */
+.tiles{display:grid;gap:var(--gap);
+       grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr))}
 .tile{
   border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);
   padding:14px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;
@@ -55,13 +59,11 @@ body{
 .tile.state.security{background:var(--state-security)}
 .tile.state .value{font-size:20px}
 
-/* Sezioni */
-.sec{padding:6px 16px 16px}
-.sec h2{margin:0 0 12px;font-size:20px}
-.room{margin-bottom:10px}
-.room h3{margin:8px 0 6px;font-size:16px;color:var(--muted)}
-.list .row{display:flex;justify-content:space-between;align-items:baseline;
-           background:rgba(255,255,255,.05);padding:10px 12px;border-radius:14px;margin:6px 0}
+/* Lista (Automazioni placeholder) */
+.list .row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  background:rgba(255,255,255,.05);padding:10px 12px;border-radius:14px;margin:6px 0
+}
 
 /* Tabbar in basso */
 .tabbar{
