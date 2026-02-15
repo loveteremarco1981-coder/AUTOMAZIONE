@@ -1,91 +1,162 @@
 :root{
-  --bg:#0b0b0d; --text:#e7e7eb; --muted:#a0a0aa;
-  --card:rgba(255,255,255,.08); --accent:#0a84ff;
-  --r:22px; --blur:18px; --shadow:0 10px 30px rgba(0,0,0,.35);
-  --tile:min(44vw,180px); --gap:14px;
-
-  /* colori stato */
-  --state-comfy: linear-gradient(180deg, rgba(52,199,89,.95), rgba(52,199,89,.7));
-  --state-security: linear-gradient(180deg, rgba(255,69,58,.95), rgba(255,69,58,.7));
-  --state-neutral: linear-gradient(180deg, rgba(10,132,255,.92), rgba(10,132,255,.65));
+  /* palette/ombre molto vicine allo screenshot */
+  --bg1:#13243a; --bg2:#1b4360; --bg3:#1a6f83;
+  --text:#edf1f8; --muted:#aeb8c9; --line:rgba(255,255,255,.08);
+  --card:rgba(12,18,28,.60); --card-strong:rgba(10,14,20,.65);
+  --chip:rgba(0,0,0,.38);
+  --accent:#0a84ff; --good:#34c759; --warn:#ff9f0a; --bad:#ff453a;
+  --r:18px; --r-lg:22px; --blur:18px; --shadow:0 10px 26px rgba(0,0,0,.35);
 }
 
-*{ box-sizing:border-box }
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
-  margin:0;
-  background:radial-gradient(1000px 600px at 70% -20%,#1b1b22 0,#0b0b0d 55%,#000);
-  color:var(--text);
-  font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial
+  margin:0; color:var(--text);
+  font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  background:
+    radial-gradient(1200px 800px at 90% -10%, var(--bg3) 0, transparent 50%),
+    linear-gradient(180deg, var(--bg1), var(--bg2) 55%, #0a1624 100%);
 }
 
-/* Header */
-.hdr{position:sticky;top:0;z-index:10;padding:22px 18px 12px;
-     background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.2) 70%,transparent);
-     backdrop-filter:blur(var(--blur))}
-.hdr h1{margin:0 0 6px;font-size:28px;font-weight:700}
-.muted{color:var(--muted);font-size:14px}
+/* ===== Topbar ===== */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 14px 10px; gap:10px;
+  background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.15) 65%, transparent);
+  backdrop-filter: blur(var(--blur));
+}
+.home-title{display:flex; align-items:center; gap:8px}
+.title-btn{
+  display:inline-flex; align-items:center; gap:4px; border:0; background:transparent;
+  color:inherit; font-weight:700; font-size:18px; cursor:pointer
+}
+.title-btn .chev{opacity:.9}
+.icon-btn{background:transparent; border:0; color:inherit; padding:6px; border-radius:12px; cursor:pointer}
 
-/* Persone (pillole) */
-.people{display:flex;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
-.pill{padding:6px 10px;border-radius:999px;font-size:13px;background:rgba(255,255,255,.1)}
-.pill.in{background:rgba(46,170,78,.9);color:#fff}
-.pill.out{background:rgba(120,120,130,.35)}
+/* ===== Struttura contenuto ===== */
+main{padding:8px 12px 96px}
+.section-label{margin:8px 6px 10px; font-size:14px; color:#d8deea; font-weight:700}
+.row-head{display:flex; align-items:center; justify-content:space-between}
+
+/* Meteo chip come screenshot (tondo scuro con gradi) */
+.weather-chip{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--chip); border:1px solid var(--line);
+  padding:6px 10px; border-radius:999px; font-weight:700; color:#ffe6a6;
+}
+
+/* ===== Dashboard: due card scure ===== */
+.pill-row{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:8px 2px 16px;
+}
+.pill-card{
+  display:flex; gap:10px; align-items:center;
+  background:var(--card-strong);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px; padding:12px 12px;
+  box-shadow:var(--shadow)
+}
+.pill-icon{
+  display:grid; place-items:center; width:36px; height:36px; border-radius:12px;
+  background:rgba(255,255,255,.12)
+}
+.pill-icon.energy{background:rgba(10,132,255,.22)}
+.pill-title{font-size:13px}
+.pill-value{font-size:16px; font-weight:800}
+
+/* ===== Preferiti (card grandi) ===== */
+.favorites-grid{
+  display:grid; gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr))
+}
+.tile{
+  position:relative;
+  background:rgba(255,255,255,.15);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:14px; min-height:116px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow:var(--shadow); transition:.16s; cursor:pointer; user-select:none;
+}
+.tile:hover{transform:translateY(-1.5px)}
+.t-head{display:flex; gap:10px}
+.t-icon{
+  width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
+  background:rgba(255,255,255,.18); flex:0 0 auto;
+}
+.t-title{font-weight:700}
+.t-sub{font-size:13px; color:#c8d0e0}
+.t-value{font-size:13px; color:#cfd6e6}
+.tile.on{outline:2px solid rgba(10,132,255,.65); background:rgba(10,132,255,.18)}
+/* icona “modifica” nell’angolo */
+.tile::after{
+  content:""; position:absolute; right:10px; top:10px; width:18px; height:18px;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') center/contain no-repeat;
+  background:#cfd6e6; opacity:.6;
+}
+
+/* ===== Liste (Dispositivi, Routine) ===== */
+.list{display:flex; flex-direction:column; gap:10px; padding:0 4px}
+.row{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  background:rgba(255,255,255,.10); border:1px solid var(--line);
+  padding:12px; border-radius:16px
+}
+.row .title{font-weight:700}
+.row .sub{font-size:13px; color:var(--muted)}
+.pill-btn{
+  display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+  background:rgba(255,255,255,.12); border:0; border-radius:999px; color:inherit; cursor:pointer
+}
+
+/* Provider + timestamp */
+.provider-row{
+  display:flex; justify-content:space-between; align-items:center;
+  margin:16px 6px 0; font-size:13px
+}
+.provider{display:flex; align-items:center; gap:6px; opacity:.95}
+.updated{font-size:12px; color:var(--muted)}
+
+/* Menu */
+.menu-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:6px}
+.menu-btn{
+  padding:12px; border-radius:14px; border:1px solid var(--line);
+  background:rgba(255,255,255,.10); color:inherit; cursor:pointer;
+  text-align:center; text-decoration:none
+}
+
+/* Modale Log */
+.modal{border:0; border-radius:16px; padding:0; width:min(720px,92vw); background:#121a28; color:var(--text)}
+.modal::backdrop{background:rgba(0,0,0,.55)}
+.modal-head{display:flex; align-items:center; gap:10px; padding:12px 12px 0}
+
+/* ===== Tabbar (identica) ===== */
+.tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:60;
+  display:flex; justify-content:space-around; align-items:center; gap:8px;
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(0,0,0,.45); border-top:1px solid var(--line);
+  backdrop-filter: blur(var(--blur));
+}
+.tab{
+  position:relative;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:transparent; color:#d6d6dc; border:0; font-weight:600;
+  min-width:72px; padding:4px 6px; cursor:pointer
+}
+.tab.active{color:#fff}
+.tab[data-dot="true"]::after{
+  content:""; position:absolute; right:18px; top:0px; width:6px; height:6px;
+  background:#ff3b30; border-radius:50%;
+}
 
 /* Views */
-.view{display:none;padding:12px 16px 90px}
+.view{display:none}
 .view.active{display:block}
 
-.sec-title{margin:4px 0 12px;font-size:20px}
-
-/* Griglia HOME */
-.tiles{display:grid;gap:var(--gap);
-       grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr))}
-.tile{
-  border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);
-  padding:14px;min-height:120px;display:flex;flex-direction:column;justify-content:space-between;
-  transition:.18s;user-select:none
-}
-.tile:hover{transform:translateY(-2px)}
-.label{font-weight:600}
-.value{font-size:26px;font-weight:700;margin-top:8px}
-.tile.on{background:linear-gradient(180deg,rgba(10,132,255,.92),rgba(10,132,255,.65));color:#fff}
-.tile.switch:not(.on){filter:saturate(.55) brightness(.85);opacity:.88}
-.click{cursor:pointer}
-
-/* Tile STATO (accanto a Override) */
-.tile.state{color:#fff}
-.tile.state.neutral{background:var(--state-neutral)}
-.tile.state.comfy{background:var(--state-comfy)}
-.tile.state.security{background:var(--state-security)}
-.tile.state .value{font-size:20px}
-
-/* Lista (Automazioni placeholder) */
-.list .row{
-  display:flex;justify-content:space-between;align-items:baseline;
-  background:rgba(255,255,255,.05);padding:10px 12px;border-radius:14px;margin:6px 0
-}
-
-/* Tabbar in basso */
-.tabbar{
-  position:fixed;left:0;right:0;bottom:0;z-index:20;
-  display:flex;gap:10px;justify-content:space-around;align-items:center;
-  padding:10px 12px env(safe-area-inset-bottom);
-  backdrop-filter: blur(var(--blur));
-  background:rgba(0,0,0,.6);
-  border-top:1px solid rgba(255,255,255,.06);
-}
-.tab{background:transparent;color:#d6d6dc;border:0;font-weight:600}
-.tab.active{color:#fff}
-
-/* Toast */
-.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;
-       padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s;z-index:9999}
-.toast.show{opacity:1}
-
-/* Light mode */
+/* Light mode (facoltativo) */
 @media (prefers-color-scheme:light){
-  :root{--bg:#f2f2f7;--text:#101014;--card:rgba(255,255,255,.92);--muted:#6b6b76}
-  body{background:linear-gradient(180deg,#f8f8fb,#ececf2)}
-  .tabbar{background:rgba(255,255,255,.8)}
-  .tab{color:#555}.tab.active{color:#000}
+  :root{--text:#0e121b; --muted:#5e6878; --line:rgba(0,0,0,.08)}
+  .tab{color:#586272}.tab.active{color:#0e121b}
 }
