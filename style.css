@@ -1,137 +1,145 @@
 :root{
-  /* palette/ombre molto vicine allo screenshot */
-  --bg1:#13243a; --bg2:#1b4360; --bg3:#1a6f83;
-  --text:#edf1f8; --muted:#aeb8c9; --line:rgba(255,255,255,.08);
-  --card:rgba(12,18,28,.60); --card-strong:rgba(10,14,20,.65);
-  --chip:rgba(0,0,0,.38);
-  --accent:#0a84ff; --good:#34c759; --warn:#ff9f0a; --bad:#ff453a;
-  --r:18px; --r-lg:22px; --blur:18px; --shadow:0 10px 26px rgba(0,0,0,.35);
+  /* gradient quasi identico allo screenshot */
+  --bg1:#10263f; --bg2:#14506b; --bg3:#1a7a86;
+  --text:#edf1f8; --muted:#a7b3c5; --line:rgba(255,255,255,.08);
+
+  --cardDark:rgba(9,12,18,.55);
+  --cardShell:rgba(0,0,0,.35);
+  --chip:rgba(0,0,0,.75);
+  --blue:#0a84ff; --good:#34c759; --warn:#ff9f0a; --bad:#ff453a;
+
+  --r:18px; --r-lg:22px; --blur:18px;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
 }
 
+/* BASE */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
   margin:0; color:var(--text);
   font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
   background:
-    radial-gradient(1200px 800px at 90% -10%, var(--bg3) 0, transparent 50%),
-    linear-gradient(180deg, var(--bg1), var(--bg2) 55%, #0a1624 100%);
+    radial-gradient(120% 80% at 80% -10%, var(--bg3), transparent 50%),
+    linear-gradient(180deg, var(--bg1), var(--bg2) 60%, #0b1626 100%);
 }
+.muted{color:var(--muted)}
+main{padding:8px 12px 92px}
 
-/* ===== Topbar ===== */
+/* ===== TOPBAR ===== */
 .topbar{
   position:sticky; top:0; z-index:50;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 14px 10px; gap:10px;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+  padding:14px 14px 8px;
   background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.15) 65%, transparent);
   backdrop-filter: blur(var(--blur));
 }
 .home-title{display:flex; align-items:center; gap:8px}
-.title-btn{
-  display:inline-flex; align-items:center; gap:4px; border:0; background:transparent;
-  color:inherit; font-weight:700; font-size:18px; cursor:pointer
-}
+.title-btn{display:inline-flex; align-items:center; gap:4px; background:transparent; border:0; color:inherit; font-weight:800; font-size:18px; cursor:pointer}
 .title-btn .chev{opacity:.9}
 .icon-btn{background:transparent; border:0; color:inherit; padding:6px; border-radius:12px; cursor:pointer}
+.right{display:flex; align-items:center; gap:6px}
 
-/* ===== Struttura contenuto ===== */
-main{padding:8px 12px 96px}
-.section-label{margin:8px 6px 10px; font-size:14px; color:#d8deea; font-weight:700}
-.row-head{display:flex; align-items:center; justify-content:space-between}
-
-/* Meteo chip come screenshot (tondo scuro con gradi) */
-.weather-chip{
+/* Stato casa (pillole) */
+.state-pills{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
+.state-pill{
   display:inline-flex; align-items:center; gap:6px;
-  background:var(--chip); border:1px solid var(--line);
-  padding:6px 10px; border-radius:999px; font-weight:700; color:#ffe6a6;
+  padding:6px 10px; border-radius:999px; font-size:13px; font-weight:700;
+  background:rgba(255,255,255,.12)
+}
+.state-pill.good{background:linear-gradient(180deg, rgba(52,199,89,.95), rgba(52,199,89,.6))}
+.state-pill.warn{background:linear-gradient(180deg, rgba(255,159,10,.95), rgba(255,159,10,.6))}
+.state-pill.bad{ background:linear-gradient(180deg, rgba(255,69,58,.95), rgba(255,69,58,.6))}
+
+/* Meteo chip in alto (nero con puntino giallo) */
+.weather-chip{
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--chip); border-radius:999px; padding:6px 10px;
+  font-weight:800; color:#fff; border:1px solid rgba(255,255,255,.1)
+}
+.dot-yellow{
+  width:18px;height:18px;border-radius:50%;
+  background:linear-gradient(180deg, #ffd24d, #ffaa00);
+  display:inline-block; box-shadow:0 0 0 2px rgba(0,0,0,.35) inset;
 }
 
-/* ===== Dashboard: due card scure ===== */
-.pill-row{
-  display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin:8px 2px 16px;
+/* Sezioni */
+.section-label{margin:10px 6px 10px; font-size:14px; color:#d8deea; font-weight:800}
+
+/* DASHBOARD: contenitore scuro con 2 card-pill */
+.dash-shell{
+  background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.3));
+  border:1px solid var(--line); border-radius:22px; padding:10px; margin:0 4px 14px;
+  display:grid; grid-template-columns:repeat(2,1fr); gap:10px; box-shadow:var(--shadow)
 }
 .pill-card{
   display:flex; gap:10px; align-items:center;
-  background:var(--card-strong);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:20px; padding:12px 12px;
-  box-shadow:var(--shadow)
+  background:rgba(255,255,255,.06);
+  border-radius:16px; padding:12px 12px;
+  border:1px solid rgba(255,255,255,.08);
 }
 .pill-icon{
-  display:grid; place-items:center; width:36px; height:36px; border-radius:12px;
-  background:rgba(255,255,255,.12)
+  width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.12)
 }
 .pill-icon.energy{background:rgba(10,132,255,.22)}
-.pill-title{font-size:13px}
-.pill-value{font-size:16px; font-weight:800}
+.pill-title{font-size:12px}
+.pill-value{font-size:16px;font-weight:800}
 
-/* ===== Preferiti (card grandi) ===== */
+/* PREFERITI: card azzurre */
 .favorites-grid{
-  display:grid; gap:12px;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr))
+  display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); margin:0 4px
 }
 .tile{
   position:relative;
-  background:rgba(255,255,255,.15);
-  border:1px solid var(--line);
-  border-radius:22px;
-  padding:14px; min-height:116px;
+  background:linear-gradient(180deg, rgba(180,200,230,.28), rgba(200,220,240,.18));
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:22px; padding:14px; min-height:112px;
   display:flex; flex-direction:column; justify-content:space-between;
-  box-shadow:var(--shadow); transition:.16s; cursor:pointer; user-select:none;
+  box-shadow:var(--shadow); transition:.18s; user-select:none; cursor:pointer
 }
-.tile:hover{transform:translateY(-1.5px)}
-.t-head{display:flex; gap:10px}
-.t-icon{
-  width:34px; height:34px; border-radius:12px; display:grid; place-items:center;
-  background:rgba(255,255,255,.18); flex:0 0 auto;
+.tile:hover{transform:translateY(-2px)}
+.tile .icon-box{
+  width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.55); color:#1b2b3b
 }
-.t-title{font-weight:700}
-.t-sub{font-size:13px; color:#c8d0e0}
-.t-value{font-size:13px; color:#cfd6e6}
-.tile.on{outline:2px solid rgba(10,132,255,.65); background:rgba(10,132,255,.18)}
-/* icona “modifica” nell’angolo */
-.tile::after{
-  content:""; position:absolute; right:10px; top:10px; width:18px; height:18px;
-  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41L18.37 3.29a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') center/contain no-repeat;
-  background:#cfd6e6; opacity:.6;
+.tile .edit{
+  position:absolute; right:10px; top:10px; opacity:.6
 }
+.tile .t-title{font-weight:800}
+.tile .t-sub{font-size:12px;color:#e7eefc;opacity:.9}
+.tile .t-value{font-size:13px;color:#dce7fb}
+.tile.offline .t-value{color:#cbd4e6}
+.tile.on{outline:2px solid rgba(10,132,255,.6); background:linear-gradient(180deg, rgba(140,180,230,.35), rgba(160,200,255,.25))}
 
-/* ===== Liste (Dispositivi, Routine) ===== */
-.list{display:flex; flex-direction:column; gap:10px; padding:0 4px}
-.row{
+/* LISTE (Dispositivi / Log / Life) */
+.list .row{
   display:flex; justify-content:space-between; align-items:flex-start;
-  background:rgba(255,255,255,.10); border:1px solid var(--line);
-  padding:12px; border-radius:16px
+  padding:12px; border-radius:16px; margin:8px 0;
+  background:rgba(255,255,255,.10); border:1px solid var(--line)
 }
-.row .title{font-weight:700}
-.row .sub{font-size:13px; color:var(--muted)}
+.row .title{font-weight:800}
+.row .sub{color:var(--muted)}
+.row-head{display:flex;align-items:center;justify-content:space-between;margin:6px 4px 8px}
+
+/* Bottoni pill */
 .pill-btn{
-  display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
-  background:rgba(255,255,255,.12); border:0; border-radius:999px; color:inherit; cursor:pointer
+  display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(255,255,255,.08);color:inherit;padding:8px 12px;cursor:pointer
 }
 
 /* Provider + timestamp */
 .provider-row{
   display:flex; justify-content:space-between; align-items:center;
-  margin:16px 6px 0; font-size:13px
-}
-.provider{display:flex; align-items:center; gap:6px; opacity:.95}
-.updated{font-size:12px; color:var(--muted)}
-
-/* Menu */
-.menu-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:6px}
-.menu-btn{
-  padding:12px; border-radius:14px; border:1px solid var(--line);
-  background:rgba(255,255,255,.10); color:inherit; cursor:pointer;
-  text-align:center; text-decoration:none
+  margin:18px 6px 0; font-size:13px
 }
 
-/* Modale Log */
-.modal{border:0; border-radius:16px; padding:0; width:min(720px,92vw); background:#121a28; color:var(--text)}
-.modal::backdrop{background:rgba(0,0,0,.55)}
-.modal-head{display:flex; align-items:center; gap:10px; padding:12px 12px 0}
+/* MENU */
+.menu-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:0 4px}
+.menu-btn{padding:12px; border-radius:14px; border:1px solid var(--line); background:rgba(255,255,255,.10); color:inherit; cursor:pointer}
 
-/* ===== Tabbar (identica) ===== */
+/* Viste & Tabbar */
+.view{display:none}
+.view.active{display:block}
+
+/* TABBAR identica */
 .tabbar{
   position:fixed; left:0; right:0; bottom:0; z-index:60;
   display:flex; justify-content:space-around; align-items:center; gap:8px;
@@ -146,17 +154,13 @@ main{padding:8px 12px 96px}
   min-width:72px; padding:4px 6px; cursor:pointer
 }
 .tab.active{color:#fff}
-.tab[data-dot="true"]::after{
-  content:""; position:absolute; right:18px; top:0px; width:6px; height:6px;
-  background:#ff3b30; border-radius:50%;
+.orange-dot{
+  position:absolute; right:18px; top:6px; width:6px; height:6px; border-radius:50%;
+  background:#ff7a00; box-shadow:0 0 0 2px rgba(0,0,0,.35)
 }
 
-/* Views */
-.view{display:none}
-.view.active{display:block}
-
-/* Light mode (facoltativo) */
+/* Light mode (se vuoi) */
 @media (prefers-color-scheme:light){
-  :root{--text:#0e121b; --muted:#5e6878; --line:rgba(0,0,0,.08)}
-  .tab{color:#586272}.tab.active{color:#0e121b}
+  :root{ --text:#101014; --muted:#5f6677; --line:rgba(0,0,0,.08) }
+  .tab{color:#555}.tab.active{color:#000}
 }
