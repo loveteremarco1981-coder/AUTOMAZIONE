@@ -1,4 +1,4 @@
-/* ===== JSONP helper ===== */
+/* ===== JSONP helper (GitHub Pages) ===== */
 
 function buildUrl(base, params){
   const usp = new URLSearchParams();
@@ -40,7 +40,7 @@ function jsonpRequest(baseUrl, params, onSuccess, onError){
   document.head.appendChild(script);
 }
 
-/* Convenienze specifiche del tuo backend */
+/* Endpoint helpers (tuo backend) */
 function fetchModel(onSuccess, onError){
   return jsonpRequest(CONFIG.BASE_URL, {}, onSuccess, onError);
 }
@@ -51,7 +51,7 @@ function fetchLogs(onSuccess, onError){
   return jsonpRequest(CONFIG.BASE_URL, { logs:'1' }, onSuccess, onError);
 }
 
-/* Admin (no PIN) & Vimar bridge */
+/* Admin (no PIN) + Vimar */
 function callAdmin(eventName, extraParams, onSuccess, onError){
   const p = Object.assign({ admin:'1', event:String(eventName||'') }, extraParams||{});
   return jsonpRequest(CONFIG.BASE_URL, p, onSuccess, onError);
