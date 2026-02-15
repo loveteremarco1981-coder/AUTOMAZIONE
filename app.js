@@ -1,170 +1,216 @@
-// app.js
-(function(){
-  const WEBAPP_URL = window.DASH.WEBAPP_URL;
-  const REFRESH_MS = window.DASH.REFRESH_MS;
-  const UNIT_KEY   = window.DASH.UNIT_KEY;
+/* ===== UI logic ===== */
 
-  // ---------- utils ----------
-  const qs  = sel => document.querySelector(sel);
-  const qsa = sel => Array.from(document.querySelectorAll(sel));
+function $(sel, root){ return (root||document).querySelector(sel); }
+function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+function fmtNum(x){ const n=Number(x); return isFinite(n)? n.toLocaleString('it-IT'): '—'; }
+function fmtTime(dtIso){
+  try{
+    const d = new Date(dtIso);
+    return d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+  }catch(_){ return '—:—'; }
+}
 
-  function toNum(val){
-    if (typeof val === 'number') return val;
-    const s = String(val||'').replace(',', '.').replace(/[^\d.\-]/g,'').trim();
-    const n = Number(s); return isFinite(n) ? n : null;
-  }
-  function cToF(c){ return c==null ? null : (c*9/5 + 32); }
-  function fmtTemp(n, unit){
-    if (n==null || !isFinite(n)) return '— °'+unit;
-    const v = (unit==='F') ? cToF(n) : n;
-    return Math.round(v) + '°' + unit;
-  }
-  function wmoEmoji(code){
-    const m = {
-      '0':'☀️','1':'🌤️','2':'⛅','3':'☁️',
-      '45':'🌫️','48':'🌫️',
-      '51':'🌦️','53':'🌦️','55':'🌦️',
-      '61':'🌧️','63':'🌧️','65':'🌧️',
-      '66':'🌧️❄️','67':'🌧️❄️',
-      '71':'🌨️','73':'🌨️','75':'🌨️',
-      '77':'❄️',
-      '80':'🌦️','81':'🌧️','82':'⛈️',
-      '85':'❄️','86':'❄️',
-      '95':'⛈️','96':'⛈️','99':'⛈️'
-    };
-    return m[String(code)] || '⛅';
-  }
+/* ====== RENDER ====== */
+function renderState(model){
+  const chip = $('#chipState');
+  const st = String(model.state||'').toUpperCase();
+  const cls = STATE_CLASS[st] || 'neutral';
+  chip.className = 'chip state '+cls;
+  chip.textContent = st.replace('COMFY','COMFY').replace('_',' ');
+  $('#houseStatus').textContent = model.notte ? 'Notte' : 'Giorno';
+}
 
-  async function loadModel(){
-    return await JSONP_FETCH.getJSON(WEBAPP_URL + '?t=' + Date.now());
-  }
-  async function loadLogs(){
-    return await JSONP_FETCH.getJSON(WEBAPP_URL + '?logs=1&t=' + Date.now());
-  }
+function renderPeople(model){
+  const arr = Array.isArray(model.people)? model.people : [];
+  const onlineCount = arr.filter(p => p.onlineSmart || p.onlineRaw).length;
+  $('#peopleOnline').textContent = onlineCount + ' in casa';
 
-  // ---------- render ----------
-  function renderModel(model){
-    const unit = (localStorage.getItem(UNIT_KEY)||'C').toUpperCase();
+  const chips = $('#peopleChips');
+  chips.innerHTML = '';
+  arr.forEach(p => {
+    const on = (p.onlineSmart || p.onlineRaw);
+    const el = document.createElement('div');
+    el.className = 'chip';
+    el.innerHTML = `<span class="dot ${on?'on':'off'}"></span>${p.name}`;
+    chips.appendChild(el);
+  });
+}
 
-    // Meteo
-    const w   = model.weather || {};
-    const elT = qs('[data-weather-temp]');
-    const elI = qs('[data-weather-emoji]');
-    const elP = qs('[data-weather-provider]');
+function renderWeather(model){
+  const meta = (model.weather || {});
+  const wc = mapWeatherCode(meta.icon);
+  const dot = $('#weatherDot');
+  const temp = (meta.tempC==null)? '—' : Math.round(meta.tempC)+'°C';
+  $('#weatherTemp').textContent = temp;
+  $('#weatherProvider').textContent = (wc.icon? (wc.icon+' ') : '') + (meta.provider || '—');
 
-    if (elT) elT.textContent = fmtTemp(w.tempC, unit);
-    if (elI) elI.textContent = wmoEmoji(w.icon);
-    if (elP) elP.textContent = (w.provider||'').replace('Open‑','Open-');
+  // Colora dot in base alle condizioni
+  const code = String(meta.icon||'');
+  let color = 'var(--accent)';
+  if (/6[1-7]|8[0-2]|9[5-9]/.test(code)) color = 'var(--bad)';     // pioggia/temporali
+  else if (/4[5-8]/.test(code)) color = 'var(--warn)';              // nebbia
+  else if (code==='0' || code==='1') color = 'var(--good)';         // sereno
+  dot.style.background = color;
+  dot.style.boxShadow = `0 0 10px ${color}cc`;
+}
 
-    // Ultimo aggiornamento
-    const elTs = qs('[data-last-update]');
-    const nowIso = model.meta && model.meta.nowIso ? new Date(model.meta.nowIso) : new Date();
-    if (elTs){
-      const hh = String(nowIso.getHours()).padStart(2,'0');
-      const mm = String(nowIso.getMinutes()).padStart(2,'0');
-      const ss = String(nowIso.getSeconds()).padStart(2,'0');
-      elTs.textContent = `${hh}:${mm}:${ss}`;
-    }
+function renderEnergy(model){
+  const kwh = (model.energy && model.energy.kwh!=null) ? model.energy.kwh : null;
+  $('#energyKwh').textContent = (kwh==null? '—' : fmtNum(kwh));
+}
 
-    // People
-    const people = Array.isArray(model.people) ? model.people : [];
-    const online = people.filter(p => p.onlineSmart || p.onlineRaw).length;
-    const elPSum = qs('[data-people-summary]');
-    if (elPSum) elPSum.textContent = `${people.length} · ${online>0 ? 'Casa occupata' : 'Casa vuota'}`;
-
-    const elPList = qs('[data-people-list]');
-    if (elPList){
-      elPList.innerHTML = '';
-      people.forEach(p=>{
-        const div = document.createElement('div');
-        div.textContent = `${p.name} · ${(p.onlineSmart||p.onlineRaw) ? 'IN CASA':'OUT'}`;
-        elPList.appendChild(div);
-      });
-    }
-
-    // Energy
-    const kwh = model.energy && model.energy.kwh;
-    const elK = qs('[data-energy-kwh]');
-    if (elK) elK.textContent = (kwh==null || !isFinite(kwh)) ? '— kWh' : `${kwh.toFixed(1)} kWh`;
-
-    // Devices offline
-    const off = (model.devicesOfflineCount==null?0:model.devicesOfflineCount);
-    const elOff = qs('[data-devices-offline]');
-    if (elOff) elOff.textContent = off;
-
-    // Badge errori log
-    const errs = model.alerts && model.alerts.logErrors || 0;
-    const elBadge = qs('[data-log-badge]');
-    if (elBadge){
-      elBadge.textContent = errs>0 ? String(errs) : '';
-      elBadge.style.display = errs>0 ? '' : 'none';
-    }
-  }
-
-  // ---------- azioni (Preferiti/VIMAR) ----------
-  async function callAdmin(eventName, extra={}){
-    const params = new URLSearchParams({ admin:'1', event:eventName, t: Date.now() });
-    Object.entries(extra).forEach(([k,v]) => params.set(k, v));
-    const url = WEBAPP_URL + '?' + params.toString();
-    return await JSONP_FETCH.getJSON(url);
-  }
-
-  function bindAdmin(){
-    // Preferiti base
-    qsa('[data-admin]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const evt = btn.getAttribute('data-admin');
-        const val = btn.getAttribute('data-value');
-        try{
-          const payload = {}; if (val!=null) payload.value = String(val);
-          await callAdmin(evt, payload);
-          console.log('OK:', evt, payload);
-          await refreshOnce(); // aggiorna UI dopo comando
-        }catch(e){ console.error('Admin ERR', e); }
+function renderVimar(model){
+  const v = model.vimar || {shutters:[],thermostats:[],hvac:[]};
+  // Shutters
+  const sh = $('#vimarShutters'); sh.innerHTML = '';
+  v.shutters.forEach(x=>{
+    const row = document.createElement('div');
+    row.className='row';
+    row.innerHTML = `
+      <div>
+        <div class="title">${x.name||x.id||'—'}</div>
+        <div class="sub">${x.room||''} ${x.online? '· Online':'· Offline'}</div>
+      </div>
+      <div class="controls">
+        <button class="small-btn" data-cmd="up">Su</button>
+        <button class="small-btn" data-cmd="stop">Stop</button>
+        <button class="small-btn" data-cmd="down">Giu</button>
+      </div>
+    `;
+    row.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const cmd = b.getAttribute('data-cmd');
+        callAdmin('vimar_shutter',{ id:x.id, cmd }, ()=>{}, ()=>{});
       });
     });
-    // VIMAR opzionale
-    qsa('[data-vimar]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const type = btn.getAttribute('data-vimar'); // shutter|thermo|hvac
-        const id   = btn.getAttribute('data-id');
-        const cmd  = btn.getAttribute('data-cmd') || btn.getAttribute('data-op');
-        try{
-          if (type==='shutter')      await callAdmin('vimar_shutter', { id, cmd });
-          else if (type==='thermo')  await callAdmin('vimar_thermo',  { id, op: cmd });
-          else if (type==='hvac')    await callAdmin('vimar_hvac',    { id, op: cmd });
-          console.log('VIMAR OK:', type, id, cmd);
-        }catch(e){ console.error('VIMAR ERR', e); }
+    sh.appendChild(row);
+  });
+
+  // Thermo
+  const th = $('#vimarThermo'); th.innerHTML='';
+  v.thermostats.forEach(x=>{
+    const row = document.createElement('div');
+    row.className='row';
+    row.innerHTML = `
+      <div>
+        <div class="title">${x.name||x.id||'—'}</div>
+        <div class="sub">${x.room||''} · T=${x.temp??'—'}° · Set=${x.setpoint??'—'}° · ${x.mode||''}</div>
+      </div>
+      <div class="controls">
+        <button class="small-btn" data-op="dec">-</button>
+        <button class="small-btn" data-op="inc">+</button>
+        <button class="small-btn" data-op="modeNext">Mode</button>
+      </div>
+    `;
+    row.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const op = (b.getAttribute('data-op')||'').toLowerCase();
+        callAdmin('vimar_thermo',{ id:x.id, op }, ()=>{}, ()=>{});
       });
     });
-  }
+    th.appendChild(row);
+  });
 
-  // ---------- init & refresh ----------
-  async function refreshOnce(){
-    const model = await loadModel();
-    renderModel(model);
-  }
-
-  function bindUnitToggle(){
-    const elT = qs('[data-weather-temp]');
-    if (!elT) return;
-    elT.style.cursor = 'pointer';
-    elT.title = 'Clic per cambiare unità °C/°F';
-    elT.addEventListener('click', ()=>{
-      const cur = (localStorage.getItem(UNIT_KEY)||'C').toUpperCase();
-      const next = (cur==='C') ? 'F' : 'C';
-      localStorage.setItem(UNIT_KEY, next);
-      refreshOnce();
+  // HVAC
+  const hv = $('#vimarHvac'); hv.innerHTML='';
+  v.hvac.forEach(x=>{
+    const row = document.createElement('div');
+    row.className='row';
+    row.innerHTML = `
+      <div>
+        <div class="title">${x.name||x.id||'—'}</div>
+        <div class="sub">${x.room||''} · ${x.mode||''} · Set=${x.setpoint??'—'}° · Fan=${x.fan||''}</div>
+      </div>
+      <div class="controls">
+        <button class="small-btn" data-op="powerToggle">Power</button>
+        <button class="small-btn" data-op="dec">-</button>
+        <button class="small-btn" data-op="inc">+</button>
+        <button class="small-btn" data-op="modeNext">Mode</button>
+        <button class="small-btn" data-op="fanNext">Fan</button>
+      </div>
+    `;
+    row.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const op = (b.getAttribute('data-op')||'');
+        callAdmin('vimar_hvac',{ id:x.id, op }, ()=>{}, ()=>{});
+      });
     });
-  }
+    hv.appendChild(row);
+  });
+}
 
-  function init(){
-    if (!localStorage.getItem(UNIT_KEY)) localStorage.setItem(UNIT_KEY, 'C');
-    bindAdmin();
-    bindUnitToggle();
-    refreshOnce();
-    setInterval(refreshOnce, REFRESH_MS);
+function renderLogs(logs){
+  const list = $('#log');
+  const empty = $('#logEmpty');
+  list.innerHTML = '';
+  if(!logs || !logs.length){
+    empty.textContent = 'Nessun log recente.';
+    return;
   }
+  empty.textContent = '';
+  logs.forEach(x=>{
+    const row = document.createElement('div');
+    row.className='row';
+    const ts = (x.ts ? new Date(x.ts).toLocaleString('it-IT') : '—');
+    row.innerHTML = `
+      <div>
+        <div class="title">${x.code||'—'} <span class="sub">· ${x.stato||''}</span></div>
+        <div class="sub">${ts} · ${x.desc||''} ${x.note?('· '+x.note):''}</div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
 
-  document.addEventListener('DOMContentLoaded', init);
-})();
+/* ===== Navigation ===== */
+function activateTab(target){
+  $all('.tab').forEach(t => t.classList.toggle('active', t.getAttribute('data-target')===target));
+  $all('.view').forEach(v => v.classList.toggle('active', v.id === ('view-'+target)));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ===== Data flow ===== */
+function loadAll(){
+  fetchModel((model)=>{
+    try{
+      renderState(model);
+      renderPeople(model);
+      renderWeather(model);
+      renderEnergy(model);
+      renderVimar(model);
+
+      // Badge log errori
+      const err = (model.alerts && Number(model.alerts.logErrors)) || 0;
+      $('#badgeLog').hidden = (err<=0);
+
+      // Time
+      $('#ts').textContent = 'Aggiornamento: ' + fmtTime(model.meta && model.meta.nowIso);
+    }catch(e){ console.error(e); }
+  }, (err)=>{ console.error('Model error', err); });
+}
+
+function loadLogs(){
+  fetchLogs((data)=>{
+    renderLogs(data && data.logs || []);
+  }, (err)=>{ console.error('Logs error', err); });
+}
+
+/* ===== Init ===== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // tabbar
+  $all('.tab').forEach(t => t.addEventListener('click', ()=> activateTab(t.getAttribute('data-target')) ));
+  // menu interni
+  $all('.menu-btn').forEach(b => b.addEventListener('click', ()=> activateTab(b.getAttribute('data-target')) ));
+  // log refresh
+  $('#btnRefreshLog').addEventListener('click', loadLogs);
+
+  // prima load
+  loadAll();
+  // carica log alla prima visita della sezione o subito?
+  loadLogs();
+
+  // auto refresh
+  if (CONFIG.AUTO_REFRESH_MS > 0){
+    setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
+  }
+});
