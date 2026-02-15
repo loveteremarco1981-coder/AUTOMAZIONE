@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Casa di Marco</title>
 
-  <!-- ===== CSS (incluso dal file "style.css") ===== -->
-  <style>
-    <?!= HtmlService.createHtmlOutputFromFile('style.css').getContent(); ?>
-  </style>
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -46,7 +44,7 @@
     <section id="view-home" class="view active">
       <div class="label-ghost">Dashboard</div>
 
-      <!-- Grid no-scroll -->
+      <!-- Grid -->
       <div class="cards-row">
         <article class="pill-card" id="card-people">
           <div class="pill-inner">
@@ -151,15 +149,9 @@
     </button>
   </footer>
 
-  <!-- ===== Scripts (inclusi dai relativi file) ===== -->
-  <script>
-    <?!= HtmlService.createHtmlOutputFromFile('config.js').getContent(); ?>
-  </script>
-  <script>
-    <?!= HtmlService.createHtmlOutputFromFile('jsonp.js').getContent(); ?>
-  </script>
-  <script>
-    <?!= HtmlService.createHtmlOutputFromFile('app.js').getContent(); ?>
-  </script>
+  <!-- Scripts -->
+  <script src="config.js"></script>
+  <script src="jsonp.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
