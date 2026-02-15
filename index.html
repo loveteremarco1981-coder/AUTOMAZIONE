@@ -10,41 +10,85 @@
     --card:rgba(255,255,255,.08); --accent:#0a84ff;
     --r:22px; --blur:18px; --shadow:0 10px 30px rgba(0,0,0,.35);
     --tile:min(44vw,180px); --gap:14px;
+    --state-comfy: linear-gradient(180deg, rgba(52,199,89,.95), rgba(52,199,89,.7));
+    --state-security: linear-gradient(180deg, rgba(255,69,58,.95), rgba(255,69,58,.7));
+    --state-neutral: linear-gradient(180deg, rgba(10,132,255,.92), rgba(10,132,255,.65));
   }
   *{box-sizing:border-box}
-  body{margin:0;background:radial-gradient(1000px 600px at 70% -20%,#1b1b22 0,#0b0b0d 55%,#000);
-       color:var(--text);font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial}
+  body{
+    margin:0;
+    background:radial-gradient(1000px 600px at 70% -20%,#1b1b22 0,#0b0b0d 55%,#000);
+    color:var(--text);
+    font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial
+  }
+
+  /* Header */
   .hdr{position:sticky;top:0;z-index:10;padding:22px 18px 12px;
        background:linear-gradient(180deg,rgba(0,0,0,.65),rgba(0,0,0,.2) 70%,transparent);
        backdrop-filter:blur(var(--blur))}
   .hdr h1{margin:0 0 6px;font-size:28px;font-weight:700}
   .muted{color:var(--muted);font-size:14px}
+
+  /* Persone (pillole) */
   .people{display:flex;gap:8px;margin:6px 0 8px;flex-wrap:wrap}
   .pill{padding:6px 10px;border-radius:999px;font-size:13px;background:rgba(255,255,255,.1)}
   .pill.in{background:rgba(46,170,78,.9);color:#fff}
   .pill.out{background:rgba(120,120,130,.35)}
-  .tiles{display:grid;gap:var(--gap);padding:12px 16px 30px;
+
+  /* Box Stato Casa */
+  .statebox{
+    margin: 10px 16px 6px;
+    border-radius: var(--r);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display:flex;justify-content:space-between;align-items:baseline;
+    color:#fff;
+  }
+  .statebox .title{font-weight:700}
+  .statebox .value{font-size:22px;font-weight:800}
+
+  /* Grid tiles */
+  .tiles{display:grid;gap:var(--gap);padding:12px 16px 90px;
          grid-template-columns:repeat(auto-fill,minmax(var(--tile),1fr))}
-  .tiles-room{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
-  .tile{border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);padding:14px;min-height:120px;
-        display:flex;flex-direction:column;justify-content:space-between;transition:.18s;user-select:none}
+  .tiles-room{grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px}
+  .tile{
+    border-radius:var(--r);background:var(--card);box-shadow:var(--shadow);padding:14px;min-height:120px;
+    display:flex;flex-direction:column;justify-content:space-between;transition:.18s;user-select:none
+  }
   .tile:hover{transform:translateY(-2px)}
   .label{font-weight:600}.value{font-size:26px;font-weight:700;margin-top:8px}
   .tile.on{background:linear-gradient(180deg,rgba(10,132,255,.92),rgba(10,132,255,.65));color:#fff}
   .tile.switch:not(.on){filter:saturate(.55) brightness(.85);opacity:.88}
   .click{cursor:pointer}
+
+  /* Sezioni */
   .sec{padding:6px 16px 16px}.sec h2{margin:0 0 12px;font-size:20px}
   .room{margin-bottom:10px}.room h3{margin:8px 0 6px;font-size:16px;color:var(--muted)}
   .list .row{display:flex;justify-content:space-between;align-items:baseline;background:rgba(255,255,255,.05);
              padding:10px 12px;border-radius:14px;margin:6px 0}
-  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;
+
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;
          padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s;z-index:9999}
   .toast.show{opacity:1}
-  .dbg{position:fixed;right:8px;bottom:8px;font:12px/1.35 monospace;background:rgba(0,0,0,.5);color:#9ad8ff;
-       padding:6px 8px;border-radius:8px;max-width:48vw;max-height:30vh;overflow:auto}
+
+  /* Tabbar in basso */
+  .tabbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    display:flex;gap:10px;justify-content:space-around;align-items:center;
+    padding:10px 12px env(safe-area-inset-bottom);
+    backdrop-filter: blur(var(--blur));
+    background:rgba(0,0,0,.6);
+    border-top:1px solid rgba(255,255,255,.06);
+  }
+  .tab{background:transparent;color:#d6d6dc;border:0;font-weight:600}
+  .tab.active{color:#fff}
+
   @media (prefers-color-scheme:light){
     :root{--bg:#f2f2f7;--text:#101014;--card:rgba(255,255,255,.92);--muted:#6b6b76}
     body{background:linear-gradient(180deg,#f8f8fb,#ececf2)}
+    .tabbar{background:rgba(255,255,255,.8)}
+    .tab{color:#555}.tab.active{color:#000}
   }
 </style>
 </head>
@@ -54,6 +98,12 @@
     <div id="people" class="people"></div>
     <div id="ts" class="muted">Aggiornamento…</div>
   </header>
+
+  <!-- BOX STATO CASA -->
+  <section id="stateBox" class="statebox" style="background:var(--state-neutral)">
+    <div class="title">Stato casa</div>
+    <div id="stateValue" class="value">—</div>
+  </section>
 
   <!-- HOME -->
   <section class="tiles" id="homeTiles"></section>
@@ -70,8 +120,15 @@
     <div id="log" class="list"></div>
   </section>
 
+  <!-- Tabbar -->
+  <footer class="tabbar">
+    <button class="tab active">Casa</button>
+    <button class="tab">Stanze</button>
+    <button class="tab">Automazioni</button>
+  </footer>
+
+  <!-- Toast -->
   <div id="toast" class="toast"></div>
-  <pre id="dbg" class="dbg"></pre>
 
 <script>
 /* =======================
@@ -83,7 +140,7 @@ const CONFIG = {
   pollMs: 4000,
   jsonp: { enabled: true, param: "callback" },
 
-  // Tile principali: mapping sui CAMPI reali del tuo doGet
+  // Tile principali → campi reali del tuo doGet
   tiles: [
     { id:"vacanza",  type:"switch", label:"Vacanza",  path:"vacanza",
       on:{ url:"admin=1&event=set_vacanza&value=true"  },
@@ -97,7 +154,6 @@ const CONFIG = {
       off:{url:"admin=1&event=set_override&value=false" } },
   ],
 
-  // Stanze: alba/tramonto dal tuo modello
   rooms: [
     { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
     { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] },
@@ -113,15 +169,17 @@ const CONFIG = {
    ======================= */
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const pick=(o,p)=>p.split('.').reduce((x,k)=>(x&&x[k]!==undefined)?x[k]:undefined,o);
-const log=(...a)=>{const el=$("#dbg"); el.textContent=[new Date().toLocaleTimeString(),...a].join(" ")+"\n"+el.textContent;}
 const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600);};
 const append=(base,qs)=> base + (base.includes("?")?"&":"?") + qs;
 
 /* =======================
-   SKELETON (visibile subito)
+   SKELETON (subito visibile)
    ======================= */
 function renderSkeleton(){
   $("#homeName").textContent=CONFIG.title;
+
+  // Stato casa iniziale neutro
+  $("#stateValue").textContent = "—";
 
   // Home tiles
   $("#homeTiles").innerHTML = CONFIG.tiles.map(t=>`
@@ -173,10 +231,9 @@ function bindActions(){
         const qs=isOn?t.off.url:t.on.url;               // admin=1&event=set_xxx&value=...
         const url=append(CONFIG.endpoint, qs);
         try{
-          log("SWITCH", t.label, "→", url);
           await fetch(url,{method:"GET",mode:"no-cors"});  // non ci serve la risposta
           toast(`${t.label}: ${isOn?"Off":"On"}`);
-        }catch(e){ toast(`Errore ${t.label}`); log("ERR switch",e.message); }
+        }catch(e){ toast(`Errore ${t.label}`); }
       };
     }
     if(t.type==="scene"){
@@ -184,10 +241,9 @@ function bindActions(){
         if(t.action?.confirm && !confirm(t.action.confirm)) return;
         const url=append(CONFIG.endpoint, t.action.url);   // admin=1&event=piante
         try{
-          log("SCENE", t.label, "→", url);
           await fetch(url,{method:"GET",mode:"no-cors"});
           toast(`${t.label}: eseguita`);
-        }catch(e){ toast(`Errore scena ${t.label}`); log("ERR scene",e.message); }
+        }catch(e){ toast(`Errore scena ${t.label}`); }
       };
     }
     el.dataset.bound="1";
@@ -213,18 +269,16 @@ function jsonp(url,cbParam="callback",timeoutMs=4000){
 }
 
 /* =======================
-   >>> QUI C’È LA FUNZIONE CHE TI MANCA <<<
-   Carica i dati dal tuo doGet (JSONP) e aggiorna la UI
+   CARICA STATO (doGet) + aggiorna UI
    ======================= */
 async function loadState(){
-  $("#ts").textContent="Aggiornamento…";
+  // non mostro “Aggiornamento…” continuo: lo tengo discreto
   try{
-    const model = await jsonp(CONFIG.endpoint, CONFIG.jsonp.param); // <— CHIAMA automazione.gs
+    const model = await jsonp(CONFIG.endpoint, CONFIG.jsonp.param); // chiama automazione.gs
+    applyState(model);
+    // timestamp solo DOPO l'apply, per evitare "flicker"
     $("#ts").textContent="Aggiornato: "+new Date().toLocaleTimeString();
-    log("MODEL", JSON.stringify(model).slice(0,140)+"...");
-    applyState(model);                                              // <— aggiorna le tile
   }catch(e){
-    log("DATA ERR", e.message);
     $("#ts").textContent="Errore di connessione";
   }
 }
@@ -233,6 +287,15 @@ async function loadState(){
    Rendering del modello
    ======================= */
 function applyState(model){
+  // Stato casa (box colorato)
+  const st = String(model.state||'').toUpperCase();
+  const stateEl = $("#stateBox");
+  $("#stateValue").textContent = st || "—";
+  // mappa colori: COMFY_* → verde, SECURITY_* → rosso, altro → azzurro
+  if (/^COMFY/.test(st))       stateEl.style.background = "var(--state-comfy)";
+  else if (/^SECURITY/.test(st)) stateEl.style.background = "var(--state-security)";
+  else                          stateEl.style.background = "var(--state-neutral)";
+
   // Persone → array model.people
   const ppl = Array.isArray(model.people)? model.people : [];
   $("#people").innerHTML = ppl.map(p=>{
@@ -246,12 +309,12 @@ function applyState(model){
     if(!el) return;
 
     if(t.type==="sensor"){
-      const v=pick(model,t.path);
+      const v = pick(model, t.path);
       el.querySelector(".value").textContent = (t.format?t.format(v):v) ?? "—";
       el.classList.toggle("on", false);
     }
     if(t.type==="switch"){
-      const on=!!pick(model,t.path);   // vacanza / override
+      const on = !!pick(model, t.path);   // vacanza / override
       el.querySelector(".value").textContent= on?"On":"Off";
       el.classList.toggle("on", on);
     }
@@ -270,7 +333,7 @@ function applyState(model){
     }
   });
 
-  // Automazioni — placeholder (se vuoi i log, ti preparo la patch a GAS)
+  // Automazioni — placeholder (quando esponi i log da GAS, li mettiamo qui)
   $("#log").innerHTML = `<div class="row"><div class="name">Nessun evento</div>
                          <div class="muted">Aggiungi endpoint log</div></div>`;
 }
@@ -278,7 +341,8 @@ function applyState(model){
 /* =======================
    LOOP (poll ogni 4s)
    ======================= */
-loadState(); setInterval(loadState, CONFIG.pollMs);
+loadState();
+setInterval(loadState, CONFIG.pollMs);
 </script>
 </body>
 </html>
