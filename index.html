@@ -74,14 +74,16 @@
   <pre id="dbg" class="dbg"></pre>
 
 <script>
-/* ============ CONFIG per il TUO GAS ============ */
+/* =======================
+   CONFIG per automazione.gs
+   ======================= */
 const CONFIG = {
   title: "Casa di Marco",
   endpoint: "https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec",
   pollMs: 4000,
   jsonp: { enabled: true, param: "callback" },
 
-  /* Tile principali (matching con il tuo doGet) */
+  // Tile principali: mapping sui CAMPI reali del tuo doGet
   tiles: [
     { id:"vacanza",  type:"switch", label:"Vacanza",  path:"vacanza",
       on:{ url:"admin=1&event=set_vacanza&value=true"  },
@@ -95,31 +97,40 @@ const CONFIG = {
       off:{url:"admin=1&event=set_override&value=false" } },
   ],
 
-  /* Stanze (Alba/Tramonto dal tuo modello) */
+  // Stanze: alba/tramonto dal tuo modello
   rooms: [
     { id:"soggiorno", name:"Soggiorno", tiles:["presenza"] },
     { id:"esterno",   name:"Esterno",   tiles:["alba","tramonto","piante"] },
   ],
   virtual: { alba:{label:"Alba",path:"alba"}, tramonto:{label:"Tramonto",path:"tramonto"} },
 
-  /* Log: il tuo doGet attuale non li fornisce → lasciamo vuoto/placeholder */
+  // Log: il tuo doGet non restituisce ancora l’elenco — placeholder
   logLimit: 20
 };
-/* ============ UTILS ============ */
+
+/* =======================
+   UTILS
+   ======================= */
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 const pick=(o,p)=>p.split('.').reduce((x,k)=>(x&&x[k]!==undefined)?x[k]:undefined,o);
 const log=(...a)=>{const el=$("#dbg"); el.textContent=[new Date().toLocaleTimeString(),...a].join(" ")+"\n"+el.textContent;}
 const toast=(m)=>{const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1600);};
 const append=(base,qs)=> base + (base.includes("?")?"&":"?") + qs;
 
-/* ============ SKELETON (visibile SUBITO) ============ */
+/* =======================
+   SKELETON (visibile subito)
+   ======================= */
 function renderSkeleton(){
   $("#homeName").textContent=CONFIG.title;
+
+  // Home tiles
   $("#homeTiles").innerHTML = CONFIG.tiles.map(t=>`
     <article class="tile ${t.type} ${t.type!=="sensor"?"click":""}" data-id="${t.id}">
       <div><div class="label">${t.label}</div>${t.subtitle?`<div class="muted">${t.subtitle}</div>`:""}</div>
       <div class="value muted">${t.type==="sensor"?"—":(t.type==="switch"?"Off":"Esegui")}</div>
     </article>`).join('');
+
+  // Stanze
   $("#rooms").innerHTML = CONFIG.rooms.map(r=>`
     <section class="room">
       <h3>${r.name}</h3>
@@ -127,6 +138,8 @@ function renderSkeleton(){
         ${r.tiles.map(id=>`<div class="tile-ref" data-ref="${id}"></div>`).join("")}
       </div>
     </section>`).join('');
+
+  // Clona nella stanza la tile corrispondente (o crea virtual)
   CONFIG.rooms.forEach(r=>{
     r.tiles.forEach(id=>{
       const host=document.querySelector(`.tile-ref[data-ref="${id}"]`);
@@ -146,11 +159,14 @@ function renderSkeleton(){
 }
 renderSkeleton();
 
-/* ============ BIND AZIONI con i TUOI event=... ============ */
+/* =======================
+   BIND AZIONI (switch/scene)
+   ======================= */
 function bindActions(){
   CONFIG.tiles.forEach(t=>{
     const el=document.querySelector(`.tile[data-id="${t.id}"]`);
     if(!el || el.dataset.bound) return;
+
     if(t.type==="switch"){
       el.onclick=async ()=>{
         const isOn=el.classList.contains("on");
@@ -179,7 +195,9 @@ function bindActions(){
 }
 bindActions();
 
-/* ============ JSONP loader (per data) ============ */
+/* =======================
+   JSONP loader
+   ======================= */
 function jsonp(url,cbParam="callback",timeoutMs=4000){
   return new Promise((res,rej)=>{
     const cb="cb_"+Math.random().toString(36).slice(2);
@@ -194,23 +212,28 @@ function jsonp(url,cbParam="callback",timeoutMs=4000){
   });
 }
 
-/* ============ DATI LIVE (model da doGet) ============ */
+/* =======================
+   >>> QUI C’È LA FUNZIONE CHE TI MANCA <<<
+   Carica i dati dal tuo doGet (JSONP) e aggiorna la UI
+   ======================= */
 async function loadState(){
   $("#ts").textContent="Aggiornamento…";
   try{
-    const model = await jsonp(CONFIG.endpoint, CONFIG.jsonp.param);
+    const model = await jsonp(CONFIG.endpoint, CONFIG.jsonp.param); // <— CHIAMA automazione.gs
     $("#ts").textContent="Aggiornato: "+new Date().toLocaleTimeString();
-    log("MODEL", JSON.stringify(model).slice(0,120)+"...");
-    applyState(model);
+    log("MODEL", JSON.stringify(model).slice(0,140)+"...");
+    applyState(model);                                              // <— aggiorna le tile
   }catch(e){
     log("DATA ERR", e.message);
     $("#ts").textContent="Errore di connessione";
   }
 }
 
-/* ============ RENDER ============ */
+/* =======================
+   Rendering del modello
+   ======================= */
 function applyState(model){
-  // Persone → dal tuo array model.people
+  // Persone → array model.people
   const ppl = Array.isArray(model.people)? model.people : [];
   $("#people").innerHTML = ppl.map(p=>{
     const v = !!(p.onlineSmart || p.onlineRaw);
@@ -228,7 +251,7 @@ function applyState(model){
       el.classList.toggle("on", false);
     }
     if(t.type==="switch"){
-      const on=!!pick(model,t.path);   // vacanza/override dal model
+      const on=!!pick(model,t.path);   // vacanza / override
       el.querySelector(".value").textContent= on?"On":"Off";
       el.classList.toggle("on", on);
     }
@@ -247,12 +270,14 @@ function applyState(model){
     }
   });
 
-  // Automazioni — il tuo doGet non espone i log → placeholder
+  // Automazioni — placeholder (se vuoi i log, ti preparo la patch a GAS)
   $("#log").innerHTML = `<div class="row"><div class="name">Nessun evento</div>
                          <div class="muted">Aggiungi endpoint log</div></div>`;
 }
 
-/* ============ LOOP ============ */
+/* =======================
+   LOOP (poll ogni 4s)
+   ======================= */
 loadState(); setInterval(loadState, CONFIG.pollMs);
 </script>
 </body>
