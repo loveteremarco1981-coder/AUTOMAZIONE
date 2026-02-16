@@ -1,460 +1,54 @@
-/* ===== Palette ===== */
-:root{
-  --bg:#0e0f12;
-  --bg-elev:#14161a;
-  --bg-card:#17191e;
-  --line:#22252b;
-  --muted:#98a2b3;
-  --text:#e6e9ef;
-  --accent:#4f8cff;
-  --good:#2ecc71;
-  --warn:#f1c40f;
-  --bad:#ff6b6b;
-  --chip-bg:#1d2026;
-  --pill:#1a1d23;
-  --shadow:0 6px 18px rgba(0,0,0,.25);
-}
-
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font:500 15px/1.4 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-}
-
-/* ===== TOPBAR vecchio stile ===== */
-.topbar{
-  position:sticky;
-  top:0;
-  z-index:10;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 14px;
-  background:linear-gradient(180deg,#174066 0%,#123656 60%,#0f2f4d 100%);
-  box-shadow:0 4px 24px rgba(0,0,0,.25) inset;
-}
-.topbar .left,
-.topbar .right{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.home-btn{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:transparent;
-  border:0;
-  color:#fff;
-  padding:8px 10px;
-  border-radius:12px;
-  cursor:pointer;
-}
-.home-btn .ico-home{
-  width:22px;
-  height:22px;
-  color:#fff;
-  opacity:.95;
-}
-.home-title{
-  font-size:20px;
-  font-weight:800;
-  letter-spacing:.2px;
-}
-.ico-chev{
-  width:18px;
-  height:18px;
-  color:#c7d3e4;
-  opacity:.9;
-}
-
-.icon-btn{
-  width:36px;
-  height:36px;
-  display:grid;
-  place-items:center;
-  background:transparent;
-  border:0;
-  color:#e9f1ff;
-  opacity:.95;
-  cursor:pointer;
-}
-.icon-btn svg{
-  width:22px;
-  height:22px;
-}
-
-/* ===== Chip stato (verde / security) ===== */
-.chip.state{
-  display:inline-flex;
-  align-items:center;
-  border-radius:999px;
-  padding:8px 12px;
-  font-weight:800;
-  font-size:14px;
-  letter-spacing:.3px;
-  text-transform:uppercase;
-  border:none;
-}
-.chip.state.good{
-  background:#2bb24a;
-  color:#fff;
-  box-shadow:0 0 0 2px rgba(255,255,255,.08) inset;
-}
-.chip.state.sec{
-  background:#2a3342;
-  color:#d5deea;
-}
-.chip.state.neutral{
-  background:#3a3d45;
-  color:#dcdde2;
-}
-
-/* ===== Meteo pill ===== */
-.weather-pill{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:#112538;
-  border:1px solid rgba(255,255,255,.08);
-  padding:8px 12px;
-  border-radius:999px;
-  color:#fff;
-  box-shadow:0 8px 18px rgba(0,0,0,.25) inset;
-}
-.weather-pill .dot{
-  width:12px;
-  height:12px;
-  border-radius:999px;
-  background:#ffc107;
-  box-shadow:0 0 10px #ffc107cc,0 0 2px #000 inset;
-}
-#weatherTemp{
-  font-weight:800;
-  font-size:16px;
-  letter-spacing:.2px;
-}
-
-/* ===== Layout base ===== */
-main{
-  padding:16px 12px 84px 12px;
-}
-.view{
-  display:none;
-}
-.view.active{
-  display:block;
-}
-
-.label-ghost{
-  margin:14px 6px 12px;
-  font-size:13px;
-  color:#9aa7bb;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-}
-
-/* ===== Pill cards ===== */
-.cards-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-bottom:16px;
-}
-.pill-card{
-  background:var(--bg-card);
-  border:1px solid var(--line);
-  border-radius:16px;
-  box-shadow:var(--shadow);
-}
-.pill-inner{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:14px;
-}
-.pill-icon{
-  width:40px;
-  height:40px;
-  border-radius:12px;
-  background:#12223f;
-  display:grid;
-  place-items:center;
-  color:#72a4ff;
-}
-.pill-icon.energy{
-  background:#2a1d13;
-  color:#ff9d4f;
-}
-.pill-icon svg{
-  width:22px;
-  height:22px;
-}
-.pill-caption{
-  color:var(--muted);
-  font-size:12px;
-}
-.pill-value{
-  font-size:15px;
-}
-
-/* ===== Preferiti (grossi tipo HomeKit) ===== */
-.fav-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:14px;
-  margin-bottom:18px;
-}
-.fav{
-  padding:16px;
-  border-radius:18px;
-  background:#17191e;
-  border:1px solid #2a2f38;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,.25);
-  transition:transform .06s ease,border-color .2s ease,background .2s ease;
-}
-
-.fav {
-  position: relative;
-  background: #1b1e24;
-  border-radius: 22px;
-  padding: 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid #2a2f38;
-}
-
-.fav .top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.fav .label-col {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.fav .label-col .title {
-  font-size: 17px;
-  color: #f2f2f2;
-  font-weight: 700;
-}
-
-.fav .label-col .status {
-  font-size: 14px;
-  color: #9aa7bb;
-}
-
-.fav .power-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #2c2f36;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.fav.active .power-btn {
-  background: #4f8cff;
-  color: #fff;
-}
-
-.fav .power-btn svg {
-  width: 20px;
-  height: 20px;
-  color: inherit;
-}
-.fav:hover{
-  border-color:#34507a;
-}
-.fav:active{
-  transform:scale(.985);
-}
-.fav.active{
-  background:#0f1a33;
-  border-color:#2d5dff33;
-  color:#93b4ff;
-}
-.fav .ico{
-  width:22px;
-  height:22px;
-  color:#4f8cff;
-  display:grid;
-  place-items:center;
-}
-.fav .title{
-  font-size:16px;
-  font-weight:800;
-  color:#69a0ff;
-  letter-spacing:.2px;
-  line-height:1.2;
-}
-.fav .sub{
-  margin-top:2px;
-  font-size:13.5px;
-  color:#97a3b5;
-}
-
-/* ===== Liste dispositivi ===== */
-.section-label{
-  margin:14px 6px 10px;
-  font-size:14px;
-  color:var(--muted);
-  letter-spacing:.4px;
-}
-.people-chips{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-}
-.chip{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 10px;
-  border-radius:999px;
-  background:var(--chip-bg);
-  border:1px solid var(--line);
-  color:var(--text);
-  font-size:13px;
-}
-.chip .dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-}
-.chip .dot.on{
-  background:var(--good);
-}
-.chip .dot.off{
-  background:var(--bad);
-}
-
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:var(--bg-card);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:10px 12px;
-}
-.row .title{
-  font-weight:600;
-}
-.row .sub{
-  font-size:12px;
-  color:var(--muted);
-}
-.row .controls{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-.small-btn{
-  padding:7px 12px;
-  border-radius:10px;
-  border:1px solid #2a2f38;
-  background:#1a1d23;
-  color:#e6e9ef;
-  font-weight:600;
-  cursor:pointer;
-}
-.small-btn.primary{
-  border-color:#2d5dff33;
-  background:#0f1a33;
-  color:#93b4ff;
-}
-
-/* ===== Log ===== */
-.muted{
-  color:var(--muted);
-  font-size:13px;
-  margin:8px 6px;
-}
-.row-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-}
-.pill-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  border-radius:12px;
-  border:1px solid var(--line);
-  background:var(--pill);
-  color:var(--text);
-  padding:8px 12px;
-  cursor:pointer;
-}
-
-/* ===== Tabbar ===== */
-.tabbar{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:10;
-  background:var(--bg-elev);
-  border-top:1px solid var(--line);
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  padding:6px 6px 10px;
-  gap:8px;
-}
-.tab{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  padding:8px 6px;
-  background:transparent;
-  border:0;
-  color:var(--muted);
-}
-.tab svg{
-  width:22px;
-  height:22px;
-}
-.tab.active{
-  color:var(--accent);
-}
-.tab .badge{
-  position:absolute;
-  margin-top:-28px;
-  margin-left:12px;
-  background:var(--bad);
-  color:#fff;
-  font-weight:700;
-  font-size:11px;
-  border-radius:999px;
-  padding:0 6px;
-  line-height:18px;
-  height:18px;
-}
-
-/* ===== Responsive ===== */
-@media (max-width:390px){
-  .cards-row{
-    grid-template-columns:1fr;
-  }
-}
+:root{ --bg:#0e0f12; --bg-elev:#14161a; --bg-card:#17191e; --line:#22252b; --muted:#98a2b3; --text:#e6e9ef; --accent:#4f8cff; --good:#2ecc71; --warn:#f1c40f; --bad:#ff6b6b; --chip-bg:#1d2026; --pill:#1a1d23; --shadow:0 6px 18px rgba(0,0,0,.25); }
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:500 15px/1.4 "Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(180deg,#174066 0%,#123656 60%,#0f2f4d 100%);box-shadow:0 4px 24px rgba(0,0,0,.25) inset}
+.topbar .left,.topbar .right{display:flex;align-items:center;gap:10px}
+.home-btn{display:flex;align-items:center;gap:10px;background:transparent;border:0;color:#fff;padding:8px 10px;border-radius:12px;cursor:pointer}
+.home-btn .ico-home{width:22px;height:22px;color:#fff;opacity:.95}
+.home-title{font-size:20px;font-weight:800;letter-spacing:.2px}
+.ico-chev{width:18px;height:18px;color:#c7d3e4;opacity:.9}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;background:transparent;border:0;color:#e9f1ff;opacity:.95}
+.icon-btn svg{width:22px;height:22px}
+.chip.state{display:inline-flex;align-items:center;border-radius:999px;padding:8px 12px;font-weight:800;font-size:14px;letter-spacing:.3px;text-transform:uppercase;border:none}
+.chip.state.good{background:#2bb24a;color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.08) inset}
+.chip.state.sec{background:#2a3342;color:#d5deea}
+.chip.state.neutral{background:#3a3d45;color:#dcdde2}
+.weather-pill{display:flex;align-items:center;gap:10px;background:#112538;border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:999px;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.25) inset}
+.weather-pill .dot{width:12px;height:12px;border-radius:999px;background:#ffc107;box-shadow:0 0 10px #ffc107cc,0 0 2px #000 inset}
+#weatherTemp{font-weight:800;font-size:16px;letter-spacing:.2px}
+main{padding:16px 12px 84px 12px}
+.view{display:none}.view.active{display:block}
+.label-ghost{margin:14px 6px 12px;font-size:13px;color:#9aa7bb;letter-spacing:1.5px;text-transform:uppercase}
+.cards-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.pill-card{background:var(--bg-card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.pill-inner{display:flex;align-items:center;gap:12px;padding:14px}
+.pill-icon{width:40px;height:40px;border-radius:12px;background:#12223f;display:grid;place-items:center;color:#72a4ff}
+.pill-icon.energy{background:#2a1d13;color:#ff9d4f}
+.pill-icon svg{width:22px;height:22px}
+.pill-caption{color:var(--muted);font-size:12px}
+.pill-value{font-size:15px}
+.fav-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+.fav{position:relative;background:#1b1e24;border-radius:22px;padding:16px 14px;display:flex;flex-direction:column;gap:10px;border:1px solid #2a2f38}
+.fav:hover{border-color:#34507a}
+.fav.active{background:#0f1a33;border-color:#2d5dff33;color:#cfe0ff}
+.fav .top-row{display:flex;justify-content:space-between;align-items:center}
+.fav .label-col{display:flex;flex-direction:column;gap:4px}
+.fav .label-col .title{font-size:17px;color:#f2f2f2;font-weight:800;letter-spacing:.2px}
+.fav .label-col .status{font-size:14px;color:#9aa7bb}
+.fav .power-btn{width:34px;height:34px;border-radius:50%;background:#2c2f36;color:#cfd6e3;display:flex;justify-content:center;align-items:center}
+.fav.active .power-btn{background:#4f8cff;color:#fff}
+.fav .power-btn svg{width:20px;height:20px}
+.section-label{margin:14px 6px 10px;font-size:14px;color:var(--muted);letter-spacing:.4px}
+.people-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--chip-bg);border:1px solid var(--line);color:var(--text);font-size:13px}
+.chip .dot{width:8px;height:8px;border-radius:50%}.chip .dot.on{background:var(--good)}.chip .dot.off{background:var(--bad)}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.row .title{font-weight:600}.row .sub{font-size:12px;color:var(--muted)}
+.row .controls{display:flex;align-items:center;gap:8px}
+.small-btn{padding:7px 12px;border-radius:10px;border:1px solid #2a2f38;background:#1a1d23;color:#e6e9ef;font-weight:600}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--bg-elev);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px 10px;gap:8px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;background:transparent;border:0;color:var(--muted)}
+.tab svg{width:22px;height:22px}.tab.active{color:var(--accent)}
+.tab .badge{position:absolute;margin-top:-28px;margin-left:12px;background:var(--bad);color:#fff;font-weight:700;font-size:11px;border-radius:999px;padding:0 6px;line-height:18px;height:18px}
+@media (max-width:390px){.cards-row{grid-template-columns:1fr}}

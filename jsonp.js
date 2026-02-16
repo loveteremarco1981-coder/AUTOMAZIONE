@@ -1,102 +1,22 @@
-/* ============================================================
- *               JSONP Helper per GitHub Pages
- * ============================================================ */
-
-/**
- * Costruisce un URL con parametri GET
- */
-function buildUrl(base, params) {
-  const usp = new URLSearchParams();
-  Object.keys(params || {}).forEach(k => {
-    if (params[k] !== undefined && params[k] !== null)
-      usp.set(k, params[k]);
-  });
-  return base + (base.includes('?') ? '&' : '?') + usp.toString();
+function buildUrl(base, params){
+  const usp=new URLSearchParams();
+  Object.keys(params||{}).forEach(k=>{ if(params[k]!=null) usp.set(k, params[k]); });
+  return base+(base.includes('?')?'&':'?')+usp.toString();
 }
-
-/**
- * JSONP general purpose
- * - baseUrl: endpoint Apps Script
- * - params: parametri GET aggiuntivi
- * - onSuccess(data)
- * - onError(error)
- *
- * Crea dinamicamente un <script> con callback = "__jp_cb_xxxxx"
- */
-function jsonpRequest(baseUrl, params, onSuccess, onError) {
-
-  const cbName = '__jp_cb_' + Math.random().toString(36).slice(2);
-
-  const cleanup = (node) => {
-    try { delete window[cbName]; } catch (_) {}
-    try { node && node.remove(); } catch (_) {}
-  };
-
-  const url = buildUrl(baseUrl, Object.assign({}, params, { callback: cbName }));
-
-  const script = document.createElement('script');
-  script.src = url;
-  script.async = true;
-
-  let called = false;
-
-  window[cbName] = (data) => {
-    if (called) return;
-    called = true;
-    cleanup(script);
-    try { onSuccess && onSuccess(data); }
-    catch (err) { console.error('JSONP success handler error:', err); }
-  };
-
-  script.onerror = (err) => {
-    if (called) return;
-    called = true;
-    cleanup(script);
-    try { onError && onError(err); }
-    catch (err2) { console.error('JSONP error handler error:', err2); }
-  };
-
-  document.head.appendChild(script);
+function jsonpRequest(baseUrl, params, onSuccess, onError){
+  const cb='__jp_cb_'+Math.random().toString(36).slice(2);
+  const cleanup=(node)=>{ try{delete window[cb]}catch(_){} try{node&&node.remove()}catch(_){} };
+  const url=buildUrl(baseUrl, Object.assign({},params,{callback:cb}));
+  const s=document.createElement('script'); s.src=url; s.async=true;
+  let done=false;
+  window[cb]=(data)=>{ if(done) return; done=true; cleanup(s); try{onSuccess&&onSuccess(data)}catch(e){console.error(e)} };
+  s.onerror=(e)=>{ if(done) return; done=true; cleanup(s); try{onError&&onError(e)}catch(_){} };
+  document.head.appendChild(s);
 }
-
-
-/* ============================================================
- *     FUNZIONI SPECIFICHE PER APPS SCRIPT AUTOMAZIONE
- * ============================================================ */
-
-/**
- * Fetch modello completo (persone, stato, meteo, vimar, ecc.)
- */
-function fetchModel(onSuccess, onError) {
-  return jsonpRequest(CONFIG.BASE_URL, {}, onSuccess, onError);
-}
-
-/**
- * Fetch log ultimi 200 eventi
- */
-function fetchLogs(onSuccess, onError) {
-  return jsonpRequest(CONFIG.BASE_URL, { logs: '1' }, onSuccess, onError);
-}
-
-/**
- * Fetch trend 24h
- */
-function fetchTrend24h(onSuccess, onError) {
-  return jsonpRequest(CONFIG.BASE_URL, { trend: '24h' }, onSuccess, onError);
-}
-
-/**
- * Admin events (NO PIN)
- * eventName = alza_tutto / abbassa_tutto / set_vacanza / set_override…
- */
-function callAdmin(eventName, extraParams, onSuccess, onError) {
-  const p = Object.assign(
-    {
-      admin: '1',
-      event: String(eventName || '')
-    },
-    extraParams || {}
-  );
-
-  return jsonpRequest(CONFIG.BASE_URL, p, onSuccess, onError);
+function fetchModel(ok,ko){ return jsonpRequest(CONFIG.BASE_URL, {}, ok, ko); }
+function fetchLogs(ok,ko){  return jsonpRequest(CONFIG.BASE_URL, {logs:'1'}, ok, ko); }
+function fetchTrend24h(ok,ko){return jsonpRequest(CONFIG.BASE_URL, {trend:'24h'}, ok, ko); }
+function callAdmin(eventName, extra, ok, ko){
+  const p=Object.assign({admin:'1',event:String(eventName||'')}, extra||{});
+  return jsonpRequest(CONFIG.BASE_URL, p, ok, ko);
 }
