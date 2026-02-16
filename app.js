@@ -35,6 +35,7 @@ function favIcon(name){
     leaf:   `<svg viewBox="0 0 24 24"><path fill="${c}" d="M6 13c0 5 4 9 9 9 0-7-7-14-14-14 0 2 2 5 5 5z"/></svg>`,
     suit:   `<svg viewBox="0 0 24 24"><path fill="${c}" d="M7 7h10l1 5H6zm-1 7h12v5H6z"/></svg>`,
     switch: `<svg viewBox="0 0 24 24"><path fill="${c}" d="M7 7h10a5 5 0 1 1 0 10H7A5 5 0 1 1 7 7zm0 2a3 3 0 0 0 0 6h10a3 3 0 0 0 0-6z"/></svg>`
+    shutter: `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 4h18v2H3V4Zm0 4h18v2H3V8Zm0 4h18v2H3v-2Zm0 4h18v2H3v-2Z"/></svg>`,
   };
 
   return M[name] || `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="${c}"/></svg>`;
