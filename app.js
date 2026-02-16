@@ -446,3 +446,16 @@ document.addEventListener('DOMContentLoaded', ()=>{
   loadLogs();
   if (CONFIG.AUTO_REFRESH_MS > 0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
 });
+
+
+function favIcon(name){
+  const p = 'currentColor';
+  const M = {
+    up:    `<svg viewBox="0 0 24 24"><path fill="${p}" d="M7 14l5-5 5 5H7z"/></svg>`,
+    down:  `<svg viewBox="0 0 24 24"><path fill="${p}" d="M7 10l5 5 5-5H7z"/></svg>`,
+    leaf:  `<svg viewBox="0 0 24 24"><path fill="${p}" d="M6 13c0 5 4 9 9 9 0-7-7-14-14-14 0 2 2 5 5 5z"/></svg>`,
+    suit:  `<svg viewBox="0 0 24 24"><path fill="${p}" d="M7 7h10l1 5H6l1-5Z M6 14h12v5H6z"/></svg>`,
+    switch:`<svg viewBox="0 0 24 24"><path fill="${p}" d="M7 7h10a5 5 0 1 1 0 10H7A5 5 0 1 1 7 7zm0 2a3 3 0 0 0 0 6h10a3 3 0 0 0 0-6z"/></svg>`
+  };
+  return M[name] || `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="${p}"/></svg>`;
+}
