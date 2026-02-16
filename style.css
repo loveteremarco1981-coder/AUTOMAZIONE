@@ -81,3 +81,12 @@
   background:#1a1d23; color:#e6e9ef; font-weight:600;
 }
 .small-btn.primary{ border-color:#2d5dff33; background:#0f1a33; color:#93b4ff; }
+
+// rimuovi se vuoi dot sempre giallo
+const code = String(meta.icon||'');
+let color = 'var(--accent)';
+if (/6[1-7]|8[0-2]|9[5-9]/.test(code)) color = 'var(--bad)';
+else if (/4[5-8]/.test(code)) color = 'var(--warn)';
+else if (code==='0' || code==='1') color = 'var(--good)';
+dot.style.background = color;
+dot.style.boxShadow = `0 0 10px ${color}cc`;
