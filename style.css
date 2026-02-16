@@ -221,6 +221,61 @@ main{
   box-shadow:0 6px 18px rgba(0,0,0,.25);
   transition:transform .06s ease,border-color .2s ease,background .2s ease;
 }
+
+.fav {
+  position: relative;
+  background: #1b1e24;
+  border-radius: 22px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #2a2f38;
+}
+
+.fav .top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fav .label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fav .label-col .title {
+  font-size: 17px;
+  color: #f2f2f2;
+  font-weight: 700;
+}
+
+.fav .label-col .status {
+  font-size: 14px;
+  color: #9aa7bb;
+}
+
+.fav .power-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2c2f36;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fav.active .power-btn {
+  background: #4f8cff;
+  color: #fff;
+}
+
+.fav .power-btn svg {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+}
 .fav:hover{
   border-color:#34507a;
 }
