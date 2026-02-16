@@ -88,4 +88,16 @@ function mapWeatherCode(wc){
   };
 
   return m[String(wc)] || {icon:'', text:''};
+
+// --- METEO lato client (niente Apps Script) ---
+  WEATHER: {
+    // Imposta qui le coordinate di casa. Esempio Torino:
+    lat: 45.004636,
+    lon: 7.6522632,
+    tz:  'Europe/Rome',
+
+    // se true forza sempre la lettura client, anche se il backend mandasse weather
+    forceClient: false
+  }
+
 }
