@@ -459,3 +459,33 @@ function favIcon(name){
   };
   return M[name] || `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="${p}"/></svg>`;
 }
+
+
+function renderWeather(model){
+  const w = (model && model.weather) ? model.weather : {};
+  console.log('[UI] weather payload =', w); // <- LOG UTILE
+
+  // Fallback visivo se manca tempC: mostra "N/D" e provider
+  const tempTxt = (w && typeof w.tempC === 'number')
+    ? (Math.round(w.tempC) + '°C')
+    : 'N/D';
+
+  const wc = mapWeatherCode(w && w.icon);
+  const dot = document.getElementById('weatherDot');
+  document.getElementById('weatherTemp').textContent =
+    tempTxt;
+  document.getElementById('weatherProvider').textContent =
+    (wc.icon ? wc.icon + ' ' : '') + (w && w.provider || '—');
+
+  // Colore dot (se tempC manca → giallo fisso)
+  let color = '#ffc107'; // giallo
+  if (w && typeof w.tempC === 'number') {
+    const code = String(w.icon||'');
+    color = (code==='0'||code==='1') ? 'var(--good)'
+          : (/4[5-8]/.test(code))   ? 'var(--warn)'
+          : (/6[1-7]|8[0-2]|9[5-9]/.test(code)) ? 'var(--bad)'
+          : 'var(--accent)';
+  }
+  dot.style.background = color;
+  dot.style.boxShadow = `0 0 10px ${color}cc`;
+}
