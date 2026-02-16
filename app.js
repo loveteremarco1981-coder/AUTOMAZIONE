@@ -52,7 +52,8 @@ function renderState(m){
   chip.className = 'chip state ' + cls;
   chip.textContent = st.replace('_', ' ');
 
-  $('#houseStatus').textContent = m.notte ? 'Notte' : 'Giorno';
+  const house = $('#houseStatus');
+  if (house) house.textContent = m.notte ? 'Notte' : 'Giorno';
 }
 
 
@@ -63,21 +64,23 @@ function renderPeople(m){
   const arr = Array.isArray(m.people) ? m.people : [];
   const inCasa = arr.filter(p => p.onlineSmart || p.onlineRaw).length;
 
-  $('#peopleOnline').textContent = inCasa + ' in casa';
+  const ppl = $('#peopleOnline');
+  if (ppl) ppl.textContent = inCasa + ' in casa';
 
   const chips = $('#peopleChips');
-  chips.innerHTML = '';
-
-  arr.forEach(p => {
-    const on = (p.onlineSmart || p.onlineRaw);
-    const el = document.createElement('div');
-    el.className = 'chip';
-    el.innerHTML = `
-      <span class="dot ${on ? 'on' : 'off'}"></span>
-      ${p.name}
-    `;
-    chips.appendChild(el);
-  });
+  if (chips) {
+    chips.innerHTML = '';
+    arr.forEach(p => {
+      const on = (p.onlineSmart || p.onlineRaw);
+      const el = document.createElement('div');
+      el.className = 'chip';
+      el.innerHTML = `
+        <span class="dot ${on ? 'on' : 'off'}"></span>
+        ${p.name}
+      `;
+      chips.appendChild(el);
+    });
+  }
 }
 
 
@@ -86,18 +89,84 @@ function renderPeople(m){
  * ============================================================ */
 function renderWeather(m){
   const w = (m && m.weather) ? m.weather : {};
-  console.log('[UI] weather = ', w);
+  console.log('[UI] weather (backend) = ', w);
 
   const tempTxt = (typeof w.tempC === 'number') ? `${Math.round(w.tempC)}°C` : 'N/D';
-  $('#weatherTemp').textContent = tempTxt;
+  const tempEl = $('#weatherTemp');
+  if (tempEl) tempEl.textContent = tempTxt;
 
   const wc = mapWeatherCode(w.icon);
-  $('#weatherProvider').textContent = (wc.icon ? wc.icon + ' ' : '') + (w.provider || '—');
+  const provEl = $('#weatherProvider');
+  if (provEl) provEl.textContent = (wc.icon ? wc.icon + ' ' : '') + (w.provider || '—');
 
   // dot meteo: giallo fisso come da UI scelta
   const dot = $('#weatherDot');
-  dot.style.background = '#ffc107';
-  dot.style.boxShadow = '0 0 10px #ffc107cc';
+  if (dot){
+    dot.style.background = '#ffc107';
+    dot.style.boxShadow = '0 0 10px #ffc107cc';
+  }
+}
+
+
+/* ============================================================
+ *                  METEO lato client (Open‑Meteo)
+ *    (fallback automatico se backend non fornisce weather)
+ * ============================================================ */
+
+// 1) Legge lat/lon da CONFIG.WEATHER oppure, se assenti, chiede al browser
+function getLatLonFromConfigOrBrowser(){
+  return new Promise((resolve, reject)=>{
+    const cfg = (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.WEATHER) ? CONFIG.WEATHER : {};
+    if (typeof cfg.lat === 'number' && typeof cfg.lon === 'number'){
+      return resolve({ lat: cfg.lat, lon: cfg.lon, tz: cfg.tz || 'Europe/Rome' });
+    }
+    if (!('geolocation' in navigator)) return reject(new Error('no geolocation'));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, tz: (cfg.tz||'Europe/Rome') }),
+      err => reject(err),
+      { enableHighAccuracy:false, timeout:3000, maximumAge:600000 }
+    );
+  });
+}
+
+// 2) Chiamata diretta Open‑Meteo (CORS ok, no key)
+async function fetchWeatherClient(){
+  const { lat, lon, tz } = await getLatLonFromConfigOrBrowser();
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${encodeURIComponent(lat)}`
+    + `&longitude=${encodeURIComponent(lon)}`
+    + `&current=temperature_2m,weather_code`
+    + `&timezone=${encodeURIComponent(tz || 'Europe/Rome')}`;
+  const r  = await fetch(url);
+  if (!r.ok) throw new Error('Open‑Meteo HTTP '+r.status);
+  const js = await r.json();
+  const t  = (js && js.current && typeof js.current.temperature_2m === 'number') ? js.current.temperature_2m : null;
+  const wc = (js && js.current && js.current.weather_code != null) ? String(js.current.weather_code) : '';
+  return { tempC: t, icon: wc, provider: 'Open‑Meteo' };
+}
+
+// 3) Se il backend non manda weather (o se forziamo), prendo quello client e aggiorno la pill
+async function ensureWeatherFallback(model){
+  try{
+    const forceClient = !!(CONFIG && CONFIG.WEATHER && CONFIG.WEATHER.forceClient);
+    const hasBackend  = !!(model && model.weather && typeof model.weather.tempC === 'number');
+
+    if (hasBackend && !forceClient) return; // già ok dal backend
+
+    const w = await fetchWeatherClient();
+
+    // Aggiorna la pill con i dati client
+    renderWeather({ weather: w });
+
+    // provider leggibile (emoji + nome)
+    const wc = mapWeatherCode(w.icon);
+    const provEl = $('#weatherProvider');
+    if (provEl) provEl.textContent = (wc.icon ? wc.icon + ' ' : '') + (w.provider || 'Open‑Meteo');
+
+    console.log('[UI] weather (client) =', w);
+  }catch(e){
+    console.warn('Weather client fallback failed:', e);
+  }
 }
 
 
@@ -106,7 +175,8 @@ function renderWeather(m){
  * ============================================================ */
 function renderEnergy(m){
   const k = (m.energy && m.energy.kwh != null) ? m.energy.kwh : null;
-  $('#energyKwh').textContent = (k == null ? '—' : fmtNum(k));
+  const el = $('#energyKwh');
+  if (el) el.textContent = (k == null ? '—' : fmtNum(k));
 }
 
 
@@ -115,6 +185,7 @@ function renderEnergy(m){
  * ============================================================ */
 function renderFavorites(m){
   const grid = $('#favoritesGrid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   (CONFIG.FAVORITES || []).forEach(f => {
@@ -134,7 +205,7 @@ function renderFavorites(m){
 
     el.addEventListener('click', () => {
       if (f.kind === 'action'){
-        callAdmin(f.event, {}, () => {}, () => {});
+        if (f.event) callAdmin(f.event, {}, () => {}, () => {});
       } 
       else if (f.kind === 'toggle'){
         const next = !isOn;
@@ -157,113 +228,114 @@ function renderVimar(m){
 
   /* --- SHUTTERS --- */
   const sh = $('#vimarShutters');
-  sh.innerHTML = '';
+  if (sh){
+    sh.innerHTML = '';
+    v.shutters.forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div>
+          <div class="title">${x.name || x.id || '—'}</div>
+          <div class="sub">${x.room || ''} ${x.online?'· Online':'· Offline'}</div>
+        </div>
 
-  v.shutters.forEach(x => {
-    const row = document.createElement('div');
-    row.className = 'row';
-    row.innerHTML = `
-      <div>
-        <div class="title">${x.name || x.id || '—'}</div>
-        <div class="sub">${x.room || ''} ${x.online?'· Online':'· Offline'}</div>
-      </div>
+        <div class="controls">
+          <button class="small-btn" data-cmd="up">Su</button>
+          <button class="small-btn" data-cmd="stop">Stop</button>
+          <button class="small-btn" data-cmd="down">Giu</button>
+        </div>
+      `;
 
-      <div class="controls">
-        <button class="small-btn" data-cmd="up">Su</button>
-        <button class="small-btn" data-cmd="stop">Stop</button>
-        <button class="small-btn" data-cmd="down">Giu</button>
-      </div>
-    `;
+      row.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () =>
+          callAdmin('vimar_shutter', {
+            id: x.id,
+            cmd: b.getAttribute('data-cmd')
+          })
+        );
+      });
 
-    row.querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () =>
-        callAdmin('vimar_shutter', {
-          id: x.id,
-          cmd: b.getAttribute('data-cmd')
-        })
-      );
+      sh.appendChild(row);
     });
-
-    sh.appendChild(row);
-  });
-
+  }
 
   /* --- THERMOSTATS --- */
   const th = $('#vimarThermo');
-  th.innerHTML = '';
+  if (th){
+    th.innerHTML = '';
+    v.thermostats.forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'row';
 
-  v.thermostats.forEach(x => {
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    row.innerHTML = `
-      <div>
-        <div class="title">${x.name || x.id || '—'}</div>
-        <div class="sub">
-          ${x.room || ''} · 
-          T=${x.temp ?? '—'}° · 
-          Set=${x.setpoint ?? '—'}° · 
-          ${x.mode || ''}
+      row.innerHTML = `
+        <div>
+          <div class="title">${x.name || x.id || '—'}</div>
+          <div class="sub">
+            ${x.room || ''} · 
+            T=${x.temp ?? '—'}° · 
+            Set=${x.setpoint ?? '—'}° · 
+            ${x.mode || ''}
+          </div>
         </div>
-      </div>
 
-      <div class="controls">
-        <button class="small-btn" data-op="dec">-</button>
-        <button class="small-btn" data-op="inc">+</button>
-        <button class="small-btn" data-op="modeNext">Mode</button>
-      </div>
-    `;
+        <div class="controls">
+          <button class="small-btn" data-op="dec">-</button>
+          <button class="small-btn" data-op="inc">+</button>
+          <button class="small-btn" data-op="modeNext">Mode</button>
+        </div>
+      `;
 
-    row.querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () =>
-        callAdmin('vimar_thermo', {
-          id: x.id,
-          op: b.getAttribute('data-op').toLowerCase()
-        })
-      );
+      row.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () =>
+          callAdmin('vimar_thermo', {
+            id: x.id,
+            op: b.getAttribute('data-op').toLowerCase()
+          })
+        );
+      });
+
+      th.appendChild(row);
     });
-
-    th.appendChild(row);
-  });
-
+  }
 
   /* --- HVAC --- */
   const hv = $('#vimarHvac');
-  hv.innerHTML = '';
+  if (hv){
+    hv.innerHTML = '';
+    v.hvac.forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'row';
 
-  v.hvac.forEach(x => {
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    row.innerHTML = `
-      <div>
-        <div class="title">${x.name || x.id || '—'}</div>
-        <div class="sub">
-          ${x.room || ''} · ${x.mode || ''} · 
-          Set=${x.setpoint ?? '—'}° · Fan=${x.fan || ''}
+      row.innerHTML = `
+        <div>
+          <div class="title">${x.name || x.id || '—'}</div>
+          <div class="sub">
+            ${x.room || ''} · ${x.mode || ''} · 
+            Set=${x.setpoint ?? '—'}° · Fan=${x.fan || ''}
+          </div>
         </div>
-      </div>
 
-      <div class="controls">
-        <button class="small-btn" data-op="powerToggle">Power</button>
-        <button class="small-btn" data-op="dec">-</button>
-        <button class="small-btn" data-op="inc">+</button>
-        <button class="small-btn" data-op="modeNext">Mode</button>
-        <button class="small-btn" data-op="fanNext">Fan</button>
-      </div>
-    `;
+        <div class="controls">
+          <button class="small-btn" data-op="powerToggle">Power</button>
+          <button class="small-btn" data-op="dec">-</button>
+          <button class="small-btn" data-op="inc">+</button>
+          <button class="small-btn" data-op="modeNext">Mode</button>
+          <button class="small-btn" data-op="fanNext">Fan</button>
+        </div>
+      `;
 
-    row.querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () =>
-        callAdmin('vimar_hvac', {
-          id: x.id,
-          op: b.getAttribute('data-op')
-        })
-      );
+      row.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () =>
+          callAdmin('vimar_hvac', {
+            id: x.id,
+            op: b.getAttribute('data-op')
+          })
+        );
+      });
+
+      hv.appendChild(row);
     });
-
-    hv.appendChild(row);
-  });
+  }
 }
 
 
@@ -274,14 +346,15 @@ function renderLogs(logs){
   const list = $('#log');
   const empty = $('#logEmpty');
 
+  if (!list) return;
   list.innerHTML = '';
 
   if (!logs || !logs.length){
-    empty.textContent = 'Nessun log recente.';
+    if (empty) empty.textContent = 'Nessun log recente.';
     return;
   }
 
-  empty.textContent = '';
+  if (empty) empty.textContent = '';
 
   logs.forEach(x => {
     const row = document.createElement('div');
@@ -328,15 +401,19 @@ function loadAll(){
     try{
       renderState(m);
       renderPeople(m);
-      renderWeather(m);
+      renderWeather(m);     // usa il meteo backend se presente
       renderEnergy(m);
       renderFavorites(m);
       renderVimar(m);
 
-      const err = (m.alerts && Number(m.alerts.logErrors)) || 0;
-      $('#badgeLog').hidden = (err <= 0);
+      // Fallback meteo client-side se il backend non lo fornisce (o se forzato)
+      ensureWeatherFallback(m);
 
-      $('#ts').textContent = 'Aggiornamento: ' + fmtTime(m.meta?.nowIso);
+      const err = (m.alerts && Number(m.alerts.logErrors)) || 0;
+      const b = $('#badgeLog'); if (b) b.hidden = (err <= 0);
+
+      const ts = $('#ts');
+      if (ts) ts.textContent = 'Aggiornamento: ' + fmtTime(m.meta?.nowIso);
 
     }catch(e){
       console.error(e);
@@ -376,11 +453,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btn = $('#btnRefreshLog');
   if (btn) btn.addEventListener('click', loadLogs);
 
-  console.log('[CFG] BASE_URL =', CONFIG.BASE_URL);
+  console.log('[CFG] BASE_URL =', (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.BASE_URL) ? CONFIG.BASE_URL : '(manca CONFIG.BASE_URL)');
 
   loadAll();
   loadLogs();
 
-  if (CONFIG.AUTO_REFRESH_MS > 0)
+  if (typeof CONFIG !== 'undefined' && CONFIG && CONFIG.AUTO_REFRESH_MS > 0)
     setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
 });
