@@ -10,13 +10,42 @@ const CONFIG = {
   /* -----------------------------------------
    *    PREFERITI (Home)
    * ----------------------------------------- */
-  FAVORITES: [
-    { id:'alza',     kind:'action', label:'Alza Tutto',     icon:'up',     event:'alza_tutto' },
-    { id:'abbassa',  kind:'action', label:'Abbassa Tutto',  icon:'down',   event:'abbassa_tutto' },
-    { id:'piante',   kind:'action', label:'Irrigazione',     icon:'leaf',   event:'piante' },
-    { id:'vacanza',  kind:'toggle', label:'Modalità Vacanza',icon:'suit',   toggleEvent:'set_vacanza', stateKey:'vacanza' },
-    { id:'override', kind:'toggle', label:'Override Notte',  icon:'switch', toggleEvent:'set_override', stateKey:'override' }
-  ],
+ FAVORITES: [
+  {
+    id:'tapparelle',
+    kind:'toggle',
+    label:'Tapparelle',
+    icon:'shutter',
+    toggleEvent:'toggle_shutters',
+    stateKey:'shuttersUp'   // creato lato UI, non preso dal backend
+  },
+
+  {
+    id:'piante',
+    kind:'action',
+    label:'Piante',
+    icon:'leaf',
+    event:'piante'
+  },
+
+  {
+    id:'vacanza',
+    kind:'toggle',
+    label:'Modalità Vacanza',
+    icon:'suit',
+    toggleEvent:'set_vacanza',
+    stateKey:'vacanza'
+  },
+
+  {
+    id:'override',
+    kind:'toggle',
+    label:'Override Notte',
+    icon:'switch',
+    toggleEvent:'set_override',
+    stateKey:'override'
+  }
+],
 
   /* -----------------------------------------
    *     METEO lato client (fallback)
