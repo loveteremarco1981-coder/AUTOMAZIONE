@@ -191,32 +191,56 @@ function renderFavorites(m){
 
   (CONFIG.FAVORITES || []).forEach(f => {
     const isOn = (f.kind === 'toggle' && f.stateKey && !!m[f.stateKey]);
+    
+    // STATO tapparelle virtualizzato (non viene dal backend)
+    if (f.id === 'tapparelle'){
+      // ON = su, OFF = giù
+      f.status = isOn ? 'Aperte' : 'Chiuse';
+      f.iconRendered = isOn
+        ? `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 14l5-5 5 5"/></svg>`   // UP
+        : `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5"/></svg>`;   // DOWN
+    }
 
-    const el = document.createElement('button');
-    el.className = 'fav';
-    if (isOn) el.classList.add('active');
+    const tile = document.createElement('div');
+    tile.className = 'fav' + (isOn ? ' active' : '');
 
-    el.innerHTML = `
-      <span class="ico">${favIcon(f.icon)}</span>
-      <div>
-        <div class="title">${f.label}</div>
-        <div class="sub">${f.kind === 'toggle' ? (isOn ? 'ON' : 'OFF') : 'Azione'}</div>
+    tile.innerHTML = `
+      <div class="top-row">
+        <div class="label-col">
+          <div class="title">${f.label}</div>
+          <div class="status">${f.kind==='toggle' ? (isOn?'On':'Off') : ''}</div>
+        </div>
+
+        <div class="power-btn" data-id="${f.id}">
+          <svg viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2v10m6.9 5.5a9 9 0 1 1-13.8 0"/>
+          </svg>
+        </div>
       </div>
     `;
 
-    el.addEventListener('click', () => {
-      if (f.kind === 'action'){
-        if (f.event) callAdmin(f.event, {}, () => {}, () => {});
-      } 
-      else if (f.kind === 'toggle'){
-        const next = !isOn;
-        callAdmin(f.toggleEvent, { value: String(next) }, () => {
-          loadAll();   // ricarica stato per aggiornare UI
-        });
+    // CLICK SULLA CARD (azione)
+    tile.addEventListener('click', () => {
+      if (f.kind === 'action') {
+        if (f.id === 'piante') callAdmin('piante', {});
+      }
+      if (f.id === 'tapparelle') {
+        callAdmin(isOn ? 'abbassa_tutto' : 'alza_tutto', {});
+        m.shuttersUp = !isOn;
+        loadAll();
       }
     });
 
-    grid.appendChild(el);
+    // CLICK SOLO SUL PULSANTE ON/OFF
+    tile.querySelector('.power-btn').addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if (f.kind === 'toggle'){
+        const next = !isOn;
+        callAdmin(f.toggleEvent, { value: String(next) }, loadAll);
+      }
+    });
+
+    grid.appendChild(tile);
   });
 }
 
