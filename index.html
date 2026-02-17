@@ -25,16 +25,27 @@
 </script>
 <header class="topbar">
   <div class="left">
-    <button class="home-select" aria-label="Casa">
-      <img class="ico-suite" src="icons/st/dashboard-people.svg" alt="Casa">
-      <span class="home-name" id="homeName">Casa</span>
-      <svg class="ico-chev" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5"/></svg>
-    </button>
+    <!-- Icona Home + testo "Casa" -->
+    <svg class="ico-home" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/>
+    </svg>
+    <span class="home-text" id="homeName">Casa</span>
   </div>
+
   <div class="right">
-    <button class="icon-btn" id="btnHomeGo" title="Home" aria-label="Home"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h7v-6h4v6h7V10z"/></svg></button>
-    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg></button>
-    <button class="icon-btn" id="btnKebab" title="Log" aria-label="Log" hidden><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg></button>
+    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/>
+      </svg>
+    </button>
+
+    <!-- Kebab con bollino rosso (dot) per errori log -->
+    <button class="icon-btn notif" id="btnKebab" title="Log" aria-label="Log">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/>
+      </svg>
+      <span class="notif-dot" id="dotLog" hidden></span>
+    </button>
   </div>
 </header>
 <div id="stateBanner" class="state-banner">COMFY NIGHT</div>
