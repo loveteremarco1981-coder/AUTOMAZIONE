@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Casa di Marco</title>
-  <meta name="theme-color" content="#123656"/>
+  <title>Casa · SmartThings UI</title>
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#123656">
   <meta name="application-name" content="Casa">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Casa">
@@ -18,80 +18,68 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
- <!-- ===== TOP BAR (identica al mock) ===== -->
-<header class="topbar">
-  <div class="left">
-    <!-- Selezione casa (testo: 'Casa') -->
-    <button class="home-select" id="btnHomeSelect" aria-label="Casa">
-      <svg class="ico-suite" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M3 3h8v8H3V3Zm10 0h8v8h-8V3ZM3 13h8v8H3v-8Zm10 0h8v8h-8v-8Z"/>
-      </svg>
-      <span class="home-name" id="homeName">Casa</span>
-      <svg class="ico-chev" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M7 10l5 5 5-5"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="right">
-    <!-- Casa (a destra): torna alla Home -->
-    <button class="icon-btn" id="btnHomeGo" title="Vai alla Home" aria-label="Home">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M12 3 3 10v11h7v-6h4v6h7V10z"/>
-      </svg>
-    </button>
-
-    <!-- Più: lasciato -->
-    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/>
-      </svg>
-    </button>
-
-    <!-- Puntini: visibile solo se ci sono errori; al click apre Log -->
-    <button class="icon-btn" id="btnKebab" title="Log" aria-label="Log" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/>
-      </svg>
-    </button>
-  </div>
-</header>
-
-<!-- ===== BANNER STATO a tutta larghezza ===== -->
-<div id="stateBanner" class="state-banner">COMFY NIGHT</div>
-
-<!-- ===== HOME ===== -->
-<section id="view-home" class="view active">
-
-  <!-- Riga 'Dashboard' con meteo a destra -->
-  <div class="row-dashboard">
-    <h2 class="dashboard-title">Dashboard</h2>
-
-    <div id="weatherPill" class="weather-pill small" title="Meteo">
-      <span class="dot" id="weatherDot"></span>
-      <span id="weatherTemp">— °C</span>
+  <header class="topbar">
+    <div class="left">
+      <button class="home-select" id="btnHomeSelect" aria-label="Casa">
+        <img class="ico-suite" src="icons/st/dashboard-people.svg" alt="Casa">
+        <span class="home-name" id="homeName">Casa</span>
+        <svg class="ico-chev" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5"/></svg>
+      </button>
     </div>
-  </div>
+    <div class="right">
+      <button class="icon-btn" id="btnHomeGo" title="Vai alla Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h7v-6h4v6h7V10z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnKebab" title="Log" aria-label="Log" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
+      </button>
+    </div>
+  </header>
 
-  <!-- (il resto della Home rimane uguale) -->
-  ...
-</section>
+  <div id="stateBanner" class="state-banner">COMFY NIGHT</div>
 
   <main>
     <section id="view-home" class="view active">
-      <div class="label-ghost">DASHBOARD</div>
-      <div class="cards-row">
-        <article class="pill-card">
-          <div class="pill-inner">
-            <div class="pill-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-9 6a6 6 0 1 1 12 0v2H7v-2z"/></svg></div>
-            <div class="pill-text"><div class="pill-caption">Persone</div><div class="pill-value"><strong id="peopleOnline">—</strong> · <span id="houseStatus">—</span></div></div>
-          </div>
+      <!-- Row Dashboard title + Meteo pill -->
+      <div class="row-dashboard">
+        <h2 class="dashboard-title">Dashboard</h2>
+        <div id="weatherPill" class="weather-pill small" title="Meteo">
+          <span id="weatherEmoji" class="emoji"></span>
+          <span id="weatherTemp">—°C</span>
+          <span class="wind">
+            <img src="icons/st/meteo-wind.svg" alt="vento"/>
+            <span id="windKmh">— km/h</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 4 blocks SmartThings grid -->
+      <div class="st-grid">
+        <article class="st-card card-glow" id="card-people">
+          <div class="st-ico"><img src="icons/st/dashboard-people.svg" alt="people"></div>
+          <div class="st-label">Persone</div>
+          <div class="st-value"><strong id="peopleOnline">—</strong> <span id="houseStatus">—</span></div>
         </article>
-        <article class="pill-card">
-          <div class="pill-inner">
-            <div class="pill-icon energy"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13 2 3 14h7l-1 8 11-14h-7l1-6z"/></svg></div>
-            <div class="pill-text"><div class="pill-caption">Energy</div><div class="pill-value"><strong id="energyKwh">—</strong> kWh</div></div>
-          </div>
+
+        <article class="st-card card-glow" id="card-energy">
+          <div class="st-ico"><img src="icons/st/dashboard-energy.svg" alt="energy"></div>
+          <div class="st-label">Energy</div>
+          <div class="st-value"><strong id="energyKwh">—</strong> kWh</div>
+        </article>
+
+        <article class="st-card card-glow" id="card-temp">
+          <div class="st-ico"><img src="icons/st/dashboard-temp.svg" alt="temp"></div>
+          <div class="st-label">Temperatura</div>
+          <div class="st-value"><strong id="tempValue">—</strong> °C</div>
+        </article>
+
+        <article class="st-card card-glow" id="card-hum">
+          <div class="st-ico"><img src="icons/st/dashboard-humidity.svg" alt="humidity"></div>
+          <div class="st-label">Umidità</div>
+          <div class="st-value"><strong id="humValue">—</strong> %</div>
         </article>
       </div>
 
@@ -154,7 +142,6 @@
   <script src="jsonp.js" defer></script>
   <script src="app.js" defer></script>
 
-  <!-- SW registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
