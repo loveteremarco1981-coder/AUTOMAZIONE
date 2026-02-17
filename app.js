@@ -18,11 +18,28 @@ function favIcon(name){
 }
 
 function renderState(m){
-  const chip=$('#chipState');
-  const st=String(m.state||'').toUpperCase();
-  chip.className='chip state '+(STATE_CLASS[st]||'neutral');
-  chip.textContent=st.replace('_',' ');
-  const hs=$('#houseStatus'); if(hs) hs.textContent=m.notte?'Notte':'Giorno';
+  const chip = $('#chipState'); // se non la usi più puoi tenerla invisibile
+  const st = (m.state || '').toUpperCase();
+
+  if (chip){
+    const cls = STATE_CLASS[st] || 'neutral';
+    chip.className = 'chip state ' + cls;
+    chip.textContent = st.replace('_', ' ');
+    const hs = $('#houseStatus'); if (hs) hs.textContent = m.notte ? 'Notte' : 'Giorno';
+  }
+
+  // Banner stato a tutta larghezza
+  const sb = $('#stateBanner');
+  if (sb){
+    const map = {
+      'COMFY_DAY':'sb-comfy-day',
+      'COMFY_NIGHT':'sb-comfy-night',
+      'SECURITY_DAY':'sb-security-day',
+      'SECURITY_NIGHT':'sb-security-night'
+    };
+    sb.className = 'state-banner ' + (map[st] || 'sb-security-day');
+    sb.textContent = st.replace('_',' ');
+  }
 }
 
 function renderPeople(m){
@@ -126,7 +143,24 @@ function renderLogs(logs){ const list=$('#log'), empty=$('#logEmpty'); if(!list)
 
 function activateTab(t){$$('.tab').forEach(b=>b.classList.toggle('active',b.getAttribute('data-target')===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+t));window.scrollTo({top:0,behavior:'smooth'});}
 
-function loadAll(){ fetchModel((m)=>{ LAST_MODEL=m; try{ renderState(m); renderPeople(m); renderWeather(m); renderEnergy(m); renderFavorites(m); renderVimar(m); ensureWeatherFallback(m); const err=(m.alerts&&Number(m.alerts.logErrors))||0; const badge=$('#badgeLog'); if(badge) badge.hidden=(err<=0); const ts=$('#ts'); if(ts) ts.textContent='Aggiornamento: '+fmtTime(m.meta&&m.meta.nowIso); }catch(e){console.error(e);} }, (e)=>{ console.error('Model error',e); }); }
+function loadAll(){ fetchModel((m)=>{ LAST_MODEL=m; try{ renderState(m); renderPeople(m); renderWeather(m); renderEnergy(m); renderFavorites(m); renderVimar(m); ensureWeatherFallback(m); const err = (m.alerts && Number(m.alerts.logErrors)) || 0;
+const badge = $('#badgeLog'); if (badge) badge.hidden = (err <= 0);
+
+// Mostra/occulta ⋮
+const kb = $('#btnKebab'); if (kb) kb.hidden = (err <= 0); const ts=$('#ts'); if(ts) ts.textContent='Aggiornamento: '+fmtTime(m.meta&&m.meta.nowIso); }catch(e){console.error(e);} }, (e)=>{ console.error('Model error',e); }); }
 function loadLogs(){ fetchLogs(d=>renderLogs((d&&d.logs)||[]), e=>console.error('Logs error',e)); }
 
-document.addEventListener('DOMContentLoaded',()=>{ $$('.tab').forEach(t=>t.addEventListener('click',()=> activateTab(t.getAttribute('data-target')))); $$('.menu-btn').forEach(b=>b.addEventListener('click',()=> activateTab(b.getAttribute('data-target')))); const btn=$('#btnRefreshLog'); if(btn) btn.addEventListener('click', loadLogs); console.log('[CFG] BASE_URL =', (typeof CONFIG!=='undefined'&&CONFIG&&CONFIG.BASE_URL)?CONFIG.BASE_URL:'(manca CONFIG.BASE_URL)'); loadAll(); loadLogs(); if(CONFIG && CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS); });
+document.addEventListener('DOMContentLoaded',()=>{ $$('.tab').forEach(t=>t.addEventListener('click',()=> activateTab(t.getAttribute('data-target')))); $$('.menu-btn').forEach(b=>b.addEventListener('click',()=> activateTab(b.getAttribute('data-target')))); const btn=$('#btnRefreshLog'); if(btn) btn.addEventListener('click', loadLogs); console.log('[CFG] BASE_URL =', (typeof CONFIG!=='undefined'&&CONFIG&&CONFIG.BASE_URL)?CONFIG.BASE_URL:'(manca CONFIG.BASE_URL)'); loadAll(); loadLogs(); if(CONFIG && CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS); // ...quello che già hai...
+
+  const go = $('#btnHomeGo');
+  if (go) go.addEventListener('click', () => activateTab('home'));
+
+  const kebab = $('#btnKebab');
+  if (kebab) kebab.addEventListener('click', () => activateTab('log'));
+
+  const add = $('#btnAdd');
+  if (add) add.addEventListener('click', () => activateTab('devices')); // o quello che preferisci
+
+  // Titolo "Casa"
+  const nm = $('#homeName'); if (nm) nm.textContent = 'Casa';
+});
