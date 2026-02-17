@@ -113,3 +113,34 @@ html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+
+
+/* === GRID: forza 2 colonne su telefoni >= 360px (iPhone 13 è 390px CSS) === */
+@media (min-width: 360px) {
+  .st-grid{
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    margin: 8px 0 16px !important;
+  }
+}
+
+/* Sotto i 360px (telefoni davvero stretti) vai a 1 colonna */
+@media (max-width: 359.98px) {
+  .st-grid{ grid-template-columns: 1fr !important; }
+}
+
+/* Compatta le card per assicurare che due colonne ci stiano comode */
+@media (max-width: 420px){
+  .st-card{ padding: 12px 10px !important; border-radius: 16px !important; }
+  .st-ico { width: 34px !important; height: 34px !important; }
+  .st-ico img{ width: 20px !important; height: 20px !important; }
+  .st-card .st-value{ font-size: 14.5px !important; }
+  .st-card .st-label{ font-size: 12px !important; }
+  .weather-pill{ padding: 6px 8px !important; gap: 6px !important; }
+  .weather-pill .emoji{ font-size: 14px !important; }
+  .weather-pill .wind img{ width: 12px !important; height: 12px !important; }
+}
+
+/* Evita che Safari ingrandisca i font rompendo i layout */
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
