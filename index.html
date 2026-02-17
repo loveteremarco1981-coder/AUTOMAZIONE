@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Casa · SmartThings UI</title>
+
+  <!-- PWA (solo manifest + icone, senza SW) -->
+  <link rel="manifest" href="manifest.webmanifest?v=4">
+  <meta name="theme-color" content="#123656">
+  <meta name="application-name" content="Casa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Casa">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png?v=4">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png?v=4">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4">
+
+  <link rel="stylesheet" href="style.css?v=4">
+
+  <!-- CEROTTO INLINE 2×2 che vince su tutto -->
+  <style>
+    html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+    .st-grid{ display:flex!important; flex-wrap:wrap!important; gap:12px!important; margin:8px 0 16px!important; }
+    .st-grid > .st-card{ flex:1 1 calc(50% - 12px)!important; min-width:160px!important; }
+    @media (max-width:340px){ .st-grid > .st-card{ flex-basis:100%!important; } }
+  </style>
+</head>
+<body>
+  <!-- KILL SW e CACHE all'avvio: garantisce che vedi il contenuto reale del repo -->
+  <script>
+  (async()=>{
+    try{
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        for(const r of regs){ await r.unregister(); }
+      }
+      if('caches' in window){
+        const keys=await caches.keys();
+        for(const k of keys){ await caches.delete(k); }
+      }
+    }catch(e){ console.warn('SW/cache cleanup:', e); }
+  })();
+  </script>
+
+  <header class="topbar">
+    <div class="left">
+      <button class="home-select" id="btnHomeSelect" aria-label="Casa">
+        <img class="ico-suite" src="icons/st/dashboard-people.svg" alt="Casa">
+        <span class="home-name" id="homeName">Casa</span>
+        <svg class="ico-chev" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5"/></svg>
+      </button>
+    </div>
+    <div class="right">
+      <button class="icon-btn" id="btnHomeGo" title="Vai alla Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h7v-6h4v6h7V10z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnKebab" title="Log" aria-label="Log" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="stateBanner" class="state-banner">COMFY NIGHT</div>
+
+  <main>
+    <section id="view-home" class="view active">
+      <div class="row-dashboard">
+        <h2 class="dashboard-title">Dashboard</h2>
+        <div id="weatherPill" class="weather-pill small" title="Meteo">
+          <span id="weatherEmoji" class="emoji"></span>
+          <span id="weatherTemp">—°C</span>
+          <span class="wind"><img src="icons/st/meteo-wind.svg" alt="vento"/> <span id="windKmh">— km/h</span></span>
+        </div>
+      </div>
+
+      <div class="st-grid">
+        <article class="st-card card-glow" id="card-people">
+          <div class="st-ico"><img src="icons/st/dashboard-people.svg" alt="people"></div>
+          <div class="st-label">Persone</div>
+          <div class="st-value"><strong id="peopleOnline">—</strong> <span id="houseStatus">—</span></div>
+        </article>
+        <article class="st-card card-glow" id="card-energy">
+          <div class="st-ico"><img src="icons/st/dashboard-energy.svg" alt="energy"></div>
+          <div class="st-label">Energy</div>
+          <div class="st-value"><strong id="energyKwh">—</strong> kWh</div>
+        </article>
+        <article class="st-card card-glow" id="card-temp">
+          <div class="st-ico"><img src="icons/st/dashboard-temp.svg" alt="temp"></div>
+          <div class="st-label">Temperatura</div>
+          <div class="st-value"><strong id="tempValue">—</strong> °C</div>
+        </article>
+        <article class="st-card card-glow" id="card-hum">
+          <div class="st-ico"><img src="icons/st/dashboard-humidity.svg" alt="humidity"></div>
+          <div class="st-label">Umidità</div>
+          <div class="st-value"><strong id="humValue">—</strong> %</div>
+        </article>
+      </div>
+
+      <div class="label-ghost">PREFERITI</div>
+      <section id="favoritesGrid" class="fav-grid"></section>
+
+      <div class="provider-row">
+        <div class="provider" id="weatherProvider">—</div>
+        <div id="ts" class="updated">Aggiornamento: —:—</div>
+      </div>
+    </section>
+
+    <section id="view-devices" class="view">
+      <h3 class="section-label">Persone</h3>
+      <div id="peopleChips" class="people-chips"></div>
+
+      <h3 class="section-label">Tapparelle</h3>
+      <div id="vimarShutters" class="list"></div>
+
+      <h3 class="section-label">Termostati</h3>
+      <div id="vimarThermo" class="list"></div>
+
+      <h3 class="section-label">Clivet</h3>
+      <div id="vimarHvac" class="list"></div>
+    </section>
+
+    <section id="view-log" class="view">
+      <div class="row-head">
+        <h3 class="section-label">Log errori automazioni</h3>
+        <button id="btnRefreshLog" class="pill-btn" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.5-7.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M21 4v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Aggiorna
+        </button>
+      </div>
+      <div id="log" class="list"></div>
+      <div id="logEmpty" class="muted"></div>
+    </section>
+
+    <section id="view-routine" class="view"><div class="placeholder">Routine (coming soon)</div></section>
+
+    <section id="view-menu" class="view">
+      <div class="menu-grid">
+        <button class="menu-btn" data-target="home" type="button">Home</button>
+        <button class="menu-btn" data-target="devices" type="button">Dispositivi</button>
+        <button class="menu-btn" data-target="log" type="button">Log</button>
+        <button class="menu-btn" data-target="routine" type="button">Routine</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="tabbar">
+    <button class="tab active" data-target="home" title="Home" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg><span>Home</span></button>
+    <button class="tab" data-target="devices" title="Dispositivi" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5h18v6H3V5zm0 8h8v6H3v-6zm10 0h8v6h-8v-6z"/></svg><span>Dispositivi</span></button>
+    <button class="tab" data-target="log" title="Log" id="tabLog" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg><span>Log</span><span class="badge" id="badgeLog" hidden>!</span></button>
+    <button class="tab" data-target="routine" title="Routine" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg><span>Routine</span></button>
+    <button class="tab" data-target="menu" title="Menu" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg><span>Menu</span></button>
+  </footer>
+
+  <!-- Nessuna registrazione SW qui. Se ti serve l'offline te la fornisco su richiesta. -->
+
+  <script src="config.js?v=4" defer></script>
+  <script src="jsonp.js?v=4" defer></script>
+  <script src="app.js?v=4" defer></script>
+</body>
+</html>
