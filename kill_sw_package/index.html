@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kill Service Worker</title></head>
+<body style="font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:20px">
+<h1>Kill Service Worker</h1>
+<p>Questa pagina deregistra il Service Worker e svuota tutte le cache per questo dominio.</p>
+<pre id="log"></pre>
+<script>
+(async ()=>{
+  const out=document.getElementById('log');
+  function log(m){ out.textContent+=m+'
+'; console.log(m); }
+  // 1) Unregister SW
+  if('serviceWorker' in navigator){
+    const regs=await navigator.serviceWorker.getRegistrations();
+    if(regs.length){ for(const r of regs){ await r.unregister(); log('SW unregistered: '+(r.scope||'')); } }
+    else{ log('Nessun Service Worker registrato.'); }
+  } else { log('Service Worker non supportato.'); }
+  // 2) Clear caches
+  if('caches' in window){
+    const keys=await caches.keys();
+    for(const k of keys){ await caches.delete(k); log('Cache rimossa: '+k); }
+  }
+  // 3) Hard reload advice
+  log('
+Fatto. Ora esegui un hard refresh o chiudi/riapri la web app.');
+})();
+</script>
+</body></html>
