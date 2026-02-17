@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Casa di Marco</title>
   <meta name="theme-color" content="#123656"/>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="application-name" content="Casa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Casa">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -143,5 +153,14 @@
   <script src="config.js" defer></script>
   <script src="jsonp.js" defer></script>
   <script src="app.js" defer></script>
+
+  <!-- SW registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+  </script>
 </body>
 </html>
