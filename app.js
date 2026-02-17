@@ -72,59 +72,43 @@ function getShuttersUp(){ try{ return localStorage.getItem('ui_shutters_up')==='
 function setShuttersUp(v){ try{ localStorage.setItem('ui_shutters_up', v?'1':'0'); }catch(_){ } }
 
 function renderFavorites(m){
-  const grid = $('#favoritesGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
+  const grid=$('#favoritesGrid'); if(!grid) return; grid.innerHTML='';
+  (CONFIG.FAVORITES||[]).forEach(f=>{
+    let isOn = (f.kind==='toggle' && f.stateKey && !!m[f.stateKey]);
+    if(f.id==='tapparelle'){ isOn=getShuttersUp(); }
 
-  (CONFIG.FAVORITES || []).forEach(f => {
-    const isOn = (f.kind === 'toggle' && f.stateKey && !!m[f.stateKey]);
-    
-    // STATO tapparelle virtualizzato (non viene dal backend)
-    if (f.id === 'tapparelle'){
-      // ON = su, OFF = giù
-      f.status = isOn ? 'Aperte' : 'Chiuse';
-      f.iconRendered = isOn
-        ? `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 14l5-5 5 5"/></svg>`   // UP
-        : `<svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5"/></svg>`;   // DOWN
-    }
-
-    const tile = document.createElement('div');
-    tile.className = 'fav' + (isOn ? ' active' : '');
+    const tile=document.createElement('div'); tile.className='fav'+(isOn?' active':'');
+    const status = (f.id==='tapparelle') ? (isOn?'Aperte':'Chiuse') : (f.kind==='toggle' ? (isOn?'On':'Off') : '');
 
     tile.innerHTML = `
       <div class="top-row">
         <div class="label-col">
           <div class="title">${f.label}</div>
-          <div class="status">${f.kind==='toggle' ? (isOn?'On':'Off') : ''}</div>
+          <div class="status">${status}</div>
         </div>
-
         <div class="power-btn" data-id="${f.id}">
-          <svg viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 2v10m6.9 5.5a9 9 0 1 1-13.8 0"/>
-          </svg>
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2v10m6.9 5.5a9 9 0 1 1-13.8 0"/></svg>
         </div>
-      </div>
-    `;
+      </div>`;
 
-    // CLICK SULLA CARD (azione)
-    tile.addEventListener('click', () => {
-      if (f.kind === 'action') {
-        if (f.id === 'piante') callAdmin('piante', {});
-      }
-      if (f.id === 'tapparelle') {
-        callAdmin(isOn ? 'abbassa_tutto' : 'alza_tutto', {});
-        m.shuttersUp = !isOn;
-        loadAll();
+    // click sulla card
+    tile.addEventListener('click',()=>{
+      if(f.id==='piante'){ callAdmin('piante',{},()=>{},()=>{}); return; }
+      if(f.id==='tapparelle'){
+        const next=!isOn; // next true=apri
+        callAdmin(next?'alza_tutto':'abbassa_tutto',{},()=>{},()=>{});
+        setShuttersUp(next); // aggiorna stato locale
+        setTimeout(loadAll, 800);
       }
     });
 
-    // CLICK SOLO SUL PULSANTE ON/OFF
-    tile.querySelector('.power-btn').addEventListener('click', (ev)=>{
+    // click sul pulsante power
+    tile.querySelector('.power-btn').addEventListener('click',(ev)=>{
       ev.stopPropagation();
-      if (f.kind === 'toggle'){
-        const next = !isOn;
-        callAdmin(f.toggleEvent, { value: String(next) }, loadAll);
+      if(f.id==='tapparelle'){
+        const next=!isOn; callAdmin(next?'alza_tutto':'abbassa_tutto',{},()=>{},()=>{}); setShuttersUp(next); setTimeout(loadAll, 800); return;
       }
+      if(f.kind==='toggle' && f.toggleEvent){ const next=!isOn; callAdmin(f.toggleEvent,{value:String(next)},()=>{ setTimeout(loadAll,400); },()=>{}); }
     });
 
     grid.appendChild(tile);
