@@ -34,7 +34,17 @@ main{padding:16px 12px 84px 12px}
 .dashboard-title{margin:0;font-size:22px;letter-spacing:.8px;color:#e9f1ff}
 
 /* Grid 2x2 SmartThings */
-.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 16px}
+.st-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:12px;
+  margin:8px 0 16px;
+}
+
+/* Solo telefoni veramente stretti vanno a 1 colonna */
+@media (max-width:340px){
+  .st-grid{ grid-template-columns: 1fr; }
+}
 .st-card{position:relative;border-radius:22px;padding:16px 14px;border:1px solid var(--glass-strong);background:rgba(6,18,28,.45);backdrop-filter:blur(16px)}
 .st-card .st-ico{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.08);display:grid;place-items:center;margin-bottom:8px}
 .st-card .st-ico img{width:26px;height:26px}
@@ -81,3 +91,25 @@ main{padding:16px 12px 84px 12px}
 .tab .badge{position:absolute;margin-top:-28px;margin-left:12px;background:var(--bad);color:#fff;font-weight:700;font-size:11px;border-radius:999px;padding:0 6px;line-height:18px;height:18px}
 
 @media (max-width:390px){.st-grid{grid-template-columns:1fr}}
+
+
+/* === GRID ROBUSTA: due colonne se c'è spazio, 1 colonna solo se davvero necessario === */
+.st-grid{
+  display: grid !important;
+  grid-auto-flow: row;
+  /* auto-fit + minmax: se la cella minima sta dentro, fa 2 colonne; altrimenti va a 1 colonna */
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)) !important;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+/* iPhone molto stretti o quando la safe-area mangia troppo spazio */
+@media (max-width: 340px){
+  .st-grid{ grid-template-columns: 1fr !important; }
+}
+
+/* Evita auto-zoom testi di Safari che “rompe” i layout responsive */
+html{
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
