@@ -3,14 +3,12 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Casa · Smart UI v4</title>
-<link rel="manifest" href="manifest.webmanifest?v=4">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png?v=4">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png?v=4">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4">
-<link rel="stylesheet" href="style.css?v=4">
-
-<!-- Fallback inline: forza 2 colonne e sistema safe-area -->
+<title>Casa · Smart UI v4.1</title>
+<link rel="manifest" href="manifest.webmanifest?v=4.1">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png?v=4.1">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png?v=4.1">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4.1">
+<link rel="stylesheet" href="style.css?v=4.1">
 <style>
   :root{ --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px); }
   html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
@@ -23,31 +21,21 @@
 <script>
 (async()=>{try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){await r.unregister();}} if('caches' in window){const ks=await caches.keys();for(const k of ks){await caches.delete(k);}}}catch(e){}})();
 </script>
+
 <header class="topbar">
   <div class="left">
-    <!-- Icona Home + testo "Casa" -->
-    <svg class="ico-home" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/>
-    </svg>
+    <svg class="ico-home" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
     <span class="home-text" id="homeName">Casa</span>
   </div>
-
   <div class="right">
-    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/>
-      </svg>
-    </button>
-
-    <!-- Kebab con bollino rosso (dot) per errori log -->
+    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg></button>
     <button class="icon-btn notif" id="btnKebab" title="Log" aria-label="Log">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/>
-      </svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
       <span class="notif-dot" id="dotLog" hidden></span>
     </button>
   </div>
 </header>
+
 <div id="stateBanner" class="state-banner">COMFY NIGHT</div>
 
 <main>
@@ -99,8 +87,8 @@
   <button class="tab" data-target="menu" title="Menu" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg><span>Menu</span></button>
 </footer>
 
-<script src="config.js?v=4" defer></script>
-<script src="jsonp.js?v=4" defer></script>
-<script src="app.js?v=4" defer></script>
+<script src="config.js?v=4.1" defer></script>
+<script src="jsonp.js?v=4.1" defer></script>
+<script src="app.js?v=4.1" defer></script>
 </body>
 </html>
