@@ -36,9 +36,10 @@
   </div>
 </header>
 
-<div id="stateBanner" class="state-banner">COMFY NIGHT</div>
+<div id="stateBanner" class="state-banner">—</div>
 
 <main>
+  <!-- HOME -->
   <section id="view-home" class="view active">
     <div class="row-dashboard">
       <h2 class="dashboard-title">Dashboard</h2>
@@ -77,13 +78,19 @@
 
     <div class="provider-row"><div class="provider" id="weatherProvider">—</div><div id="ts" class="updated">Aggiornamento: —:—</div></div>
   </section>
+
+  <!-- PERSONE (nuova view che sostituisce la vecchia Routine) -->
+  <section id="view-persone" class="view">
+    <h3 class="section-title">PERSONE</h3>
+    <div id="peopleChips" class="people-chips"></div>
+  </section>
 </main>
 
 <footer class="tabbar">
   <button class="tab active" data-target="home" title="Home" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg><span>Home</span></button>
   <button class="tab" data-target="devices" title="Dispositivi" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h18v6H3V5zm0 8h8v6H3v-6zm10 0h8v6h-8v-6z"/></svg><span>Dispositivi</span></button>
   <button class="tab" data-target="log" title="Log" id="tabLog" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg><span>Log</span><span class="badge" id="badgeLog" hidden>!</span></button>
-  <button class="tab" data-target="persone" title="persone" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg><span>Routine</span></button>
+  <button class="tab" data-target="persone" title="Persone" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg><span>Persone</span></button>
   <button class="tab" data-target="menu" title="Menu" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg><span>Menu</span></button>
 </footer>
 
