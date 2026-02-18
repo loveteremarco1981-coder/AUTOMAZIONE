@@ -1,94 +1,40 @@
+
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Casa · Smart UI v4.1</title>
-<link rel="manifest" href="manifest.webmanifest?v=4.1">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png?v=4.1">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png?v=4.1">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4.1">
-<link rel="stylesheet" href="style.css?v=4.1">
-<style>
-  :root{ --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px); }
-  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-  .st-grid{ display:flex!important; flex-wrap:wrap!important; gap:12px!important; margin:8px 0 16px!important; }
-  .st-grid > .st-card{ flex:1 1 calc(50% - 12px)!important; min-width:160px!important; }
-  @media (max-width:340px){ .st-grid > .st-card{ flex-basis:100%!important; } }
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="manifest" href="manifest.webmanifest"/>
+  <title>Casa</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<script>
-(async()=>{try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){await r.unregister();}} if('caches' in window){const ks=await caches.keys();for(const k of ks){await caches.delete(k);}}}catch(e){}})();
-</script>
-
-<header class="topbar">
-  <div class="left">
-    <svg class="ico-home" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
-    <span class="home-text" id="homeName">Casa</span>
-  </div>
-  <div class="right">
-    <button class="icon-btn" id="btnAdd" title="Aggiungi" aria-label="Aggiungi"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></svg></button>
-    <button class="icon-btn notif" id="btnKebab" title="Log" aria-label="Log">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg>
-      <span class="notif-dot" id="dotLog" hidden></span>
-    </button>
-  </div>
-</header>
-
-<div id="stateBanner" class="state-banner">COMFY NIGHT</div>
-
-<main>
-  <section id="view-home" class="view active">
-    <div class="row-dashboard">
-      <h2 class="dashboard-title">Dashboard</h2>
-      <div id="weatherPill" class="weather-pill small" title="Meteo">
-        <span id="weatherEmoji" class="emoji"></span>
-        <span id="weatherTemp">—°C</span>
-        <span class="wind"><img src="icons/st/meteo-wind.svg" alt="vento"/> <span id="windKmh">— km/h</span></span>
+  <div class="container">
+    <div class="header">
+      <img src="icons/house-192.png" alt=""/>
+      <div>
+        <div style="font-weight:700">Dashboard Casa</div>
+        <div class="muted">Persone &amp; Dispositivi</div>
       </div>
+      <button id="btnRefresh" class="refresh">Aggiorna</button>
     </div>
 
-    <div class="st-grid">
-      <article class="st-card card-glow" id="card-people">
-        <div class="st-ico"><img src="icons/st/dash-people-color.svg" alt="people"></div>
-        <div class="st-label">Persone</div>
-        <div class="st-value"><strong id="peopleOnline">—</strong> · <span id="houseStatus">—</span></div>
-      </article>
-      <article class="st-card card-glow" id="card-energy">
-        <div class="st-ico"><img src="icons/st/dash-energy-color.svg" alt="energy"></div>
-        <div class="st-label">Energy</div>
-        <div class="st-value"><strong id="energyKwh">—</strong> kWh</div>
-      </article>
-      <article class="st-card card-glow" id="card-temp">
-        <div class="st-ico"><img src="icons/st/dash-temp-color.svg" alt="temp"></div>
-        <div class="st-label">Temperatura</div>
-        <div class="st-value"><strong id="tempValue">—</strong> °C</div>
-      </article>
-      <article class="st-card card-glow" id="card-hum">
-        <div class="st-ico"><img src="icons/st/dash-humidity-color.svg" alt="humidity"></div>
-        <div class="st-label">Umidità</div>
-        <div class="st-value"><strong id="humValue">—</strong> %</div>
-      </article>
-    </div>
+    <section id="view-devices" class="view">
+      <h3 class="section-label">Persone</h3>
+      <div id="peopleChips" class="people-chips"></div>
 
-    <div class="label-ghost">PREFERITI</div>
-    <section id="favoritesGrid" class="fav-grid"></section>
+      <h3 class="section-label">Tapparelle</h3>
+      <div id="vimarShutters" class="list"></div>
 
-    <div class="provider-row"><div class="provider" id="weatherProvider">—</div><div id="ts" class="updated">Aggiornamento: —:—</div></div>
-  </section>
-</main>
+      <h3 class="section-label">Termostati</h3>
+      <div id="vimarThermo" class="list"></div>
 
-<footer class="tabbar">
-  <button class="tab active" data-target="home" title="Home" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg><span>Home</span></button>
-  <button class="tab" data-target="devices" title="Dispositivi" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 5h18v6H3V5zm0 8h8v6H3v-6zm10 0h8v6h-8v-6z"/></svg><span>Dispositivi</span></button>
-  <button class="tab" data-target="log" title="Log" id="tabLog" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg><span>Log</span><span class="badge" id="badgeLog" hidden>!</span></button>
-  <button class="tab" data-target="routine" title="Routine" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/></svg><span>Routine</span></button>
-  <button class="tab" data-target="menu" title="Menu" type="button"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg><span>Menu</span></button>
-</footer>
-
-<script src="config.js?v=4.1" defer></script>
-<script src="jsonp.js?v=4.1" defer></script>
-<script src="app.js?v=4.1" defer></script>
+      <h3 class="section-label">Clivet</h3>
+      <div id="vimarHvac" class="list"></div>
+    </section>
+  </div>
+  <script src="config.js"></script>
+  <script src="jsonp.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
