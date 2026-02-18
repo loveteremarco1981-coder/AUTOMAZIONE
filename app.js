@@ -1,27 +1,37 @@
 
-(async function(){
-  const useJsonp = false; // metti true se il doGet risponde solo in JSONP
+(function(){
+  const useJsonp = false; // se il doGet espone JSONP metti true
+
   async function loadModel(){
     setLoading(true);
     try{
-      const url = window.CONFIG.DOGET_URL;
+      const url = window.CONFIG && window.CONFIG.DOGET_URL;
+      if(!url) throw new Error('CONFIG.DOGET_URL mancante');
       const model = useJsonp ? await JSONP.fetch(url) : await (await fetch(url,{cache:'no-store'})).json();
-      renderPeople(model);
-      renderDevices(model);
+      renderAll(model);
     }catch(e){
-      console.error('loadModel', e);
-      q('#peopleChips').innerHTML = '<div class="muted">Errore caricamento: '+e.message+'</div>';
-    }finally{
-      setLoading(false);
-    }
+      console.error(e);
+      q('#peopleChips').innerHTML = '<div class="muted">Errore caricamento: '+(e.message||e)+'</div>';
+    }finally{ setLoading(false); }
   }
 
+  function renderAll(model){
+    renderPeople(model);
+    renderDevices(model);
+    renderWeather(model);
+    renderEnergy(model);
+    renderNext(model);
+    renderAlerts(model);
+  }
+
+  // --- Persone ---
   function renderPeople(model){
     const host = q('#peopleChips'); host.innerHTML='';
     const people = Array.isArray(model.people)?model.people:[];
 
-    const map = {}; people.forEach(p=> map[String(p.name||'').toLowerCase()]=p);
-    (model.peopleLast||[]).forEach(x=>{ const k=String(x.name||'').toLowerCase(); if(map[k]) map[k].lastInOut={event:x.lastEvent,day:x.lastDay,time:x.lastTime,tsIso:x.lastWhenIso}; });
+    // Fonde peopleLast -> people[].lastInOut se il server non l'ha già fatto
+    const map = {}; people.forEach(p=> map[String(p.name||'').toLowerCase()] = p);
+    (model.peopleLast||[]).forEach(x=>{ const k=String(x.name||'').toLowerCase(); if(map[k]) map[k].lastInOut = {event:x.lastEvent, day:x.lastDay, time:x.lastTime, tsIso:x.lastWhenIso}; });
 
     people.sort((a,b)=>{ const A=a.onlineSmart?1:0, B=b.onlineSmart?1:0; if(A!==B) return B-A; return String(a.name||'').localeCompare(String(b.name||''),'it'); });
 
@@ -52,6 +62,7 @@
     }
   }
 
+  // --- Dispositivi ---
   function renderDevices(model){
     const arr = Array.isArray(model.vimar)?model.vimar:[];
     fill('vimarShutters', arr.filter(d=>String(d.type||'').toLowerCase()==='shutter'), 'icons/st/glyph-shutter.svg');
@@ -71,16 +82,67 @@
       const img = document.createElement('img'); img.className='icon'; img.src=icon; img.alt='';
       const col=h('div',''); col.append(h('div','title', d.name||d.id||'—'), h('div','state', d.state || '—'));
       const badge=h('div','badge '+badgeCls, st||'—');
-      card.append(img,col,badge); q('#'+id).appendChild(card);
+      card.append(img,col,badge); host.appendChild(card);
     }
   }
 
-  function q(sel){ return document.querySelector(sel); }
+  // --- Meteo ---
+  function renderWeather(model){
+    const host=q('#kpiWeather');
+    if(!host) return;
+    const w=model.weather||{}; const temp=(w.tempC!=null? w.tempC+'°C':'—');
+    host.querySelector('.value').textContent=temp;
+    host.querySelector('.label').textContent=w.text? (w.iconEmoji? w.iconEmoji+' '+w.text: w.text):'Meteo';
+  }
+
+  // --- Energia ---
+  function renderEnergy(model){
+    const host=q('#kpiEnergy'); if(!host) return;
+    const kwh = model.energy && model.energy.kwh!=null ? model.energy.kwh : null;
+    host.querySelector('.value').textContent = (kwh!=null? kwh+' kWh':'—');
+    const off = Number(model.devicesOfflineCount||0);
+    const lbl = host.querySelector('.label');
+    lbl.textContent = off>0 ? ('Energia • '+off+' OFF') : 'Energia';
+  }
+
+  // --- Prossimi eventi ---
+  function renderNext(model){
+    const host=q('#nextGrid'); if(!host) return; host.innerHTML='';
+    const entries=[
+      {k:'Piante (alba)', v: model.next && model.next.pianteAlba},
+      {k:'Piante (post chiusura)', v: model.next && model.next.piantePostClose},
+      {k:'Chiusura extra', v: model.next && model.next.lateClose}
+    ];
+    for(const e of entries){
+      const row=h('div','row');
+      row.append(h('div','', e.k), h('div','', e.v? prettyDateTime(e.v): '—'));
+      host.appendChild(row);
+    }
+  }
+
+  // --- Alert log ---
+  function renderAlerts(model){
+    const host=q('#kpiAlerts'); if(!host) return;
+    const n = Number(model.alerts && model.alerts.logErrors || 0);
+    host.querySelector('.value').textContent = n>0? (n+' err'): 'OK';
+    host.querySelector('.label').textContent = 'Log';
+  }
+
+  function prettyDateTime(x){
+    try{
+      if(x instanceof Date) return x.toLocaleString();
+      const d = new Date(x); if(!isNaN(d.getTime())) return d.toLocaleString();
+      return String(x);
+    }catch(_){ return String(x||''); }
+  }
+
+  // helpers
+  function q(s){ return document.querySelector(s); }
   function h(tag, cls, text){ const el=document.createElement(tag); if(cls) el.className=cls; if(text!=null) el.textContent=text; return el; }
   function setLoading(b){ const btn=q('#btnRefresh'); if(btn) btn.disabled=b; }
 
   document.addEventListener('DOMContentLoaded', ()=>{
-    q('#btnRefresh') && q('#btnRefresh').addEventListener('click', loadModel);
+    const btn=q('#btnRefresh'); if(btn) btn.addEventListener('click', loadModel);
+    loadModel();
   });
-  loadModel();
 })();

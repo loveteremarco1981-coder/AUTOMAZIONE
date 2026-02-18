@@ -30,3 +30,12 @@ body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,Sego
 .header img{width:28px;height:28px}
 .refresh{margin-left:auto;background:#183652;color:#d9e6f8;border:1px solid #28577b;border-radius:8px;padding:6px 10px;cursor:pointer}
 .refresh:active{transform:translateY(1px)}
+/* --- Extensions for KPI rows and meta panels --- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:8px 0 16px}
+.kpi{background:#0f1520;border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;align-items:center;gap:10px}
+.kpi .ico{width:22px;height:22px;opacity:.9}
+.kpi .label{font-size:12px;color:#9fb0c1}
+.kpi .value{margin-left:auto;font-weight:700}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.meta-card{background:#0f1520;border:1px solid var(--border);border-radius:12px;padding:10px}
+.meta-card .row{display:flex;justify-content:space-between;margin:4px 0;color:#c7d3e1}

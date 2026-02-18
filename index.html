@@ -4,8 +4,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#123656"/>
   <link rel="manifest" href="manifest.webmanifest"/>
-  <title>Casa</title>
+  <!-- Favicons / PWA icons (non toccano le tue immagini in /icons) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png">
+  <title>Dashboard Casa</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -17,6 +22,13 @@
         <div class="muted">Persone &amp; Dispositivi</div>
       </div>
       <button id="btnRefresh" class="refresh">Aggiorna</button>
+    </div>
+
+    <!-- KPI Row ripristinata: Meteo / Energia / Log -->
+    <div class="kpi-row">
+      <div id="kpiWeather" class="kpi"><img class="ico" src="icons/st/dash-temp-color.svg" alt=""/><span class="label">Meteo</span><span class="value">—</span></div>
+      <div id="kpiEnergy"  class="kpi"><img class="ico" src="icons/st/dash-energy-color.svg" alt=""/><span class="label">Energia</span><span class="value">—</span></div>
+      <div id="kpiAlerts"  class="kpi"><img class="ico" src="icons/st/ui-power.svg" alt=""/><span class="label">Log</span><span class="value">—</span></div>
     </div>
 
     <section id="view-devices" class="view">
@@ -32,6 +44,14 @@
       <h3 class="section-label">Clivet</h3>
       <div id="vimarHvac" class="list"></div>
     </section>
+
+    <!-- Prossime azioni / pianificazioni -->
+    <div class="meta-grid" style="margin-top:14px">
+      <div class="meta-card">
+        <div class="section-label" style="margin-top:0">Prossimi</div>
+        <div id="nextGrid" class="grid"></div>
+      </div>
+    </div>
   </div>
   <script src="config.js"></script>
   <script src="jsonp.js"></script>
