@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png?v=4.1">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4.1">
 <link rel="stylesheet" href="style.css?v=4.1">
+<link rel="stylesheet" href="people.chips.css?v=4.1">
 <style>
   :root{ --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px); }
   html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
@@ -36,10 +37,9 @@
   </div>
 </header>
 
-<div id="stateBanner" class="state-banner">—</div>
+<div id="stateBanner" class="state-banner">COMFY_NIGHT</div>
 
 <main>
-  <!-- HOME -->
   <section id="view-home" class="view active">
     <div class="row-dashboard">
       <h2 class="dashboard-title">Dashboard</h2>
@@ -79,7 +79,7 @@
     <div class="provider-row"><div class="provider" id="weatherProvider">—</div><div id="ts" class="updated">Aggiornamento: —:—</div></div>
   </section>
 
-  <!-- PERSONE (nuova view che sostituisce la vecchia Routine) -->
+  <!-- View Persone (solo integrazione, nessuna modifica alla grafica) -->
   <section id="view-persone" class="view">
     <h3 class="section-title">PERSONE</h3>
     <div id="peopleChips" class="people-chips"></div>
@@ -96,6 +96,20 @@
 
 <script src="config.js?v=4.1" defer></script>
 <script src="jsonp.js?v=4.1" defer></script>
-<script src="app.js?v=4.1" defer></script>
+<script src="people.chips.js?v=4.1" defer></script>
+<script>
+// Attiva la view switching esistente (non conosciamo il tuo app.js, quindi soluzione neutra)
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.tabbar .tab');
+  if(!btn) return;
+  const target = btn.getAttribute('data-target');
+  if(!target) return;
+  document.querySelectorAll('.tabbar .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('main .view').forEach(v=>v.classList.remove('active'));
+  const sel = document.querySelector('#view-'+target);
+  if(sel) sel.classList.add('active');
+});
+</script>
 </body>
 </html>
