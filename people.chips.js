@@ -1,33 +1,23 @@
 (function(){
   const DOGET = (window.CONFIG && window.CONFIG.DOGET_URL) || '';
-  const USE_JSONP = false;
 
-  window.addEventListener('load', ()=>{
+  window.addEventListener('load', async ()=>{
     if(!DOGET){ console.error('CONFIG.DOGET_URL mancante'); return; }
-    fetchModel().then(async model=>{
-      if(needLogs(model)){
-        try{ const logs = await fetchLogs(); injectLastFromLogs(model, logs); }
-        catch(_){ /* ignore */ }
-      }
-      renderPeople(model);
-    }).catch(console.error);
+    let model=null;
+    try{ model = await fetchModel(); }
+    catch(e){ console.warn('fetch JSON fallito, provo JSONP', e); try{ model = await JSONP.fetch(DOGET); }catch(err){ console.error('JSONP fallito', err); return; } }
+
+    try{
+      if(needLogs(model)){ const logs = await fetchLogs(); injectLastFromLogs(model, logs); }
+    }catch(_){ /* ignore */ }
+
+    renderPeople(model);
   });
 
-  function needLogs(m){
-    const arr = Array.isArray(m.people)? m.people:[];
-    return arr.some(p=> !(p && p.lastInOut && p.lastInOut.time && p.lastInOut.day));
-  }
+  function needLogs(m){ const arr = Array.isArray(m && m.people)? m.people:[]; return arr.some(p=> !(p && p.lastInOut && p.lastInOut.time && p.lastInOut.day)); }
+  async function fetchModel(){ const r = await fetch(DOGET,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  async function fetchLogs(){ const sep = DOGET.includes('?') ? '&' : '?'; const url = DOGET + sep + 'logs=1'; const r = await fetch(url,{cache:'no-store'}); if(!r.ok) return []; const js = await r.json(); return Array.isArray(js.logs) ? js.logs : []; }
 
-  async function fetchModel(){
-    if(USE_JSONP){ return await JSONP.fetch(DOGET); }
-    const r = await fetch(DOGET,{cache:'no-store'}); return await r.json();
-  }
-  async function fetchLogs(){
-    const sep = DOGET.includes('?') ? '&' : '?';
-    const url = DOGET + sep + 'logs=1';
-    const r = await fetch(url,{cache:'no-store'}); const js = await r.json();
-    return Array.isArray(js.logs) ? js.logs : [];
-  }
   function injectLastFromLogs(model, logs){
     const byName = {}; (model.people||[]).forEach(p=> byName[String(p.name||'').toLowerCase()]=p);
     const done = {};
@@ -65,16 +55,6 @@
     }
   }
 
-  function statusOf(p){
-    if(p && p.onlineSmart===true) return 'in';
-    if(p && p.onlineSmart===false){
-      if(p.lastInOut && p.lastInOut.event==='USCITA') return 'out';
-      if(p.lastInOut && p.lastInOut.event==='ARRIVO') return 'in';
-      return 'out';
-    }
-    if(p && p.lastInOut) return p.lastInOut.event==='USCITA'?'out':(p.lastInOut.event==='ARRIVO'?'in':'unk');
-    return 'unk';
-  }
-
+  function statusOf(p){ if(p && p.onlineSmart===true) return 'in'; if(p && p.onlineSmart===false){ if(p.lastInOut && p.lastInOut.event==='USCITA') return 'out'; if(p.lastInOut && p.lastInOut.event==='ARRIVO') return 'in'; return 'out'; } if(p && p.lastInOut) return p.lastInOut.event==='USCITA'?'out':(p.lastInOut.event==='ARRIVO'?'in':'unk'); return 'unk'; }
   function h(tag, cls, text){ const el=document.createElement(tag); if(cls) el.className=cls; if(text!=null) el.textContent=text; return el; }
 })();

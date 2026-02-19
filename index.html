@@ -10,14 +10,16 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4.1">
 <link rel="stylesheet" href="style.css?v=4.1">
 <link rel="stylesheet" href="people.chips.css?v=4.1">
-<link rel="stylesheet" href="state-colors.css?v=4.1">
+<link rel="stylesheet" href="banner-only-colors.css?v=4.1">
+<style>
+  :root{ --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px); }
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  .st-grid{ display:flex!important; flex-wrap:wrap!important; gap:12px!important; margin:8px 0 16px!important; }
+  .st-grid > .st-card{ flex:1 1 calc(50% - 12px)!important; min-width:160px!important; }
+  @media (max-width:340px){ .st-grid > .st-card{ flex-basis:100%!important; } }
+</style>
 </head>
 <body>
-<script>
-// non toccare niente: solo pulizia sw/caches
-(async()=>{try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){await r.unregister();}} if('caches' in window){const ks=await caches.keys();for(const k of ks){await caches.delete(k);}}}catch(e){}})();
-</script>
-
 <header class="topbar">
   <div class="left">
     <svg class="ico-home" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg>
@@ -91,7 +93,7 @@
 <script src="config.js?v=4.1" defer></script>
 <script src="jsonp.js?v=4.1" defer></script>
 <script src="people.chips.js?v=4.1" defer></script>
-<script src="state-colors.js?v=4.1" defer></script>
+<script src="banner-only-colors.js?v=4.1" defer></script>
 <script src="app.js?v=4.1" defer></script>
 </body>
 </html>
