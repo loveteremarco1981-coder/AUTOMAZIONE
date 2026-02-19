@@ -1,7 +1,7 @@
 // ATTENZIONE: deve essere proprio "window.CONFIG = { ... }"
 window.CONFIG = {
   DOGET_URL: "https://script.google.com/macros/s/AKfycbzEtNdFeb8Jg_d_nYRxQKwQi5xibhfyhqHDyXGDROW9Yn5Kcq1CUtSj1h_iGBUkEVYH/exec",
-
+  
   // (opzionale) auto-refresh della tua app, se lo usi già nel tuo app.js
   AUTO_REFRESH_MS: 60000,
 
