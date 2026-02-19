@@ -1,4 +1,0 @@
-/* Solo il BANNER cambia sfondo: verde per COMFY, rosso per SECURITY; testo bianco */
-body .state-banner{ color:#fff; }
-body.banner-comfy .state-banner{ background: linear-gradient(180deg,#107c3a,#0b5e2c)!important; color:#fff!important; }
-body.banner-security .state-banner{ background: linear-gradient(180deg,#a31217,#7c0e12)!important; color:#fff!important; }
