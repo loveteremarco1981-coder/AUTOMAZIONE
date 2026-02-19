@@ -1,17 +1,53 @@
 (function(){
-  const USE_JSONP = false; // metti true se il doGet risponde solo JSONP
   const DOGET = (window.CONFIG && window.CONFIG.DOGET_URL) || '';
-  if(!DOGET){ console.error('CONFIG.DOGET_URL mancante'); }
+  const USE_JSONP = false;
 
   document.addEventListener('DOMContentLoaded', ()=>{
-    // carica una volta; se la view non è visibile, i chip compariranno quando apri "Persone"
-    fetchModel().then(renderPeople).catch(console.error);
+    if(!DOGET){ console.error('CONFIG.DOGET_URL mancante'); return; }
+    fetchModel().then(async model=>{
+      // fallback: se mancano lastInOut per qualcuno, prova a leggere i logs
+      if(needLogs(model)){
+        try{ const logs = await fetchLogs(); injectLastFromLogs(model, logs); }
+        catch(_){ /* ignora */ }
+      }
+      renderPeople(model);
+    }).catch(console.error);
   });
 
+  function needLogs(m){
+    const arr = Array.isArray(m.people)? m.people:[];
+    return arr.some(p=> !(p && p.lastInOut && p.lastInOut.time && p.lastInOut.day));
+  }
+
   async function fetchModel(){
-    if(!DOGET) throw new Error('URL doGet mancante');
     if(USE_JSONP){ return await JSONP.fetch(DOGET); }
     const r = await fetch(DOGET,{cache:'no-store'}); return await r.json();
+  }
+  async function fetchLogs(){
+    const sep = DOGET.includes('?') ? '&' : '?';
+    const url = DOGET + sep + 'logs=1';
+    const r = await fetch(url,{cache:'no-store'}); const js = await r.json();
+    return Array.isArray(js.logs) ? js.logs : [];
+  }
+  function injectLastFromLogs(model, logs){
+    const byName = {}; (model.people||[]).forEach(p=> byName[String(p.name||'').toLowerCase()]=p);
+    const done = {};
+    for(const row of logs){
+      if(!row || !row.desc) continue;
+      // desc atteso: "ARRIVO: nome" | "USCITA: nome" (dalle write in doPost)
+      const m = String(row.desc).match(/(ARRIVO|USCITA)\s*:\s*([A-Za-zÀ-ÖØ-öø-ÿ]+)/i);
+      if(!m) continue;
+      const ev = m[1].toUpperCase();
+      const name = (m[2]||'').trim(); const k = name.toLowerCase();
+      if(done[k]) continue;
+      const p = byName[k]; if(!p) continue;
+      const when = (row.ts && (new Date(row.ts))) || null;
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const day = when? new Intl.DateTimeFormat('it-IT',{timeZone:tz, day:'2-digit', month:'2-digit', year:'numeric'}).format(when): null;
+      const time = when? new Intl.DateTimeFormat('it-IT',{timeZone:tz, hour:'2-digit', minute:'2-digit'}).format(when): null;
+      p.lastInOut = { event: ev, day: day||'—', time: time||'—', tsIso: when? when.toISOString(): null };
+      done[k]=true;
+    }
   }
 
   function renderPeople(model){
@@ -19,6 +55,7 @@
     host.innerHTML='';
 
     const people = Array.isArray(model.people) ? model.people.slice() : [];
+
     // Merge server-side peopleLast -> people[].lastInOut (se non già fuso)
     const idx={}; people.forEach(p=> idx[String(p.name||'').toLowerCase()] = p);
     (model.peopleLast||[]).forEach(x=>{

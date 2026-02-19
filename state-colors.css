@@ -1,0 +1,9 @@
+/* Colori stato richiesti: COMFY_* verde, SECURITY_* rosso */
+/* Applico classe sul body: .state-comfy, .state-security */
+body.state-comfy .topbar,
+body.state-comfy .state-banner,
+body.state-comfy .tabbar{ background: linear-gradient(180deg,#0a5a2a,#094a23)!important; }
+
+body.state-security .topbar,
+body.state-security .state-banner,
+body.state-security .tabbar{ background: linear-gradient(180deg,#6b0f12,#4a0b0d)!important; }

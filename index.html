@@ -10,13 +10,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icons/house-512.png?v=4.1">
 <link rel="stylesheet" href="style.css?v=4.1">
 <link rel="stylesheet" href="people.chips.css?v=4.1">
-<style>
-  :root{ --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px); }
-  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-  .st-grid{ display:flex!important; flex-wrap:wrap!important; gap:12px!important; margin:8px 0 16px!important; }
-  .st-grid > .st-card{ flex:1 1 calc(50% - 12px)!important; min-width:160px!important; }
-  @media (max-width:340px){ .st-grid > .st-card{ flex-basis:100%!important; } }
-</style>
+<link rel="stylesheet" href="state-colors.css?v=4.1">
 </head>
 <body>
 <script>
@@ -78,12 +72,6 @@
 
     <div class="provider-row"><div class="provider" id="weatherProvider">—</div><div id="ts" class="updated">Aggiornamento: —:—</div></div>
   </section>
-
-  <!-- View Persone (solo integrazione, nessuna modifica alla grafica) -->
-  <section id="view-persone" class="view">
-    <h3 class="section-title">PERSONE</h3>
-    <div id="peopleChips" class="people-chips"></div>
-  </section>
 </main>
 
 <footer class="tabbar">
@@ -97,19 +85,7 @@
 <script src="config.js?v=4.1" defer></script>
 <script src="jsonp.js?v=4.1" defer></script>
 <script src="people.chips.js?v=4.1" defer></script>
-<script>
-// Attiva la view switching esistente (non conosciamo il tuo app.js, quindi soluzione neutra)
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('.tabbar .tab');
-  if(!btn) return;
-  const target = btn.getAttribute('data-target');
-  if(!target) return;
-  document.querySelectorAll('.tabbar .tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('main .view').forEach(v=>v.classList.remove('active'));
-  const sel = document.querySelector('#view-'+target);
-  if(sel) sel.classList.add('active');
-});
-</script>
+<script src="state-colors.js?v=4.1" defer></script>
+<script src="app.js?v=4.1" defer></script>
 </body>
 </html>
