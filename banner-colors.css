@@ -1,0 +1,12 @@
+/* Solo la barra centrale */
+.state-banner {
+  color:#fff !important;
+  padding:12px;
+  font-weight:700;
+}
+body.comfy .state-banner {
+  background:linear-gradient(#0fae4d,#0b8a3c);
+}
+body.security .state-banner {
+  background:linear-gradient(#d01919,#980f0f);
+}
