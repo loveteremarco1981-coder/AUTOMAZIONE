@@ -1,6 +1,7 @@
 
 const CONFIG = {
-  BASE_URL: 'https://script.google.com/macros/s/AKfycbzx-jta1hBn-PZmXj7IGhpO_B2uNAz_G5BrGaQ6V7lZYEf2VBXGHCyr_ho8Xlo7jNEj/exec',
+  BASE_URL: 'window.CONFIG = {
+  DOGET_URL: "https://script.google.com/macros/s/AKfycbzEtNdFeb8Jg_d_nYRxQKwQi5xibhfyhqHDyXGDROW9Yn5Kcq1CUtSj1h_iGBUkEVYH/exec",
   AUTO_REFRESH_MS: 60000,
   FAVORITES: [
     { id:'tapparelle', kind:'toggle', label:'Tapparelle', icon:'shutter',  toggleEvent:null, stateKey:null, subtitle:'Casa' },
