@@ -1,1 +1,1 @@
-(function(){const b=document.getElementById('stateBanner');const t=b.textContent;if(t.includes('COMFY')) document.body.classList.add('comfy'); else document.body.classList.add('security');})();
+(function(){const b=document.getElementById('stateBanner');if(b.textContent.includes('SEC'))document.body.classList.add('security');else document.body.classList.add('comfy');})();
