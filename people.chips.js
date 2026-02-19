@@ -2,13 +2,12 @@
   const DOGET = (window.CONFIG && window.CONFIG.DOGET_URL) || '';
   const USE_JSONP = false;
 
-  document.addEventListener('DOMContentLoaded', ()=>{
+  window.addEventListener('load', ()=>{
     if(!DOGET){ console.error('CONFIG.DOGET_URL mancante'); return; }
     fetchModel().then(async model=>{
-      // fallback: se mancano lastInOut per qualcuno, prova a leggere i logs
       if(needLogs(model)){
         try{ const logs = await fetchLogs(); injectLastFromLogs(model, logs); }
-        catch(_){ /* ignora */ }
+        catch(_){ /* ignore */ }
       }
       renderPeople(model);
     }).catch(console.error);
@@ -33,15 +32,10 @@
     const byName = {}; (model.people||[]).forEach(p=> byName[String(p.name||'').toLowerCase()]=p);
     const done = {};
     for(const row of logs){
-      if(!row || !row.desc) continue;
-      // desc atteso: "ARRIVO: nome" | "USCITA: nome" (dalle write in doPost)
-      const m = String(row.desc).match(/(ARRIVO|USCITA)\s*:\s*([A-Za-zÀ-ÖØ-öø-ÿ]+)/i);
-      if(!m) continue;
-      const ev = m[1].toUpperCase();
-      const name = (m[2]||'').trim(); const k = name.toLowerCase();
-      if(done[k]) continue;
-      const p = byName[k]; if(!p) continue;
-      const when = (row.ts && (new Date(row.ts))) || null;
+      if(!row) continue; const desc = String(row.desc||'');
+      const m = desc.match(/(ARRIVO|USCITA)\s*:\s*([A-Za-zÀ-ÖØ-öø-ÿ]+)/i);
+      if(!m) continue; const ev = m[1].toUpperCase(); const name=(m[2]||'').trim(); const k=name.toLowerCase(); if(done[k]) continue;
+      const p = byName[k]; if(!p) continue; const when = (row.ts && (new Date(row.ts))) || null;
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const day = when? new Intl.DateTimeFormat('it-IT',{timeZone:tz, day:'2-digit', month:'2-digit', year:'numeric'}).format(when): null;
       const time = when? new Intl.DateTimeFormat('it-IT',{timeZone:tz, hour:'2-digit', minute:'2-digit'}).format(when): null;
@@ -51,23 +45,12 @@
   }
 
   function renderPeople(model){
-    const host = document.querySelector('#peopleChips'); if(!host) return;
-    host.innerHTML='';
-
+    const host = document.querySelector('#peopleChips'); if(!host) return; host.innerHTML='';
     const people = Array.isArray(model.people) ? model.people.slice() : [];
-
-    // Merge server-side peopleLast -> people[].lastInOut (se non già fuso)
     const idx={}; people.forEach(p=> idx[String(p.name||'').toLowerCase()] = p);
-    (model.peopleLast||[]).forEach(x=>{
-      const k = String(x.name||'').toLowerCase();
-      if(idx[k]) idx[k].lastInOut = { event:x.lastEvent, day:x.lastDay, time:x.lastTime, tsIso:x.lastWhenIso };
-    });
-
-    // Ordina: presenti prima
+    (model.peopleLast||[]).forEach(x=>{ const k = String(x.name||'').toLowerCase(); if(idx[k]) idx[k].lastInOut = { event:x.lastEvent, day:x.lastDay, time:x.lastTime, tsIso:x.lastWhenIso }; });
     people.sort((a,b)=>{ const A=a.onlineSmart?1:0,B=b.onlineSmart?1:0; if(A!==B) return B-A; return (''+a.name).localeCompare(''+b.name,'it'); });
-
     if(!people.length){ host.innerHTML='<div class="muted">—</div>'; return; }
-
     for(const p of people){
       const st = statusOf(p);
       const chip = h('div','person-chip');

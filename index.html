@@ -14,6 +14,7 @@
 </head>
 <body>
 <script>
+// non toccare niente: solo pulizia sw/caches
 (async()=>{try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){await r.unregister();}} if('caches' in window){const ks=await caches.keys();for(const k of ks){await caches.delete(k);}}}catch(e){}})();
 </script>
 
@@ -71,6 +72,11 @@
     <section id="favoritesGrid" class="fav-grid"></section>
 
     <div class="provider-row"><div class="provider" id="weatherProvider">—</div><div id="ts" class="updated">Aggiornamento: —:—</div></div>
+  </section>
+
+  <section id="view-persone" class="view">
+    <h3 class="section-title">PERSONE</h3>
+    <div id="peopleChips" class="people-chips"></div>
   </section>
 </main>
 
