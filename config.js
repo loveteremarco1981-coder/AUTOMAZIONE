@@ -1,1 +1,1 @@
-window.CONFIG = { DOGET_URL: 'https://script.google.com/macros/s/AKfycby3ch-Fue-VeHhdqW5ILkTvxyk3U3e3dUYfpscuBjxxW0fa9zexuEYwZmVTIi2ixRkG1g/exec' };
+window.CONFIG = { DOGET_URL: 'https://script.google.com/macros/s/AKfycby3ch-Fue-VeHhdqW5ILkTvxyk3U3e3dUYfpscuBjxxW0fa9zexuEYwZmVTIi2ixRkG1g/exec', AUTO_REFRESH_MS: 60000, FAVORITES: [], WEATHER: {lat:45.004636, lon:7.6522632, tz:'Europe/Rome', forceClient:false} };
