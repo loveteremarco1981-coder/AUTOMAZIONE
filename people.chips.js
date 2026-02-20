@@ -1,24 +1,62 @@
+function renderPeople(model){
+  const host = document.querySelector('#peopleChips');
+  if (!host) return;
+  host.innerHTML = '';
 
-(function(){
-  document.addEventListener('DOMContentLoaded', async ()=>{
-    try{
-      const url = window.CONFIG && window.CONFIG.DOGET_URL; if(!url) return;
-      const model = await fetch(url,{cache:'no-store'}).then(r=>r.json());
-      const host = document.querySelector('#peopleChips'); if(!host) return; host.innerHTML='';
-      const idx={}; (model.people||[]).forEach(p=> idx[String(p.name||'').toLowerCase()]=p);
-      (model.peopleLast||[]).forEach(x=>{ const k=String(x.name||'').toLowerCase(); if(idx[k]) idx[k].lastInOut={event:x.lastEvent, day:x.lastDay, time:x.lastTime, tsIso:x.lastWhenIso}; });
-      const arr=(model.people||[]).slice().sort((a,b)=> (b.onlineSmart===true)-(a.onlineSmart===true));
-      if(!arr.length){ host.textContent='—'; return; }
-      for(const p of arr){
-        const st = p.onlineSmart? 'in' : (p.lastInOut && p.lastInOut.event==='USCITA' ? 'out' : 'out');
-        const time = p.lastInOut ? (p.lastInOut.time+' • '+p.lastInOut.day) : '—';
-        const d=document.createElement('div'); d.className='person-chip';
-        d.innerHTML = '<span class="person-dot '+st+'"></span>'+
-                      '<span class="person-name">'+(p.name||'—')+'</span>'+
-                      '<span class="person-meta '+st+'">'+st.toUpperCase()+'</span>'+
-                      '<span class="person-time">'+time+'</span>';
-        host.appendChild(d);
-      }
-    }catch(e){ console.error('[people] ',e); }
+  // 1) Mappa dai people (se esistono)
+  const byName = {};
+  const base = Array.isArray(model.people) ? model.people.slice() : [];
+  base.forEach(p => {
+    const k = String(p.name || '').trim().toLowerCase();
+    if (!k) return;
+    // copia “soft” per non mutare l’originale
+    byName[k] = { ...p };
   });
-})();
+
+  // 2) Integra con peopleLast: se un nome manca, crealo (OUT) e aggiungi l’orario
+  (model.peopleLast || []).forEach(x => {
+    const k = String(x.name || '').trim().toLowerCase();
+    if (!k) return;
+    if (!byName[k]) {
+      byName[k] = {
+        name: x.name,
+        onlineSmart: false // di default OUT se non presente in people
+      };
+    }
+    byName[k].lastInOut = {
+      event: x.lastEvent,
+      day:   x.lastDay,
+      time:  x.lastTime,
+      tsIso: x.lastWhenIso
+    };
+  });
+
+  // 3) Array finale + ordinamento: prima chi è IN, poi alfabetico
+  const people = Object.values(byName).sort((a,b) => {
+    const A = a.onlineSmart ? 1 : 0;
+    const B = b.onlineSmart ? 1 : 0;
+    if (A !== B) return B - A;
+    return (''+a.name).localeCompare(''+b.name, 'it');
+  });
+
+  if (!people.length){
+    host.textContent = '—';
+    return;
+  }
+
+  // 4) Disegno chip
+  for (const p of people){
+    const st   = p.onlineSmart ? 'in' : ((p.lastInOut && p.lastInOut.event === 'USCITA') ? 'out' : 'out');
+    const time = (p.lastInOut && p.lastInOut.time && p.lastInOut.day) ? (p.lastInOut.time + ' • ' + p.lastInOut.day) : '—';
+
+    const chip = document.createElement('div');
+    chip.className = 'person-chip';
+    chip.innerHTML = `
+      <span class="person-dot ${st}"></span>
+      <span class="person-name">${p.name || '—'}</span>
+      <span class="person-meta ${st}">${st.toUpperCase()}</span>
+      <span class="person-time">${time}</span>
+    `;
+    host.appendChild(chip);
+  }
+}
