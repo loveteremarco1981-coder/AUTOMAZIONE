@@ -1,1 +1,1 @@
-body.security .state-banner{background:red;color:white;} body.comfy .state-banner{background:green;color:white;}
+.state-banner{color:#fff}.state-banner{padding:12px;font-weight:700}.state-banner a{color:#fff;text-decoration:underline}.state-banner small{opacity:.85}.state-banner{transition:background .2s ease}.comfy .state-banner{background:linear-gradient(180deg,#0fae4d,#0b8a3c)!important}.security .state-banner{background:linear-gradient(180deg,#d01919,#980f0f)!important}
