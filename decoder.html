@@ -1,0 +1,12 @@
+// incolla la stringa escape-ata dentro le backtick:
+const escaped = `&lt;div class=&quot;zeroclipboard-container&quot;&gt;...&lt;/div&gt;`;
+
+// metodo DOM "ufficiale": usa un <textarea> o un <template> per decodificare
+function decodeEntities(s) {
+  const t = document.createElement('textarea');
+  t.innerHTML = s;
+  return t.value;
+}
+
+console.log(decodeEntities(escaped));
+// → <div class="zeroclipboard-container">...</div>
