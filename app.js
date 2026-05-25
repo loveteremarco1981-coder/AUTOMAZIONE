@@ -97,6 +97,11 @@ function renderWeather(w) {
   const tv=$('#temp-val'); if(tv&&w.tempC!=null)    tv.textContent=Math.round(w.tempC);
   const hv=$('#hum-val');  if(hv&&w.humidity!=null) hv.textContent=Math.round(w.humidity);
   const wv=$('#wind-val'); if(wv&&w.windKmh!=null)  wv.textContent=Math.round(w.windKmh);
+  // Pill topbar
+  const pe=$('#weather-emoji');
+  const pt=$('#weather-pill-temp');
+  if(pe) pe.textContent = w.icon!=null ? weatherEmoji(w.icon) : (w.iconEmoji||'🌡️');
+  if(pt) pt.textContent = w.tempC!=null ? Math.round(w.tempC)+'°' : '—';
 }
 
 function favGlyph(id) {

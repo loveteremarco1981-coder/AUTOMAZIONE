@@ -602,3 +602,28 @@ main {
   -webkit-tap-highlight-color: transparent;
 }
 .sh-btn:active { background: var(--accent2); border-color: var(--accent); }
+
+/* ---- Weather pill topbar ---- */
+.weather-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  white-space: nowrap;
+}
+#weather-emoji { font-size: 15px; line-height: 1; }
+#weather-pill-temp { color: var(--fg); }
+
+/* ---- Card icons colored ---- */
+.st-ico-people { background: rgba(88,166,255,.15) !important; color: #58a6ff; }
+.st-ico-people svg { stroke: #58a6ff; }
+.st-ico-temp   { background: rgba(248,81,73,.15)  !important; color: #f85149; }
+.st-ico-temp   svg { stroke: #f85149; }
+.st-ico-hum    { background: rgba(63,185,80,.15)  !important; color: #3fb950; }
+.st-ico-hum    svg { stroke: #3fb950; }

@@ -23,6 +23,10 @@
     </div>
   </div>
   <div class="tb-right">
+    <div class="weather-pill" id="weather-pill">
+      <span id="weather-emoji">—</span>
+      <span id="weather-pill-temp">—</span>
+    </div>
     <button class="icon-btn" id="btn-refresh" title="Aggiorna">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
@@ -45,17 +49,23 @@
     <!-- Summary cards 2x2 -->
     <div class="st-grid">
       <div class="st-card card-glow" id="card-presence">
-        <div class="st-ico"><img src="icons/st/dash-people-color.svg" alt=""></div>
-        <div class="st-label">Persone in casa</div>
+        <div class="st-ico st-ico-people">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="st-label">In casa</div>
         <div class="st-value" id="people-count">—</div>
       </div>
       <div class="st-card" id="card-weather">
-        <div class="st-ico"><img src="icons/st/dash-temp-color.svg" alt=""></div>
+        <div class="st-ico st-ico-temp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>
+        </div>
         <div class="st-label">Temperatura</div>
         <div class="st-value"><span id="temp-val">—</span><span style="font-size:13px;opacity:.7"> °C</span></div>
       </div>
       <div class="st-card" id="card-humidity">
-        <div class="st-ico"><img src="icons/st/dash-humidity-color.svg" alt=""></div>
+        <div class="st-ico st-ico-hum">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+        </div>
         <div class="st-label">Umidità</div>
         <div class="st-value"><span id="hum-val">—</span><span style="font-size:13px;opacity:.7"> %</span></div>
       </div>
