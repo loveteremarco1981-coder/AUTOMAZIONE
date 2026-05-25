@@ -423,8 +423,10 @@ async function loadAll() {
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
     const w=m.weather||{};
-    if((w.tempC!=null||w.humidity!=null)&&!CONFIG.WEATHER?.forceClient) renderWeather(w);
-    else fetchWeatherClient().then(renderWeather).catch(()=>{});
+    // Temperatura/umidità/vento dal backend se disponibili
+    if(w.tempC!=null||w.humidity!=null) renderWeather(w);
+    // Sempre ricarica da Open-Meteo per avere l'emoji meteo aggiornata
+    fetchWeatherClient().then(renderWeather).catch(()=>{});
   }catch(e){ console.error('loadAll:',e); toast('⚠️ Errore caricamento'); }
   finally{ if(btn) btn.style.opacity=''; }
 }
