@@ -31,7 +31,8 @@ function buildModel_(){
       onlineRaw:       p.online,
       lastEvent:       p.lastEvent,
       lastLifeMinAgo:  lastLifeMinAgo,
-      tsText:          p.lifeDate ? Utilities.formatDate(p.lifeDate, tz, 'dd/MM HH:mm') : null
+      tsText:          p.lifeDate ? Utilities.formatDate(p.lifeDate, tz, 'dd/MM HH:mm') : null,
+      ssidLock:        ssidLock
     };
   });
 
