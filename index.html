@@ -1,1 +1,156 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Automazione Casa · Dashboard</title><meta name="theme-color" content="#101316"><link rel="stylesheet" href="assets/style.css"/></head><body><header id="app-header" class="glass"><div class="title"><div class="brand">AUTOMAZIONE</div><div class="subtitle">Dashboard live</div></div><div class="actions"><button id="power-btn" class="ghost" title="Power" aria-label="Power">⏻</button></div></header><main><section id="state" class="section"><h2 class="section-title">Stato</h2><div id="state-cards" class="row"></div></section><section id="preferiti" class="section"><h2 class="section-title">Preferiti</h2><div class="grid tiles" id="fav-tiles"><button class="tile" data-action="toggle_vacanza"><span class="icon">🏝️</span><span class="label">Vacanza</span></button><button class="tile" data-action="toggle_override"><span class="icon">🛡️</span><span class="label">Override</span></button><button class="tile" data-action="alza_tutto"><span class="icon">⬆️</span><span class="label">Alza tutto</span></button><button class="tile" data-action="abbassa_tutto"><span class="icon">⬇️</span><span class="label">Abbassa tutto</span></button><button class="tile" data-action="piante"><span class="icon">🌿</span><span class="label">Piante</span></button></div></section><section id="persone" class="section"><h2 class="section-title">Persone</h2><div id="people-list" class="row people"></div></section><section id="next" class="section"><h2 class="section-title">Prossimi eventi</h2><div id="next-cards" class="row"></div></section><section id="loglink" class="section"><h2 class="section-title">Diagnostica</h2><p class="muted">Ultimi eventi disponibili dall'endpoint <code>?logs=1</code>.</p><div class="row"><a id="logs-anchor" class="button" target="_blank" rel="noopener">Apri ultimi log</a></div></section></main><footer class="foot"><div id="footer-meta" class="muted"></div></footer><script src="js/app.js"></script></body></html>
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0d1117"/>
+<title>Casa · Automazione</title>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="tb-left">
+    <svg class="tb-icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    <div>
+      <div class="tb-title">Casa</div>
+      <div class="tb-sub" id="ts">—</div>
+    </div>
+  </div>
+  <div class="tb-right">
+    <button class="icon-btn" id="btn-refresh" title="Aggiorna">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-log" title="Log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span class="notif-dot" id="dot-err" hidden></span>
+    </button>
+  </div>
+</header>
+
+<!-- STATE BANNER -->
+<div class="state-banner" id="state-banner">—</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- VIEW: DASHBOARD -->
+  <div class="view active" id="view-home">
+
+    <!-- Summary cards 2x2 -->
+    <div class="st-grid">
+      <div class="st-card card-glow" id="card-presence">
+        <div class="st-ico"><img src="icons/st/dash-people-color.svg" alt=""></div>
+        <div class="st-label">Persone in casa</div>
+        <div class="st-value" id="people-count">—</div>
+      </div>
+      <div class="st-card" id="card-weather">
+        <div class="st-ico"><img src="icons/st/dash-temp-color.svg" alt=""></div>
+        <div class="st-label">Temperatura</div>
+        <div class="st-value"><span id="temp-val">—</span><span style="font-size:13px;opacity:.7"> °C</span></div>
+      </div>
+      <div class="st-card" id="card-humidity">
+        <div class="st-ico"><img src="icons/st/dash-humidity-color.svg" alt=""></div>
+        <div class="st-label">Umidità</div>
+        <div class="st-value"><span id="hum-val">—</span><span style="font-size:13px;opacity:.7"> %</span></div>
+      </div>
+      <div class="st-card" id="card-wind">
+        <div class="st-ico"><img src="icons/st/meteo-wind.svg" alt=""></div>
+        <div class="st-label">Vento</div>
+        <div class="st-value"><span id="wind-val">—</span><span style="font-size:13px;opacity:.7"> km/h</span></div>
+      </div>
+    </div>
+
+    <!-- Preferiti -->
+    <div class="section-header">
+      <span class="section-title">Preferiti</span>
+    </div>
+    <div class="fav-grid" id="fav-grid"></div>
+
+    <!-- Persone -->
+    <div class="section-header">
+      <span class="section-title">Persone</span>
+    </div>
+    <div id="people-chips"></div>
+
+    <!-- Prossimi eventi -->
+    <div class="section-header">
+      <span class="section-title">Prossimi eventi</span>
+    </div>
+    <div class="events-list" id="events-list"></div>
+
+  </div><!-- /view-home -->
+
+  <!-- VIEW: DISPOSITIVI -->
+  <div class="view" id="view-devices">
+    <div class="section-header"><span class="section-title">Tapparelle</span></div>
+    <div id="vimar-shutters" class="device-list"></div>
+    <div class="section-header"><span class="section-title">Termostati</span></div>
+    <div id="vimar-thermo" class="device-list"></div>
+    <div class="section-header"><span class="section-title">Clima</span></div>
+    <div id="vimar-hvac" class="device-list"></div>
+  </div>
+
+  <!-- VIEW: PERSONE -->
+  <div class="view" id="view-people">
+    <div class="section-header"><span class="section-title">Presenze</span></div>
+    <div id="people-detail" class="people-detail-list"></div>
+    <div class="section-header" style="margin-top:24px"><span class="section-title">Azioni rapide</span></div>
+    <div class="quick-actions" id="quick-actions"></div>
+  </div>
+
+  <!-- VIEW: IMPOSTAZIONI -->
+  <div class="view" id="view-settings">
+    <div class="section-header"><span class="section-title">Sistema</span></div>
+    <div class="settings-list" id="settings-list"></div>
+    <div class="section-header" style="margin-top:24px"><span class="section-title">Info</span></div>
+    <div class="info-card" id="info-card"></div>
+  </div>
+
+  <!-- VIEW: LOG -->
+  <div class="view" id="view-log">
+    <div class="section-header"><span class="section-title">Log eventi</span></div>
+    <div id="log-list" class="log-list"></div>
+    <div id="log-empty" class="empty-state">Nessun log caricato.</div>
+  </div>
+
+</main>
+
+<!-- TABBAR -->
+<nav class="tabbar">
+  <button class="tab active" data-target="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="tab" data-target="devices">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    <span>Dispositivi</span>
+  </button>
+  <button class="tab" data-target="people">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Persone</span>
+  </button>
+  <button class="tab" data-target="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span>Impostazioni</span>
+  </button>
+  <button class="tab" data-target="log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span>Log</span>
+    <span class="tab-badge" id="badge-log" hidden>!</span>
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast" class="toast" aria-live="polite"></div>
+
+<!-- CONFIG -->
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
