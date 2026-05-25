@@ -445,7 +445,16 @@ function activateTab(target) {
 
 document.addEventListener('DOMContentLoaded', () => {
   $$('.tab').forEach(t=>t.addEventListener('click',()=>activateTab(t.dataset.target)));
-  $('#btn-refresh')?.addEventListener('click',()=>{ toast('🔄 Aggiorno…'); loadAll(); });
+  $('#btn-refresh')?.addEventListener('click',()=>{
+    // Hard reload — bypassa service worker e cache browser
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
+    }
+    // Forza reload senza cache
+    window.location.reload(true);
+  });
   $('#btn-log')?.addEventListener('click',()=>activateTab('log'));
   loadAll();
   if(CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
