@@ -182,28 +182,68 @@ function renderEvents(m) {
   });
 }
 
-function renderVimar(m) {
-  const vimar = m.vimar||{};
-  function renderList(id, items, buildCard) {
-    const el=$(id); if(!el) return; el.innerHTML='';
-    if(!items||!items.length){ el.innerHTML='<div class="empty-state">Nessun dispositivo.</div>'; return; }
-    items.forEach(x => el.appendChild(buildCard(x)));
+function renderDevices() {
+  const DEV = CONFIG.DEVICES || {};
+
+  /* ---- App links ---- */
+  const appLinks = $('#app-links');
+  if (appLinks) {
+    appLinks.innerHTML = '';
+    (DEV.APPS || []).forEach(app => {
+      const card = document.createElement('a');
+      card.className = 'app-link-card';
+      card.href = '#';
+      card.innerHTML = `
+        <div class="app-link-icon" style="background:${app.color||'#f0f0f0'}">${app.icon||'📱'}</div>
+        <div class="app-link-info">
+          <div class="app-link-name">${app.label}</div>
+          <div class="app-link-sub">${app.subtitle||''}</div>
+        </div>
+        <span class="app-link-arrow">›</span>
+      `;
+      card.addEventListener('click', e => {
+        e.preventDefault();
+        // Prova deep link app, fallback all'App Store
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = app.url;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 500);
+        // Fallback dopo 1.5s se l'app non si apre
+        setTimeout(() => {
+          window.location.href = app.urlFallback || app.url;
+        }, 1500);
+      });
+      appLinks.appendChild(card);
+    });
   }
-  renderList('#vimar-shutters', vimar.shutters, x => {
-    const c=document.createElement('div'); c.className='device-card';
-    c.innerHTML=`<div class="dev-row"><div><div class="dev-name">${x.name||x.id||'—'}</div><div class="dev-meta">${x.room||''} ${x.online?'· Online':'· Offline'}</div></div></div><div class="dev-ctrl"><button class="small-btn" data-cmd="up">⬆ Su</button><button class="small-btn" data-cmd="stop">■ Stop</button><button class="small-btn" data-cmd="down">⬇ Giù</button></div>`;
-    c.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{toast('↕ Tapparella…');callAdmin('vimar_shutter',{id:x.id,cmd:b.dataset.cmd});})); return c;
-  });
-  renderList('#vimar-thermo', vimar.thermostats, x => {
-    const c=document.createElement('div'); c.className='device-card';
-    c.innerHTML=`<div class="dev-row"><div><div class="dev-name">${x.name||x.id||'—'}</div><div class="dev-meta">${x.room||''} · T=${x.temp??'—'}° · Set=${x.setpoint??'—'}° · ${x.mode||''}</div></div></div><div class="dev-ctrl"><button class="small-btn" data-op="dec">− 0.5°</button><button class="small-btn" data-op="inc">+ 0.5°</button><button class="small-btn" data-op="modeNext">Mode</button></div>`;
-    c.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{toast('🌡 Termostato…');callAdmin('vimar_thermo',{id:x.id,op:b.dataset.op});})); return c;
-  });
-  renderList('#vimar-hvac', vimar.hvac, x => {
-    const c=document.createElement('div'); c.className='device-card';
-    c.innerHTML=`<div class="dev-row"><div><div class="dev-name">${x.name||x.id||'—'}</div><div class="dev-meta">${x.room||''} · ${x.mode||''} · Set=${x.setpoint??'—'}° · Fan=${x.fan||''}</div></div></div><div class="dev-ctrl"><button class="small-btn" data-op="powerToggle">⏻</button><button class="small-btn" data-op="dec">−</button><button class="small-btn" data-op="inc">+</button><button class="small-btn" data-op="modeNext">Mode</button><button class="small-btn" data-op="fanNext">Fan</button></div>`;
-    c.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{toast('❄️ Clima…');callAdmin('vimar_hvac',{id:x.id,op:b.dataset.op});})); return c;
-  });
+
+  /* ---- Tapparelle per stanza ---- */
+  const shutterList = $('#shutter-list');
+  if (shutterList) {
+    shutterList.innerHTML = '';
+    (DEV.SHUTTERS || []).forEach(sh => {
+      const card = document.createElement('div');
+      card.className = 'shutter-card';
+      card.innerHTML = `
+        <span class="shutter-icon">${sh.icon||'🪟'}</span>
+        <span class="shutter-label">${sh.label}</span>
+        <div class="shutter-btns">
+          <button class="sh-btn" data-ev="${sh.upEvent}"   title="Alza">⬆</button>
+          <button class="sh-btn" data-ev="${sh.downEvent}" title="Abbassa">⬇</button>
+        </div>
+      `;
+      card.querySelectorAll('.sh-btn').forEach(b => {
+        b.addEventListener('click', async () => {
+          toast(b.dataset.ev.startsWith('alza') ? `⬆️ ${sh.label}…` : `⬇️ ${sh.label}…`);
+          await callAdmin(b.dataset.ev, { manual: 'TRUE' });
+        });
+      });
+      shutterList.appendChild(card);
+    });
+  }
 }
 
 /* ---- People detail con SSID badge ---- */
@@ -325,7 +365,7 @@ async function loadAll() {
     const m = await fetchModel();
     MODEL = m;
     renderBanner(m); renderCards(m); renderFavorites(m);
-    renderPeopleChips(m); renderEvents(m); renderVimar(m);
+    renderPeopleChips(m); renderEvents(m); renderDevices();
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
     const w=m.weather||{};
