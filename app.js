@@ -220,7 +220,7 @@ function renderDevices() {
     });
   }
 
-  /* ---- Tapparelle per stanza ---- */
+  /* ---- Tapparelle ---- */
   const shutterList = $('#shutter-list');
   if (shutterList) {
     shutterList.innerHTML = '';
@@ -233,8 +233,7 @@ function renderDevices() {
         <div class="shutter-btns">
           <button class="sh-btn" data-ev="${sh.upEvent}"   title="Alza">⬆</button>
           <button class="sh-btn" data-ev="${sh.downEvent}" title="Abbassa">⬇</button>
-        </div>
-      `;
+        </div>`;
       card.querySelectorAll('.sh-btn').forEach(b => {
         b.addEventListener('click', async () => {
           toast(b.dataset.ev.startsWith('alza') ? `⬆️ ${sh.label}…` : `⬇️ ${sh.label}…`);
@@ -242,6 +241,58 @@ function renderDevices() {
         });
       });
       shutterList.appendChild(card);
+    });
+  }
+
+  /* ---- Termostati ---- */
+  const thermoList = $('#thermostat-list');
+  if (thermoList) {
+    thermoList.innerHTML = '';
+    (DEV.THERMOSTATS || []).forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'shutter-card';
+      card.innerHTML = `
+        <span class="shutter-icon">${t.icon||'🌡️'}</span>
+        <span class="shutter-label">${t.label}</span>
+        <div class="shutter-btns">
+          <button class="sh-btn" data-ev="${t.event}" title="${t.label}">▶</button>
+        </div>`;
+      card.querySelector('.sh-btn').addEventListener('click', async () => {
+        toast(`${t.icon} ${t.label}…`);
+        await callAdmin(t.event);
+      });
+      thermoList.appendChild(card);
+    });
+  }
+
+  /* ---- Telecamere ---- */
+  const camList = $('#camera-list');
+  if (camList) {
+    camList.innerHTML = '';
+    // Raggruppa in coppie ON/OFF
+    const cams = DEV.CAMERAS || [];
+    const pairs = [];
+    for (let i = 0; i < cams.length; i += 2) pairs.push([cams[i], cams[i+1]]);
+    pairs.forEach(([on, off]) => {
+      if (!on) return;
+      const card = document.createElement('div');
+      card.className = 'shutter-card';
+      const label = on.label.replace(' ON','').replace(' on','');
+      card.innerHTML = `
+        <span class="shutter-icon">${on.icon||'📷'}</span>
+        <span class="shutter-label">${label}</span>
+        <div class="shutter-btns">
+          <button class="sh-btn sh-on"  data-ev="${on.event}"  title="ON"  style="font-size:12px;font-weight:700;color:var(--green)">ON</button>
+          ${off ? `<button class="sh-btn sh-off" data-ev="${off.event}" title="OFF" style="font-size:12px;font-weight:700;color:var(--muted)">OFF</button>` : ''}
+        </div>`;
+      card.querySelectorAll('.sh-btn').forEach(b => {
+        b.addEventListener('click', async () => {
+          const isOn = b.classList.contains('sh-on');
+          toast(`${on.icon} ${label} ${isOn ? 'ON' : 'OFF'}…`);
+          await callAdmin(b.dataset.ev);
+        });
+      });
+      camList.appendChild(card);
     });
   }
 }

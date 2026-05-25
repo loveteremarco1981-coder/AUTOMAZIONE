@@ -16,40 +16,47 @@ window.CONFIG = {
   PEOPLE: ['marco','silvia','viola','samuele'],
   SSID_HOLD_MIN: 1380,
 
-  // ---- Tab Dispositivi ----
   DEVICES: {
 
-    // App esterne — deep link iOS / fallback web
+    // App esterne — si aprono direttamente
     APPS: [
       {
-        id:       'vimar',
-        label:    'Vimar View',
-        subtitle: 'Tapparelle · Luci · Termostati',
-        icon:     '🏠',
-        color:    '#fff3e0',
-        // deep link app Vimar View su iOS
-        url:      'vimar-view://',
+        id:          'vimar',
+        label:       'Vimar View',
+        subtitle:    'Tapparelle · Luci · Termostati',
+        icon:        '🏠',
+        color:       '#fff3e0',
+        url:         'vimar-view://',
         urlFallback: 'https://apps.apple.com/it/app/vimar-view/id1326139225',
       },
       {
-        id:       'clivet',
-        label:    'NetHome Plus',
-        subtitle: 'Clima · Condizionatori',
-        icon:     '❄️',
-        color:    '#e3f2fd',
-        url:      'nethomeplus://',
+        id:          'clivet',
+        label:       'NetHome Plus',
+        subtitle:    'Clima · Condizionatori',
+        icon:        '❄️',
+        color:       '#e3f2fd',
+        url:         'nethomeplus://',
         urlFallback: 'https://apps.apple.com/it/app/nethome-plus/id1008001920',
       },
     ],
 
-    // Tapparelle per stanza — comandi via IFTTT
-    // Aggiungi/modifica stanze e i nomi degli applet IFTTT corrispondenti
+    // Tapparelle — solo globale (non hai applet per stanza)
     SHUTTERS: [
-      { id:'tutto',      label:'Tutto',         icon:'🏡', upEvent:'alza_tutto',          downEvent:'abbassa_tutto' },
-      { id:'soggiorno',  label:'Soggiorno',      icon:'🛋️', upEvent:'alza_soggiorno',     downEvent:'abbassa_soggiorno' },
-      { id:'cucina',     label:'Cucina',         icon:'🍳', upEvent:'alza_cucina',         downEvent:'abbassa_cucina' },
-      { id:'camera',     label:'Camera',         icon:'🛏️', upEvent:'alza_camera',        downEvent:'abbassa_camera' },
-      { id:'studio',     label:'Studio',         icon:'💻', upEvent:'alza_studio',         downEvent:'abbassa_studio' },
+      { id:'tutto', label:'Tutte le tapparelle', icon:'🏡', upEvent:'alza_tutto', downEvent:'abbassa_tutto' },
+    ],
+
+    // Termostati — comandi globali disponibili
+    THERMOSTATS: [
+      { id:'off',  label:'Termostati OFF',  icon:'🌡️', event:'off_termostato',  color:'#fce4ec' },
+      { id:'auto', label:'Termostati AUTO', icon:'♻️', event:'termostato_auto', color:'#e8f5e9' },
+    ],
+
+    // Telecamere Ezviz
+    CAMERAS: [
+      { id:'int_on',  label:'Cam interne ON',  icon:'📷', event:'ezviz_interne_on',  color:'#fce4ec' },
+      { id:'int_off', label:'Cam interne OFF', icon:'📷', event:'ezviz_interne_off', color:'#f5f5f5' },
+      { id:'est_on',  label:'Cam esterne ON',  icon:'📹', event:'ezviz_esterne_on',  color:'#fce4ec' },
+      { id:'est_off', label:'Cam esterne OFF', icon:'📹', event:'ezviz_esterne_off', color:'#f5f5f5' },
     ],
   },
 };
