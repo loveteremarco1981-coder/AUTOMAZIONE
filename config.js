@@ -21,21 +21,23 @@ window.CONFIG = {
     // App esterne — si aprono direttamente
     APPS: [
       {
-        id:          'vimar',
-        label:       'Vimar View',
-        subtitle:    'Tapparelle · Luci · Termostati',
-        icon:        '🏠',
-        color:       '#fff3e0',
-        url:         'vimar-view://',
+        id:       'vimar',
+        label:    'Vimar View',
+        subtitle: 'Tapparelle · Luci · Termostati',
+        icon:     '🏠',
+        color:    '#fff3e0',
+        // com.vimar.view — apre l'app direttamente se installata
+        url:      'com.vimar.view://',
         urlFallback: 'https://apps.apple.com/it/app/vimar-view/id1326139225',
       },
       {
-        id:          'clivet',
-        label:       'NetHome Plus',
-        subtitle:    'Clima · Condizionatori',
-        icon:        '❄️',
-        color:       '#e3f2fd',
-        url:         'nethomeplus://',
+        id:       'clivet',
+        label:    'NetHome Plus',
+        subtitle: 'Clima · Condizionatori',
+        icon:     '❄️',
+        color:    '#e3f2fd',
+        // com.midea.nethome — bundle ID Midea NetHome Plus
+        url:      'com.midea.MSmartHome://',
         urlFallback: 'https://apps.apple.com/it/app/nethome-plus/id1008001920',
       },
     ],

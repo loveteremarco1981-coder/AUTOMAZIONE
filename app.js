@@ -203,18 +203,16 @@ function renderDevices() {
       `;
       card.addEventListener('click', e => {
         e.preventDefault();
-        // Prova deep link app, fallback all'App Store
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = app.url;
-        document.body.appendChild(iframe);
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 500);
-        // Fallback dopo 1.5s se l'app non si apre
-        setTimeout(() => {
-          window.location.href = app.urlFallback || app.url;
-        }, 1500);
+        // Su iOS: window.location.href con URL scheme apre l'app se installata.
+        // Se l'app non è installata, la pagina rimane e dopo 2s mandiamo all'App Store.
+        const fallback = app.urlFallback || app.url;
+        const t = setTimeout(() => { window.location.href = fallback; }, 2000);
+        window.location.href = app.url;
+        // Se l'app si apre, la pagina va in background e il timeout non scatta
+        // (oppure viene cancellato al ritorno in foreground — buon comportamento)
+        document.addEventListener('visibilitychange', function cancel() {
+          if (document.hidden) { clearTimeout(t); document.removeEventListener('visibilitychange', cancel); }
+        });
       });
       appLinks.appendChild(card);
     });
