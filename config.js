@@ -14,7 +14,7 @@ window.CONFIG = {
   ],
 
   PEOPLE: ['marco','silvia','viola','samuele'],
-  SSID_HOLD_MIN: 1380,
+  SSID_HOLD_MIN: 480,  // 8h — evita falsi positivi da ssid_off tardivo
 
   DEVICES: {
 
