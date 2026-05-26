@@ -10,8 +10,8 @@ function IFTTT_KEY(){
 var _IFTTT_ALIAS_={
   'ezviz_interne_on':'ezviz_interne_on','ezviz_interne_off':'ezviz_interne_off',
   'ezviz_esterne_on':'ezviz_esterne_on','ezviz_esterne_off':'ezviz_esterne_off',
-  'clima_off':'spegni_clima','termostati_auto':'termostato_auto',
-  'alza_tutto':'alza_tutto','abbassa_tutto':'abbassa_tutto','alza_piante':'alza_piante',
+  'termostati_auto':'termostato_auto',
+  'alza_tutto':'alza_tutto','abbassa_tutto':'abbassa_tutto',
   'piante':'piante','log_life':'log_life','log_arrivo':'log_arrivo','log_uscita':'log_uscita'
 };
 

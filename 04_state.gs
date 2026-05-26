@@ -11,15 +11,13 @@ function camsExtOn_(why){  _iftttSafe_('ezviz_esterne_on'); logEvent('CAMS_EXT_O
 
 function applySecurityNight(){
   camsOnBoth_('SECURITY_NIGHT');
-  try{ _iftttSafe_('clima_off'); }catch(_){}
   try{ _iftttSafe_('off_termostato'); }catch(_){}
-  logEvent('SECURITY_NIGHT','clima_off+termostati_off','');
+  logEvent('SECURITY_NIGHT','termostati_off','');
 }
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
-  try{ _iftttSafe_('clima_off'); }catch(_){}
   try{ _iftttSafe_('off_termostato'); }catch(_){}
-  logEvent('SECURITY_DAY','clima_off+termostati_off','');
+  logEvent('SECURITY_DAY','termostati_off','');
 }
 function applyComfyDay(){      camsAllOff_('COMFY_DAY'); }
 function applyComfyNight(){
@@ -211,9 +209,8 @@ function evaluateStateNow(){
 
     // Impianti OFF quando casa si svuota (le cam vengono gestite da applySecurityDay/Night)
     if(!vac&&!eff&&prevEff){
-      try{ _iftttSafe_('clima_off'); }catch(_){}
       try{ _iftttSafe_('off_termostato'); }catch(_){}
-      logEvent('VUOTA','clima_off+termostati_off','');
+      logEvent('VUOTA','termostati_off','');
     }
 
     s('Config','B6',eff);

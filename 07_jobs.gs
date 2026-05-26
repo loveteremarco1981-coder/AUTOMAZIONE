@@ -136,11 +136,9 @@ function startPiante_(origin){
     s('Stato','B10', new Date());
     logEvent('PIANTE_START','ok',String(origin||''));
 
-    // Alza SOLO le tapparelle delle piante (applet IFTTT dedicato)
-    // Crea su IFTTT un applet "alza_piante" che alza solo le tapparelle che vuoi
     if(getAlzaCon_()==='PIANTE'){
-      try{ _iftttSafe_('alza_piante', {origin: String(origin||'')}); }catch(_){}
-      logEvent('PIANTE_ALZA','alza_piante','');
+      try{ _iftttSafe_('alza_tutto'); }catch(_){}
+      logEvent('PIANTE_ALZA','alza_tutto','');
     }
     return true;
   }catch(e){ logEvent('PIANTE_ERR',String(e),String(origin||'')); return false; }
