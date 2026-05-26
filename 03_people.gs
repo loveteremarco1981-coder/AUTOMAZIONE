@@ -287,3 +287,26 @@ function disableKAIfOut_(){
     });
   }catch(_){}
 }
+
+// ========== Morning KeepAlive ==========
+// Ogni mattina alle 6:30: chi ha SSID lock attivo viene mantenuto IN
+// Evita che chi era già connesso al Wi-Fi da ieri sera risulti OUT
+function morningKeepAlive_(){
+  try{
+    var ppl = _getAllPeopleRaw_();
+    var now = Date.now();
+    var any = false;
+
+    ppl.forEach(function(p){
+      var nm = p.name.toLowerCase();
+      if(hasSsidLock_(nm)){
+        // SSID lock attivo → aggiorna il ping e mantieni IN
+        _setPersonIn_(nm, 'MORNING_KA');
+        logEvent('MORNING_KA', nm, 'ssid_lock attivo');
+        any = true;
+      }
+    });
+
+    if(any) try{ evaluateStateNow(); }catch(_){}
+  }catch(e){ logEvent('MORNING_KA_ERR', String(e), ''); }
+}
