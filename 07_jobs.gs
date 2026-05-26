@@ -136,10 +136,8 @@ function startPiante_(origin){
     s('Stato','B10', new Date());
     logEvent('PIANTE_START','ok',String(origin||''));
 
-    if(getAlzaCon_()==='PIANTE'){
-      try{ _iftttSafe_('alza_tutto'); }catch(_){}
-      logEvent('PIANTE_ALZA','alza_tutto','');
-    }
+    // L'applet IFTTT 'piante' gestisce già irrigazione + tapparelle giuste
+    logEvent('PIANTE_ALZA','via applet piante','');
     return true;
   }catch(e){ logEvent('PIANTE_ERR',String(e),String(origin||'')); return false; }
 }
