@@ -46,8 +46,8 @@ function ensureTriggers(){
   // Morning keepalive alle 6:30 — mantiene IN chi ha SSID lock attivo
   try{
     ScriptApp.newTrigger('morningKeepAlive_').timeBased().atHour(6).nearMinute(30).everyDays(1).create();
-    _FR_log_('TRIGGER_ON','morningKeepAlive_','daily @6:30');
-  }catch(e){ _FR_log_('ENSURE_ERR','morningKeepAlive_',String(e)); }
+    logEvent('TRIGGER_ON','morningKeepAlive_','daily @6:30');
+  }catch(e){ logEvent('ENSURE_ERR','morningKeepAlive_',String(e)); }
 
   // closeShuttersAt23 ogni giorno alle 23:00
   try{
