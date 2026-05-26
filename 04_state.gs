@@ -37,9 +37,9 @@ function applySecurityDay(){
         if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
           ScriptApp.deleteTrigger(t);
       });
-      var when = new Date(Date.now() + 10*60000);
+      var when = new Date(Date.now() + 2*60000);
       ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(when).create();
-      logEvent('PIANTE_DELAYED','programmato tra 10min', when.toISOString());
+      logEvent('PIANTE_DELAYED','programmato tra 2min', when.toISOString());
     }
   }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
 }
