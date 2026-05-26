@@ -29,6 +29,19 @@ function applySecurityDay(){
   try{ _iftttSafe_('off_termostato'); }catch(_){}
   try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
   logEvent('SECURITY_DAY','cams_on+termostati_off+abbassa','');
+  // Se è giorno, schedula piante 10 minuti dopo
+  try{
+    if(!isNight() && getPianteEnabled_()){
+      // Cancella eventuali trigger piante_delayed già presenti
+      ScriptApp.getProjectTriggers().forEach(function(t){
+        if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
+          ScriptApp.deleteTrigger(t);
+      });
+      var when = new Date(Date.now() + 10*60000);
+      ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(when).create();
+      logEvent('PIANTE_DELAYED','programmato tra 10min', when.toISOString());
+    }
+  }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
 }
 function applyComfyDay(){
   camsAllOff_('COMFY_DAY');

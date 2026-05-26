@@ -190,3 +190,39 @@ function pianteDiagNext_(){
     ' (' + (isFeriale_(oggi) ? 'feriale' : 'festivo/weekend') + ')'
   );
 }
+
+// ========== Piante delayed (dopo abbassa_tutto) ==========
+// Chiamato 10 minuti dopo che la casa si svuota di giorno
+function startPianteDelayed_(){
+  try{
+    // Auto-cancella questo trigger
+    ScriptApp.getProjectTriggers().forEach(function(t){
+      if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
+        ScriptApp.deleteTrigger(t);
+    });
+
+    // Controlla orario minimo (feriale 7:30 / festivo 9:30)
+    var now = new Date();
+    var minTime = _pianteMinTime_(now);
+    if(now < minTime){
+      logEvent('PIANTE_DELAYED_SKIP','troppo presto',
+        Utilities.formatDate(minTime, Session.getScriptTimeZone(), 'HH:mm'));
+      return;
+    }
+
+    // Non partire se la casa si è riempita nel frattempo
+    var effettiva = v('Config','B6');
+    if(String(effettiva).toUpperCase()==='TRUE' || effettiva===true){
+      logEvent('PIANTE_DELAYED_SKIP','casa occupata di nuovo','');
+      return;
+    }
+
+    // Non partire di notte
+    if(isNight()){
+      logEvent('PIANTE_DELAYED_SKIP','notte','');
+      return;
+    }
+
+    startPiante_('delayed_security');
+  }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
+}
