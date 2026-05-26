@@ -4,7 +4,7 @@
 
 function ensureTriggers(){
   var toDelete=['evaluateStateNow','pendingOutSweep_','scheduleSunEventsForToday',
-                'pruneOldLogs_','closeShuttersAt23IfPeopleHome_',
+                'pruneOldLogs_','closeShuttersAt23IfPeopleHome_','closeLateNight_',
                 'nightWindowRunner_','onDaily0100','onDaily2300'];
   toDelete.forEach(function(h){
     ScriptApp.getProjectTriggers().forEach(function(t){
@@ -52,8 +52,8 @@ function ensureTriggers(){
   // closeShuttersAt23 ogni giorno alle 23:00
   try{
     ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(23).nearMinute(0).everyDays(1).create();
-    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_','daily @23:00');
-  }catch(e){ logEvent('ENSURE_ERR','closeShuttersAt23IfPeopleHome_',String(e)); }
+    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_','closeLateNight_','daily @23:00');
+  }catch(e){ logEvent('ENSURE_ERR','closeShuttersAt23IfPeopleHome_','closeLateNight_',String(e)); }
 
   logEvent('ENSURE_DONE','core triggers','');
 }
