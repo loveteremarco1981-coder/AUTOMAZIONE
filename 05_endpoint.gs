@@ -22,8 +22,10 @@ function buildModel_(){
     var nm         = p.name.toLowerCase();
     var ssidLock   = hasSsidLock_(nm);
     var lifeRecent = !!(p.lifeMs && (nowMs - p.lifeMs) <= STRICT * 60000);
-    // SSID lock vale solo se F=IN — se OUT confermato mostra sempre OUT
-    var onlineSmart = p.online ? (ssidLock ? true : (notte ? true : lifeRecent)) : false;
+    // SSID lock o F=IN con ping recente (8h di giorno, STRICT di notte)
+    var staleMins = notte ? STRICT : 480; // giorno = 8h, notte = STRICT_LIFE
+    var lifeOk = !!(p.lifeMs && ((nowMs - p.lifeMs) <= staleMins * 60000));
+    var onlineSmart = p.online ? (ssidLock ? true : (notte ? true : lifeOk)) : false;
     var lastLifeMinAgo = p.lifeMs ? Math.round((nowMs - p.lifeMs) / 60000) : null;
     return {
       name:           p.name,

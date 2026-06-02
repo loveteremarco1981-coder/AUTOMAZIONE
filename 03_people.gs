@@ -243,34 +243,44 @@ function getPeople_(){
 }
 
 // ---------- autoOutByLifeTimeout_ ----------
-// Porta OUT chi non ha ping da > LIFE_TIMEOUT + IFTTT_BUFFER minuti
-// Evita falsi negativi da latenza IFTTT
+// FILOSOFIA ROBUSTA:
+// - Di giorno: auto-out SOLO dopo 8h di silenzio (telefono scarico = resta IN)
+// - Di notte: auto-out dopo LIFE_TIMEOUT + buffer (comportamento originale)
+// - Mai auto-out se SSID lock attivo
+// - Mai auto-out se l'ultima uscita era già AUTO_OUT (evita loop)
 function autoOutByLifeTimeout_(){
   try{
-    if(isNight())return;
+    var now = Date.now();
+    var night = isNight();
+
+    // Soglia diversa: notte = timeout normale, giorno = 8h
+    var toMin = night
+      ? (getLifeTimeoutMin_() + getIftttBufferMin_())  // es. 48 min di notte
+      : 480; // 8 ore di giorno — copre telefono scarico/spento
 
     // Morning hold: non fare auto-out subito dopo l'alba
-    var holdMin=getMorningHoldMin_(), alba=v('Stato','B3');
-    if(alba instanceof Date&&_minutesAgo_(alba)<=holdMin){
+    var holdMin = getMorningHoldMin_(), alba = v('Stato','B3');
+    if(!night && alba instanceof Date && _minutesAgo_(alba) <= holdMin){
       logEvent('AUTO_OUT_SKIP','morning_hold','');
       return;
     }
 
-    var toMin=getLifeTimeoutMin_()+getIftttBufferMin_(); // timeout + buffer IFTTT
-    var ppl=_getAllPeopleRaw_(), now=Date.now(), anyOut=false;
+    var ppl = _getAllPeopleRaw_(), anyOut = false;
     ppl.forEach(function(p){
-      if(!p.online)return;
-      if(!p.lifeMs)return;
-      if(hasSsidLock_(p.name.toLowerCase()))return; // SSID connesso → non fare auto-out
-      var ageMin=(now-p.lifeMs)/60000;
-      if(ageMin>=toMin){
+      if(!p.online) return;
+      if(!p.lifeMs) return;
+      if(hasSsidLock_(p.name.toLowerCase())) return; // SSID connesso → mai auto-out
+
+      var ageMin = (now - p.lifeMs) / 60000;
+      if(ageMin >= toMin){
         markOutNow_(p.name);
-        anyOut=true;
-        logEvent('AUTO_OUT','timeout',p.name+': '+Math.round(ageMin)+'m >= '+toMin+'m');
+        anyOut = true;
+        logEvent('AUTO_OUT', 'timeout ' + (night?'notte':'giorno'),
+          p.name + ': ' + Math.round(ageMin) + 'm >= ' + toMin + 'm');
       }
     });
     if(anyOut){ try{ evaluateStateNow(); }catch(_){} }
-  }catch(e){ logEvent('AUTO_OUT_ERR',String(e),''); }
+  }catch(e){ logEvent('AUTO_OUT_ERR', String(e), ''); }
 }
 
 // ---------- KA (keepalive trigger) ----------

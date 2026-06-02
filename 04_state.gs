@@ -24,24 +24,53 @@ function applySecurityNight(){
   try{ actLowerAll_('SECURITY_NIGHT'); }catch(_){}
   logEvent('SECURITY_NIGHT','cams_on+termostati_off+abbassa','');
 }
+
+// Verifica se l'uscita è stata REALE (SSID/geofence) o solo timeout
+// Uscita reale = almeno una persona ha last_event USCITA o OUT_CONFIRMED
+// Uscita solo timeout = tutti AUTO_OUT → NON abbassare tapparelle
+function allOutByAutoTimeout_(){
+  try{
+    var ppl = _getAllPeopleRaw_();
+    var outPpl = ppl.filter(function(p){ return !p.online; });
+    if(!outPpl.length) return false;
+    var realDeparture = ['USCITA','OUT_CONFIRMED','OUT'];
+    // Se NESSUNO ha un'uscita reale → tutti timeout → no abbassa
+    var hasRealOut = outPpl.some(function(p){
+      return realDeparture.indexOf(p.lastEvent) >= 0;
+    });
+    if(!hasRealOut){
+      logEvent('SHUTTER_HOLD','tutti AUTO_OUT - tapparelle non abbassate','');
+      return true; // allOutByAutoTimeout = true → non abbassare
+    }
+    return false;
+  }catch(_){ return false; }
+}
+
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
-  try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
-  logEvent('SECURITY_DAY','cams_on+termostati_off+abbassa','');
-  // Se è giorno, schedula piante 10 minuti dopo
-  try{
-    if(!isNight() && getPianteEnabled_()){
-      // Cancella eventuali trigger piante_delayed già presenti
-      ScriptApp.getProjectTriggers().forEach(function(t){
-        if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
-          ScriptApp.deleteTrigger(t);
-      });
-      var when = new Date(Date.now() + 2*60000);
-      ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(when).create();
-      logEvent('PIANTE_DELAYED','programmato tra 2min', when.toISOString());
-    }
-  }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
+
+  // Abbassa tapparelle SOLO se almeno una persona è uscita per SSID/geofence
+  // Se tutti OUT per timeout automatico → potrebbe essere falso negativo, non abbassare
+  if(!allOutByAutoTimeout_()){
+    try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
+    logEvent('SECURITY_DAY','cams_on+termostati_off+abbassa','uscita_reale');
+
+    // Schedula piante 2min dopo solo se abbasso
+    try{
+      if(!isNight() && getPianteEnabled_()){
+        ScriptApp.getProjectTriggers().forEach(function(t){
+          if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
+            ScriptApp.deleteTrigger(t);
+        });
+        var when = new Date(Date.now() + 2*60000);
+        ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(when).create();
+        logEvent('PIANTE_DELAYED','programmato tra 2min', when.toISOString());
+      }
+    }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
+  } else {
+    logEvent('SECURITY_DAY','cams_on+termostati_off','timeout_only_no_abbassa');
+  }
 }
 function applyComfyDay(){
   camsAllOff_('COMFY_DAY');
