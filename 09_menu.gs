@@ -26,6 +26,8 @@ function onOpen(){
     .addItem('Test mattina — Programma 8:15','scheduleTest_')
     .addItem('Test mattina — Esegui ora','runMorningTestNow_')
     .addSeparator()
+    .addItem('🏠 Setup Cruscotto + Pulizia fogli','setupAll_')
+    .addSeparator()
     .addItem('Legenda Utility…','menuShowUtilityLegend_')
     .addToUi();
 }
