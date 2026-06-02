@@ -425,8 +425,21 @@ async function loadAll() {
     const w=m.weather||{};
     // Temperatura/umidità/vento dal backend se disponibili
     if(w.tempC!=null||w.humidity!=null) renderWeather(w);
-    // Sempre ricarica da Open-Meteo per avere l'emoji meteo aggiornata
-    fetchWeatherClient().then(renderWeather).catch(()=>{});
+    // Sempre ricarica da Open-Meteo per emoji aggiornata e sync al backend
+    fetchWeatherClient().then(ww => {
+      if(!ww) return;
+      renderWeather(ww);
+      // Sincronizza meteo al foglio per il CRUSCOTTO (fire & forget)
+      try{
+        const u = new URL(CONFIG.DOGET_URL);
+        u.searchParams.set('event','update_weather');
+        if(ww.tempC!=null)    u.searchParams.set('temp',  Math.round(ww.tempC));
+        if(ww.humidity!=null) u.searchParams.set('hum',   Math.round(ww.humidity));
+        if(ww.windKmh!=null)  u.searchParams.set('wind',  Math.round(ww.windKmh));
+        if(ww.icon!=null)     u.searchParams.set('icon',  ww.icon);
+        jsonpFetch(u.toString()).catch(()=>{});
+      }catch(_){}
+    }).catch(()=>{});
   }catch(e){ console.error('loadAll:',e); toast('⚠️ Errore caricamento'); }
   finally{ if(btn) btn.style.opacity=''; }
 }

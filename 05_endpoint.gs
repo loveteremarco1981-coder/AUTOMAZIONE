@@ -228,6 +228,19 @@ function doGet(e){
 
     if(ev==='diag') return out(buildModel_());
 
+    // ---- UPDATE WEATHER (dall'app, per aggiornare il CRUSCOTTO) ----
+    if(ev==='update_weather'){
+      try{
+        var wt = p.temp, wh = p.hum, ww = p.wind, wi = p.icon;
+        if(wt) s('Config','B22', Number(wt));
+        if(wh) s('Config','B23', Number(wh));
+        if(ww) s('Config','B24', Number(ww));
+        if(wi) s('Config','B21', String(wi));
+        s('Config','B20_ts', new Date());
+        return out({ok:true});
+      }catch(e){ return out({ok:false,err:String(e)}); }
+    }
+
     return out({ok:true,note:'unknown_event',event:ev});
 
   }catch(err){
