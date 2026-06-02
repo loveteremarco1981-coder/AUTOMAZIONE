@@ -1,166 +1,153 @@
 // ============================================================
-// setup_cruscotto.gs — Cruscotto + pulizia fogli
-// VERSIONE CORRETTA: usa setFormula() per evitare problemi locale IT
-// Esegui: setupAll_() una volta sola
+// setup_cruscotto.gs v3 — NO emoji nelle formule
 // ============================================================
 
 function setupAll_() {
   deleteUnusedSheets_();
   setupCruscotto_();
-  setupConfigFormat_();   // solo formattazione, NON sovrascrive B1
+  setupConfigFormat_();
   setupStatoFormat_();
-  SpreadsheetApp.getUi().alert(
-    '✅ Setup completato!\n\n' +
-    '• Fogli inutili eliminati\n' +
-    '• CRUSCOTTO ricostruito con formule corrette\n' +
-    '• Config e Stato riformattati'
-  );
+  SpreadsheetApp.getUi().alert('Setup completato!');
 }
 
-// ---------- Elimina fogli inutili ----------
 function deleteUnusedSheets_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ['Foglio1','VIMAR','Diagnostica'].forEach(function(name) {
-    var sh = ss.getSheetByName(name);
-    if (sh) { ss.deleteSheet(sh); }
+  ['Foglio1','VIMAR','Diagnostica'].forEach(function(n) {
+    var s = ss.getSheetByName(n); if(s) ss.deleteSheet(s);
   });
 }
 
-// ---------- CRUSCOTTO ----------
 function setupCruscotto_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName('CRUSCOTTO') || ss.insertSheet('CRUSCOTTO');
   sh.clear();
+  sh.clearConditionalFormatRules();
   sh.setTabColor('#1a73e8');
   sh.setColumnWidth(1, 240);
   sh.setColumnWidth(2, 220);
   sh.setColumnWidth(3, 200);
 
-  // ---- Struttura etichette ----
-  var labels = [
-    [1,  'A', '🏠 CRUSCOTTO CASA', null, null],
-    [2,  'A', '', null, null],
-    [3,  'A', '═══ STATO SISTEMA ═══', null, null],
-    [4,  'A', 'Stato attuale',        'B', '=Config!B1'],
-    [5,  'A', 'Presenza effettiva',   'B', null],   // setFormula separato
-    [6,  'A', 'Notte / Giorno',       'B', '=Stato!B6'],
-    [7,  'A', 'Override',             'B', null],
-    [8,  'A', 'Vacanza',              'B', null],
-    [9,  'A', 'Ultimo aggiornamento', 'B', '=Stato!B5'],
-    [10, 'A', '', null, null],
-    [11, 'A', '═══ SOLE ═══',         null, null],
-    [12, 'A', 'Alba oggi',            'B', null],
-    [13, 'A', 'Tramonto oggi',        'B', null],
-    [14, 'A', '', null, null],
-    [15, 'A', '═══ PERSONE ═══',      null, null],
-    [16, 'A', 'Marco',   'B', null, 'C', null],
-    [17, 'A', 'Silvia',  'B', null, 'C', null],
-    [18, 'A', 'Viola',   'B', null, 'C', null],
-    [19, 'A', 'Samuele', 'B', null, 'C', null],
-    [20, 'A', '', null, null],
-    [21, 'A', '═══ PIANTE ═══', null, null],
-    [22, 'A', 'Prossimo run',         'B', null],
-    [23, 'A', 'Min intervallo (min)', 'B', '=Config!B19'],
-    [24, 'A', 'Alza con',             'B', '=Config!B30'],
-    [25, 'A', '', null, null],
-    [26, 'A', '═══ CONFIG CHIAVE ═══', null, null],
-    [27, 'A', 'STRICT_LIFE_MIN',      'B', '=Config!B9',  'C', 'Ping recente per IN (min)'],
-    [28, 'A', 'EXIT_GUARD_MIN',       'B', '=Config!B12', 'C', 'Guard uscita (min)'],
-    [29, 'A', 'LIFE_TIMEOUT_MIN',     'B', '=Config!B15', 'C', 'Timeout auto-OUT (min)'],
-    [30, 'A', 'EXIT_COOLDOWN_MIN',    'B', '=Config!B26', 'C', 'Cooldown post-uscita (min)'],
-    [31, 'A', 'LOG_RETENTION_DAYS',   'B', '=Config!B14', 'C', 'Retention log (giorni)'],
-    [32, 'A', '', null, null],
-    [33, 'A', '═══ LINK RAPIDI ═══', null, null],
-    [34, 'A', 'IFTTT Activity',  'B', 'https://ifttt.com/activity'],
-    [35, 'A', 'Apps Script',     'B', 'https://script.google.com'],
-    [36, 'A', 'GitHub',          'B', 'https://github.com/loveteremarco1981-coder/AUTOMAZIONE'],
-    [37, 'A', 'App Casa',        'B', 'https://loveteremarco1981-coder.github.io/AUTOMAZIONE/'],
+  // ---- Etichette statiche ----
+  var static_vals = [
+    [1,1,'🏠 CRUSCOTTO CASA'],
+    [3,1,'STATO SISTEMA'],
+    [4,1,'Stato attuale'],
+    [5,1,'Presenza effettiva'],
+    [6,1,'Notte / Giorno'],
+    [7,1,'Override'],
+    [8,1,'Vacanza'],
+    [9,1,'Ultimo aggiornamento'],
+    [11,1,'SOLE'],
+    [12,1,'Alba oggi'],
+    [13,1,'Tramonto oggi'],
+    [15,1,'PERSONE'],
+    [16,1,'Marco'],
+    [17,1,'Silvia'],
+    [18,1,'Viola'],
+    [19,1,'Samuele'],
+    [21,1,'PIANTE'],
+    [22,1,'Prossimo run'],
+    [23,1,'Min intervallo (min)'],
+    [24,1,'Alza con'],
+    [26,1,'CONFIG CHIAVE'],
+    [27,1,'STRICT_LIFE_MIN'],   [27,3,'Ping recente per IN (min)'],
+    [28,1,'EXIT_GUARD_MIN'],    [28,3,'Guard uscita (min)'],
+    [29,1,'LIFE_TIMEOUT_MIN'],  [29,3,'Timeout auto-OUT (min)'],
+    [30,1,'EXIT_COOLDOWN_MIN'], [30,3,'Cooldown post-uscita (min)'],
+    [31,1,'LOG_RETENTION_DAYS'],[31,3,'Retention log (giorni)'],
+    [33,1,'LINK RAPIDI'],
+    [34,1,'IFTTT Activity'],  [34,2,'https://ifttt.com/activity'],
+    [35,1,'Apps Script'],     [35,2,'https://script.google.com'],
+    [36,1,'GitHub'],          [36,2,'https://github.com/loveteremarco1981-coder/AUTOMAZIONE'],
+    [37,1,'App Casa'],        [37,2,'https://loveteremarco1981-coder.github.io/AUTOMAZIONE/'],
   ];
+  static_vals.forEach(function(v){ sh.getRange(v[0],v[1]).setValue(v[2]); });
 
-  // Scrivi etichette e valori semplici
-  labels.forEach(function(row) {
-    var r = row[0];
-    if (row[1] && row[2] !== null) sh.getRange(r, 1).setValue(row[2]);
-    if (row[3] && row[4] !== null) sh.getRange(r, 2).setValue(row[4]);
-    if (row.length > 5 && row[5] && row[6] !== null) sh.getRange(r, 3).setValue(row[6]);
-  });
+  // ---- Formule semplici (riferimenti diretti — no emoji, no IF) ----
+  sh.getRange('B4').setFormula('=Config!B1');
+  sh.getRange('B6').setFormula('=Stato!B6');
+  sh.getRange('B9').setFormula('=Stato!B5');
+  sh.getRange('B23').setFormula('=Config!B19');
+  sh.getRange('B24').setFormula('=Config!B30');
+  sh.getRange('B27').setFormula('=Config!B9');
+  sh.getRange('B28').setFormula('=Config!B12');
+  sh.getRange('B29').setFormula('=Config!B15');
+  sh.getRange('B30').setFormula('=Config!B26');
+  sh.getRange('B31').setFormula('=Config!B14');
 
-  // ---- Formule con setFormula() — usa sempre virgole (locale EN) ----
-  sh.getRange('B5').setFormula('=IF(Config!B6,"✅ IN CASA","⬜ VUOTA")');
-  sh.getRange('B7').setFormula('=IF(Config!B4,"🔴 ATTIVO","✅ OFF")');
-  sh.getRange('B8').setFormula('=IF(Config!B3,"🏝️ ATTIVO","✅ OFF")');
-  sh.getRange('B12').setFormula('=TEXT(Stato!B3,"HH:mm")');
-  sh.getRange('B13').setFormula('=TEXT(Stato!B4,"HH:mm")');
-  sh.getRange('B16').setFormula('=IF(Persone!F2="IN","🟢 IN CASA","⚪ FUORI")');
-  sh.getRange('C16').setFormula('=TEXT(Persone!E2,"dd/MM HH:mm")');
-  sh.getRange('B17').setFormula('=IF(Persone!F3="IN","🟢 IN CASA","⚪ FUORI")');
-  sh.getRange('C17').setFormula('=TEXT(Persone!E3,"dd/MM HH:mm")');
-  sh.getRange('B18').setFormula('=IF(Persone!F4="IN","🟢 IN CASA","⚪ FUORI")');
-  sh.getRange('C18').setFormula('=TEXT(Persone!E4,"dd/MM HH:mm")');
-  sh.getRange('B19').setFormula('=IF(Persone!F5="IN","🟢 IN CASA","⚪ FUORI")');
-  sh.getRange('C19').setFormula('=TEXT(Persone!E5,"dd/MM HH:mm")');
-  sh.getRange('B22').setFormula('=TEXT(Stato!B10,"dd/MM HH:mm")');
+  // Presenza: SI/NO
+  sh.getRange('B5').setFormula('=IF(Config!B6,"SI","NO")');
+
+  // Override / Vacanza: ATTIVO/OFF
+  sh.getRange('B7').setFormula('=IF(Config!B4,"ATTIVO","OFF")');
+  sh.getRange('B8').setFormula('=IF(Config!B3,"ATTIVO","OFF")');
+
+  // Alba e tramonto — ora
+  sh.getRange('B12').setFormula('=IF(Stato!B3<>"",TEXT(Stato!B3,"HH:mm"),"--")');
+  sh.getRange('B13').setFormula('=IF(Stato!B4<>"",TEXT(Stato!B4,"HH:mm"),"--")');
+
+  // Prossimo run piante
+  sh.getRange('B22').setFormula('=IF(Stato!B10<>"",TEXT(Stato!B10,"dd/MM HH:mm"),"--")');
+
+  // Persone: IN CASA / FUORI + timestamp
+  sh.getRange('B16').setFormula('=IF(Persone!F2="IN","IN CASA","FUORI")');
+  sh.getRange('B17').setFormula('=IF(Persone!F3="IN","IN CASA","FUORI")');
+  sh.getRange('B18').setFormula('=IF(Persone!F4="IN","IN CASA","FUORI")');
+  sh.getRange('B19').setFormula('=IF(Persone!F5="IN","IN CASA","FUORI")');
+  sh.getRange('C16').setFormula('=IF(Persone!E2<>"",TEXT(Persone!E2,"dd/MM HH:mm"),"--")');
+  sh.getRange('C17').setFormula('=IF(Persone!E3<>"",TEXT(Persone!E3,"dd/MM HH:mm"),"--")');
+  sh.getRange('C18').setFormula('=IF(Persone!E4<>"",TEXT(Persone!E4,"dd/MM HH:mm"),"--")');
+  sh.getRange('C19').setFormula('=IF(Persone!E5<>"",TEXT(Persone!E5,"dd/MM HH:mm"),"--")');
 
   // ---- Formattazione ----
-  // Titolo
   sh.getRange('A1').setFontSize(16).setFontWeight('bold').setFontColor('#1a73e8');
   sh.setRowHeight(1, 40);
 
-  // Sezioni header
-  [3,11,15,21,26,33].forEach(function(r) {
-    sh.getRange(r,1,1,3)
-      .setBackground('#1a73e8')
-      .setFontColor('#ffffff')
-      .setFontWeight('bold');
+  var sectionRows = [3,11,15,21,26,33];
+  sectionRows.forEach(function(r) {
+    sh.getRange(r,1,1,3).setBackground('#1a73e8').setFontColor('#ffffff').setFontWeight('bold');
   });
 
-  // Alternanza righe dati
-  var dataRows = [4,5,6,7,8,9, 12,13, 16,17,18,19, 22,23,24, 27,28,29,30,31, 34,35,36,37];
+  var dataRows = [4,5,6,7,8,9,12,13,16,17,18,19,22,23,24,27,28,29,30,31,34,35,36,37];
   dataRows.forEach(function(r) {
-    var bg = (r % 2 === 0) ? '#f8f9fa' : '#ffffff';
-    sh.getRange(r,1,1,3).setBackground(bg);
+    sh.getRange(r,1,1,3).setBackground(r%2===0 ? '#f8f9fa' : '#ffffff');
   });
-
-  // Colonna A grassetto
   sh.getRange('A1:A40').setFontWeight('bold');
 
-  // Colore condizionale: Override rosso se ATTIVO
-  var rules = sh.getConditionalFormatRules();
+  // Formattazione condizionale (testo, no emoji)
+  var rules = [];
+  // Override ATTIVO → rosso
   rules.push(SpreadsheetApp.newConditionalFormatRule()
-    .whenTextContains('ATTIVO')
+    .whenTextEqualTo('ATTIVO')
     .setBackground('#fce8e6').setFontColor('#d93025')
-    .setRanges([sh.getRange('B7')])
+    .setRanges([sh.getRange('B7:B8')])
     .build());
-  // Verde se in casa
+  // Persone IN CASA → verde
   rules.push(SpreadsheetApp.newConditionalFormatRule()
-    .whenTextContains('IN CASA')
+    .whenTextEqualTo('IN CASA')
     .setBackground('#e6f4ea').setFontColor('#137333')
+    .setRanges([sh.getRange('B16:B19')])
+    .build());
+  // Persone FUORI → grigio
+  rules.push(SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('FUORI')
+    .setFontColor('#80868b')
     .setRanges([sh.getRange('B16:B19')])
     .build());
   sh.setConditionalFormatRules(rules);
 
-  // Bordi
   sh.getRange('A1:C37').setBorder(false,false,false,false,true,false,'#e0e0e0',SpreadsheetApp.BorderStyle.SOLID);
   sh.setFrozenColumns(1);
 }
 
-// ---------- Config — solo formattazione, NON tocca B1 ----------
 function setupConfigFormat_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName('Config');
-  if (!sh) return;
+  var sh = ss.getSheetByName('Config'); if(!sh) return;
   sh.setTabColor('#34a853');
-  sh.setColumnWidth(1, 220);
-  sh.setColumnWidth(2, 160);
-
-  // Intestazione riga 1: solo formattazione
-  sh.getRange('A1:B1')
-    .setFontWeight('bold')
-    .setBackground('#34a853')
-    .setFontColor('#ffffff');
-  // NON scrivere su B1 — è il valore stato gestito dal backend
-
-  // Override in rosso se TRUE
+  sh.setColumnWidth(1,220);
+  sh.setColumnWidth(2,160);
+  // Solo formattazione riga 1 — NON sovrascrivere B1 (è il valore stato)
+  sh.getRange('A1:B1').setFontWeight('bold').setBackground('#34a853').setFontColor('#ffffff');
   var rules = sh.getConditionalFormatRules();
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('TRUE')
@@ -170,12 +157,10 @@ function setupConfigFormat_() {
   sh.setConditionalFormatRules(rules);
 }
 
-// ---------- Stato — solo formattazione ----------
 function setupStatoFormat_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sh = ss.getSheetByName('Stato');
-  if (!sh) return;
+  var sh = ss.getSheetByName('Stato'); if(!sh) return;
   sh.setTabColor('#fbbc04');
-  sh.setColumnWidth(1, 200);
-  sh.setColumnWidth(2, 200);
+  sh.setColumnWidth(1,200);
+  sh.setColumnWidth(2,200);
 }
