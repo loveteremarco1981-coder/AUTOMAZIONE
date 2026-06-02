@@ -69,14 +69,7 @@ function scheduleSunEventsForToday(){
 function onSunrise(){
   try{ if(!isOverride_()) evaluateStateNow(); }catch(_){}
 }
-function onSunset(){
-  try{
-    if(!isOverride_()){
-      if(!v('Config','B6')) actRaiseAll_ && actRaiseAll_('Tramonto: casa vuota');
-      evaluateStateNow();
-    }
-  }catch(e){ logEvent('ERROR_SUNSET',String(e),''); }
-}
+// onSunset definito in 04_state.gs
 
 // ---------- Piante — pianificazione ----------
 function planPianteAtAlba_(alba){
@@ -116,6 +109,9 @@ function startPianteAtAlbaOnce_(){
       return;
     }
 
+    // Controlla override e vacanza anche qui (potrebbero essere cambiati dall'alba)
+    if(isOverride_()){ logEvent('PIANTE_SKIP','override','startPianteAtAlbaOnce_'); return; }
+    // In vacanza le piante partono normalmente
     startPiante_('alba');
   }catch(e){ logEvent('PIANTE_ERR',String(e),'alba'); }
 }
@@ -124,6 +120,8 @@ function startPianteAtAlbaOnce_(){
 function startPiante_(origin){
   try{
     if(!getPianteEnabled_()){ logEvent('PIANTE_SKIP','disabled',''); return false; }
+    if(isOverride_()){ logEvent('PIANTE_SKIP','override',''); return false; }
+    // In vacanza le piante partono normalmente
 
     var lastMs = Number(getProp_('PLANTS_LAST_RUN_MS','0'))||0;
     var gapMin = (Date.now()-lastMs)/60000;

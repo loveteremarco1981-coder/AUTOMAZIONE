@@ -84,11 +84,16 @@ function onSunset(){
   try{
     if(isOverride_()) return;
     evaluateStateNow();
-    // Abbassa solo se casa vuota al tramonto
-    if(everyoneOutWithGrace_()){
+    if(isVacanza_()){
+      // In vacanza: abbassa sempre al tramonto
+      actLowerAll_('tramonto_vacanza');
+      logEvent('TRAMONTO','abbassa — vacanza','');
+    } else if(everyoneOutWithGrace_()){
+      // Casa vuota: abbassa al tramonto
       actLowerAll_('tramonto_casa_vuota');
       logEvent('TRAMONTO','abbassa — casa vuota','');
     } else {
+      // Casa occupata: aspetta 23:00/00:00
       logEvent('TRAMONTO','casa occupata — aspetta 23:00/00:00','');
     }
   }catch(e){ logEvent('ERROR_SUNSET',String(e),''); }
