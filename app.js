@@ -131,6 +131,15 @@ function renderFavorites(m) {
       else if(f.id==='vacanza'){ const next=!isOn; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }
       else if(f.id==='override'){ const next=!isOn; toast(next?'🛡️ Override ON':'✅ OFF'); await callAdmin('set_override',{value:String(next)}); setTimeout(loadAll,500); }
       else if(f.kind==='toggle'&&f.toggleEvent){ const next=!isOn; toast(`${f.label}: ${next?'ON':'OFF'}`); await callAdmin(f.toggleEvent,{value:String(next)}); setTimeout(loadAll,500); }
+      else if(f.id==='sonoincasa'){
+        // Manda life_ping per tutte le persone in CONFIG.PEOPLE
+        const people = CONFIG.PEOPLE || [];
+        toast('🏠 Ping presenza per ' + people.length + ' persone…');
+        for(const name of people){
+          await callAdmin('life_ping', { name });
+        }
+        setTimeout(loadAll, 800);
+      }
       else if(f.kind==='action'&&f.event){ toast(`▶️ ${f.label}…`); await callAdmin(f.event); }
     };
     card.addEventListener('click', e => { if(!e.target.closest('.fav-action')) doAction(); });
