@@ -172,6 +172,26 @@ function markOutNow_(name){
   }catch(e){ logEvent('OUT_ERR',String(e),name); return {ok:false,err:String(e)}; }
 }
 
+// ---------- markAutoOut_ — timeout, scrive AUTO_OUT nel foglio ----------
+function markAutoOut_(name){
+  var result = markOutNow_(name);
+  // Sovrascrive last_event con AUTO_OUT così possiamo distinguerlo da uscita reale
+  try{
+    var nm = String(name||'').toLowerCase();
+    var P = sh('Persone'), last = P.getLastRow();
+    if(last >= 2){
+      var rows = P.getRange(2,1,last-1,1).getValues();
+      for(var i=0; i<rows.length; i++){
+        if(String(rows[i][0]||'').trim().toLowerCase() === nm){
+          P.getRange(2+i, 4).setValue('AUTO_OUT');
+          break;
+        }
+      }
+    }
+  }catch(_){}
+  return result;
+}
+
 // ---------- lifePingNow_ ----------
 // Segnale "sono vivo in casa" — aggiorna timestamp senza forzare ARRIVO
 function lifePingNow_(name){

@@ -33,14 +33,14 @@ function allOutByAutoTimeout_(){
     var ppl = _getAllPeopleRaw_();
     var outPpl = ppl.filter(function(p){ return !p.online; });
     if(!outPpl.length) return false;
-    var realDeparture = ['USCITA','OUT_CONFIRMED','OUT'];
-    // Se NESSUNO ha un'uscita reale → tutti timeout → no abbassa
-    var hasRealOut = outPpl.some(function(p){
-      return realDeparture.indexOf(p.lastEvent) >= 0;
+    // Abbassa solo se TUTTI hanno uscita reale (USCITA confermata)
+    // Se anche solo UNO e' AUTO_OUT → potrebbe essere in casa → non abbassare
+    var anyAutoOut = outPpl.some(function(p){
+      return String(p.lastEvent||'') === 'AUTO_OUT';
     });
-    if(!hasRealOut){
-      logEvent('SHUTTER_HOLD','tutti AUTO_OUT - tapparelle non abbassate','');
-      return true; // allOutByAutoTimeout = true → non abbassare
+    if(anyAutoOut){
+      logEvent('SHUTTER_HOLD','presenza incerta - non abbasso tapparelle','');
+      return true;
     }
     return false;
   }catch(_){ return false; }
@@ -174,10 +174,17 @@ function evaluateStateNow(){
     var now  = Date.now(), STRICT = getStrictLifeMin_();
     var raw  = false;
     ppl.forEach(function(p){
-      if(!p.online) return;
+      if(!p.online) return; // F=OUT → skip
       if(hasSsidLock_(p.name.toLowerCase())){ raw=true; return; }
-      var lifeRecent = !!(p.lifeMs && ((now-p.lifeMs) <= STRICT*60000));
-      if(giorno ? lifeRecent : p.online) raw = true;
+      if(giorno){
+        // GIORNO: se F=IN → sei IN. Telefono morto/senza segnale = ancora in casa.
+        // Non serve ping recente. Solo un segnale esplicito di uscita può portare OUT.
+        raw = true;
+      } else {
+        // NOTTE: ping recente richiesto (telefono a casa = deve fare rumore)
+        var lifeRecent = !!(p.lifeMs && ((now-p.lifeMs) <= STRICT*60000));
+        if(lifeRecent) raw = true;
+      }
     });
     s('Config','B5', raw);
 
