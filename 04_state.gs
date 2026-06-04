@@ -170,22 +170,12 @@ function evaluateStateNow(){
     var giorno = !notte;
 
     // Presenza raw
-    var ppl  = _getAllPeopleRaw_();
-    var now  = Date.now(), STRICT = getStrictLifeMin_();
-    var raw  = false;
-    ppl.forEach(function(p){
-      if(!p.online) return; // F=OUT → skip
-      if(hasSsidLock_(p.name.toLowerCase())){ raw=true; return; }
-      if(giorno){
-        // GIORNO: se F=IN → sei IN. Telefono morto/senza segnale = ancora in casa.
-        // Non serve ping recente. Solo un segnale esplicito di uscita può portare OUT.
-        raw = true;
-      } else {
-        // NOTTE: ping recente richiesto (telefono a casa = deve fare rumore)
-        var lifeRecent = !!(p.lifeMs && ((now-p.lifeMs) <= STRICT*60000));
-        if(lifeRecent) raw = true;
-      }
-    });
+    // PRESENZA: sorgente di verità = colonna F del foglio Persone
+    // DI GIORNO: F=IN → sei IN. Punto. Nessun ping necessario.
+    // DI NOTTE: F=IN → sei IN (sei a letto, non sei uscito)
+    // L'unico modo di diventare OUT è un segnale esplicito (ssid_off + geofence)
+    var ppl = _getAllPeopleRaw_();
+    var raw = ppl.some(function(p){ return p.online; });
     s('Config','B5', raw);
 
     var deb     = applyPresenceDebounce_(raw);
