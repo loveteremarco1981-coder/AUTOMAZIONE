@@ -161,6 +161,32 @@ function morningKeepAlive_(){
   }catch(e){ logEvent('MORNING_KA_ERR',String(e),''); }
 }
 
+// ---------- lifePingNow_ — aggiorna last_life senza cambiare stato OUT/IN ----------
+function lifePingNow_(nm){
+  try{
+    var name = String(nm||'').toLowerCase();
+    var P = sh('Persone'), last = P.getLastRow();
+    if(last < 2) return {ok:false,err:'no_rows'};
+    var rows = P.getRange(2,1,last-1,1).getValues();
+    for(var i=0; i<rows.length; i++){
+      if(String(rows[i][0]||'').trim().toLowerCase() === name){
+        var now = new Date();
+        P.getRange(2+i,3).setValue(now); // last_life_raw
+        P.getRange(2+i,5).setValue(now); // last_life_dt
+        // Se era OUT → lo rimette IN (ping = sei qui)
+        var online = String(P.getRange(2+i,6).getValue()||'').toUpperCase();
+        if(online !== 'IN'){
+          P.getRange(2+i,4).setValue('ARRIVO');
+          P.getRange(2+i,6).setValue('IN');
+          logEvent('ARRIVO', name, 'life_ping');
+        }
+        return {ok:true};
+      }
+    }
+    return {ok:false,err:'not_found'};
+  }catch(e){ return {ok:false,err:String(e)}; }
+}
+
 // ---------- Helpers foglio Persone ----------
 function setPersonIn_(nm, evt){
   try{
