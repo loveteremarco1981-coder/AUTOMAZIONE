@@ -241,3 +241,16 @@ function _getAllPeopleRaw_(){
 
 // ---------- Keepalive KA trigger ----------
 function disableKAIfOut_(){ /* gestito da morningKeepAlive_ */ }
+
+// ============================================================
+// ALIAS — compatibilità con endpoint e vecchio codice
+// ============================================================
+function forceIn_(nm)   { lifePingNow_(nm); logEvent('FORCE_IN', nm, ''); }
+function forceOut_(nm)  { markOutNow_(nm); logEvent('FORCE_OUT', nm, ''); }
+function _pendingOutKey_(nm){ return _pendingKey_(nm); }
+function _ensurePendingSweep_(){}  // gestito da trigger
+function everyoneOutNow_(){
+  try{ return !_getAllPeopleRaw_().some(function(p){ return p.online; }); }
+  catch(_){ return false; }
+}
+function everyoneOutWithGrace_(){ return everyoneOutNow_(); }
