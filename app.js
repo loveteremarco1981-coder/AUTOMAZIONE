@@ -281,27 +281,39 @@ function renderDevices() {
   const camList = $('#camera-list');
   if (camList) {
     camList.innerHTML = '';
-    // Raggruppa in coppie ON/OFF
+    const stato = (window._lastModel && window._lastModel.stato) || '';
+    // Deduce stato cam dallo stato casa
+    const camIntON = stato.startsWith('SECURITY');
+    const camEstON = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
+
     const cams = DEV.CAMERAS || [];
     const pairs = [];
     for (let i = 0; i < cams.length; i += 2) pairs.push([cams[i], cams[i+1]]);
-    pairs.forEach(([on, off]) => {
+    pairs.forEach(([on, off], idx) => {
       if (!on) return;
       const card = document.createElement('div');
       card.className = 'shutter-card';
-      const label = on.label.replace(' ON','').replace(' on','');
+      const label = on.label.replace(' ON','').replace(' ON','');
+      const isActive = idx === 0 ? camIntON : camEstON;
+      const onStyle  = isActive
+        ? 'font-size:12px;font-weight:700;background:var(--green);color:#fff;border-radius:6px;padding:4px 10px'
+        : 'font-size:12px;font-weight:700;color:var(--muted)';
+      const offStyle = !isActive
+        ? 'font-size:12px;font-weight:700;background:var(--red,#d93025);color:#fff;border-radius:6px;padding:4px 10px'
+        : 'font-size:12px;font-weight:700;color:var(--muted)';
       card.innerHTML = `
         <span class="shutter-icon">${on.icon||'📷'}</span>
         <span class="shutter-label">${label}</span>
         <div class="shutter-btns">
-          <button class="sh-btn sh-on"  data-ev="${on.event}"  title="ON"  style="font-size:12px;font-weight:700;color:var(--green)">ON</button>
-          ${off ? `<button class="sh-btn sh-off" data-ev="${off.event}" title="OFF" style="font-size:12px;font-weight:700;color:var(--muted)">OFF</button>` : ''}
+          <button class="sh-btn sh-on"  data-ev="${on.event}"  title="ON"  style="${onStyle}">ON</button>
+          ${off ? `<button class="sh-btn sh-off" data-ev="${off.event}" title="OFF" style="${offStyle}">OFF</button>` : ''}
         </div>`;
       card.querySelectorAll('.sh-btn').forEach(b => {
         b.addEventListener('click', async () => {
           const isOn = b.classList.contains('sh-on');
           toast(`${on.icon} ${label} ${isOn ? 'ON' : 'OFF'}…`);
           await callAdmin(b.dataset.ev);
+          setTimeout(loadAll, 800);
         });
       });
       camList.appendChild(card);
