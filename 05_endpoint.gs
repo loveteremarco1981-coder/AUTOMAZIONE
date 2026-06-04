@@ -228,6 +228,16 @@ function doGet(e){
       return out({ok:ok});
     }
 
+    // ---- Comandi IFTTT manuali dal tab Dispositivi ----
+    var iftttDirect = ['ezviz_interne_on','ezviz_interne_off',
+                       'ezviz_esterne_on','ezviz_esterne_off',
+                       'off_termostato','termostato_auto',
+                       'abbassa_tutto','alza_tutto'];
+    if(iftttDirect.indexOf(ev) >= 0){
+      try{ _iftttSafe_(ev); return out({ok:true,event:ev}); }
+      catch(e){ return out({ok:false,err:String(e)}); }
+    }
+
     if(ev==='diag') return out(buildModel_());
 
     // ---- UPDATE WEATHER (dall'app, per aggiornare il CRUSCOTTO) ----
