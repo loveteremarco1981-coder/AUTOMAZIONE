@@ -76,28 +76,28 @@ function setupCruscotto_() {
   sh.getRange('B31').setFormula('=Config!B14');
 
   // Presenza: SI/NO
-  sh.getRange('B5').setFormula('=IF(Config!B6,"SI","NO")');
+  sh.getRange('B5').setFormula('=IF(Config!B6;"SI";"NO")');
 
   // Override / Vacanza: ATTIVO/OFF
-  sh.getRange('B7').setFormula('=IF(Config!B4,"ATTIVO","OFF")');
-  sh.getRange('B8').setFormula('=IF(Config!B3,"ATTIVO","OFF")');
+  sh.getRange('B7').setFormula('=IF(Config!B4;"ATTIVO";"OFF")');
+  sh.getRange('B8').setFormula('=IF(Config!B3;"ATTIVO";"OFF")');
 
   // Alba e tramonto — ora
-  sh.getRange('B12').setFormula('=IF(Stato!B3<>"",TEXT(Stato!B3,"HH:mm"),"--")');
-  sh.getRange('B13').setFormula('=IF(Stato!B4<>"",TEXT(Stato!B4,"HH:mm"),"--")');
+  sh.getRange('B12').setFormula('=IF(Stato!B3<>"";TEXT(Stato!B3;"HH:mm");"--")');
+  sh.getRange('B13').setFormula('=IF(Stato!B4<>"";TEXT(Stato!B4;"HH:mm");"--")');
 
   // Prossimo run piante
-  sh.getRange('B22').setFormula('=IF(Stato!B10<>"",TEXT(Stato!B10,"dd/MM HH:mm"),"--")');
+  sh.getRange('B22').setFormula('=IF(Stato!B10<>"";TEXT(Stato!B10;"dd/MM HH:mm");"--")');
 
   // Persone: IN CASA / FUORI + timestamp
-  sh.getRange('B16').setFormula('=IF(Persone!F2="IN","IN CASA","FUORI")');
-  sh.getRange('B17').setFormula('=IF(Persone!F3="IN","IN CASA","FUORI")');
-  sh.getRange('B18').setFormula('=IF(Persone!F4="IN","IN CASA","FUORI")');
-  sh.getRange('B19').setFormula('=IF(Persone!F5="IN","IN CASA","FUORI")');
-  sh.getRange('C16').setFormula('=IF(Persone!E2<>"",TEXT(Persone!E2,"dd/MM HH:mm"),"--")');
-  sh.getRange('C17').setFormula('=IF(Persone!E3<>"",TEXT(Persone!E3,"dd/MM HH:mm"),"--")');
-  sh.getRange('C18').setFormula('=IF(Persone!E4<>"",TEXT(Persone!E4,"dd/MM HH:mm"),"--")');
-  sh.getRange('C19').setFormula('=IF(Persone!E5<>"",TEXT(Persone!E5,"dd/MM HH:mm"),"--")');
+  sh.getRange('B16').setFormula('=IF(Persone!F2="IN";"IN CASA";"FUORI")');
+  sh.getRange('B17').setFormula('=IF(Persone!F3="IN";"IN CASA";"FUORI")');
+  sh.getRange('B18').setFormula('=IF(Persone!F4="IN";"IN CASA";"FUORI")');
+  sh.getRange('B19').setFormula('=IF(Persone!F5="IN";"IN CASA";"FUORI")');
+  sh.getRange('C16').setFormula('=IF(Persone!E2<>"";TEXT(Persone!E2;"dd/MM HH:mm");"--")');
+  sh.getRange('C17').setFormula('=IF(Persone!E3<>"";TEXT(Persone!E3;"dd/MM HH:mm");"--")');
+  sh.getRange('C18').setFormula('=IF(Persone!E4<>"";TEXT(Persone!E4;"dd/MM HH:mm");"--")');
+  sh.getRange('C19').setFormula('=IF(Persone!E5<>"";TEXT(Persone!E5;"dd/MM HH:mm");"--")');
 
   // ---- Formattazione ----
   sh.getRange('A1').setFontSize(16).setFontWeight('bold').setFontColor('#1a73e8');
