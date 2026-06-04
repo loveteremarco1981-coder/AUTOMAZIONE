@@ -46,6 +46,19 @@ function allOutByAutoTimeout_(){
   }catch(_){ return false; }
 }
 
+// ---------- Helper presenza ----------
+function everyoneOutNow_(){
+  try{
+    return !_getAllPeopleRaw_().some(function(p){ return p.online; });
+  }catch(_){ return false; }
+}
+
+function everyoneOutWithGrace_(){
+  // Alias di everyoneOutNow_ — compatibilità
+  return everyoneOutNow_();
+}
+
+
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
