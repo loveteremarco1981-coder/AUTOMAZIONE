@@ -9,7 +9,6 @@ window.CONFIG = {
   FAVORITES: [
     { id:'tapparelle', label:'Tapparelle',  subtitle:'Alza / Abbassa',  kind:'toggle', upEvent:'alza_tutto', downEvent:'abbassa_tutto', color:'#e7f2ff' },
     { id:'piante',     label:'Piante',      subtitle:'Irrigazione',     kind:'action', event:'piante',       color:'#e6f8ed' },
-    { id:'sonoincasa', label:'Sono in casa',subtitle:'Ping presenza',   kind:'action', color:'#e6f4ea' },
     { id:'vacanza',    label:'Vacanza',     subtitle:'Modalità away',   kind:'toggle', stateKey:'vacanza',   toggleEvent:'set_vacanza',  color:'#ece9ff' },
     { id:'override',   label:'Override',   subtitle:'Blocca automaz.', kind:'toggle', stateKey:'override',  toggleEvent:'set_override', color:'#fff3e0' },
   ],
