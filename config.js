@@ -2,7 +2,7 @@
 // config.js
 // ============================================================
 window.CONFIG = {
-  DOGET_URL: 'https://script.google.com/macros/s/AKfycbzRf9E4gTCHnq3-9Hm6BPLjIxwuTM5CiawvdbV1zKFfVQew0MWMD-Eq8nTqRW_c67uG/exec',
+  DOGET_URL: 'https://script.google.com/macros/s/AKfycbwQ2ON5nhBrwD4yKvcMmoNFZZoW0TnAy5ge1VhyReZlk6rvk6fzjSuC8sv8nMZD80A2/exec',
   AUTO_REFRESH_MS: 60000,
   WEATHER: { lat: 44.7, lon: 10.9, tz: 'Europe/Rome', forceClient: false },
 
