@@ -3,12 +3,17 @@
 // ============================================================
 
 function ensureTriggers(){
-  // Purge preventivo trigger one-shot accumulati (previene GRACE_ERR)
+  // Purge preventivo trigger one-shot E vecchi KA triggers (previene GRACE_ERR e AUTO_OUT)
   try{
     var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose_'];
     ScriptApp.getProjectTriggers().forEach(function(t){
       var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
-      if(oneShots.indexOf(fn) >= 0) ScriptApp.deleteTrigger(t);
+      // Elimina one-shot E vecchi trigger KA (keepalive per persona)
+      if(oneShots.indexOf(fn) >= 0 ||
+         /^(ka|KA|keepalive|checkKA|kaTimer)/i.test(fn) ||
+         fn.indexOf('keepalive') >= 0){
+        ScriptApp.deleteTrigger(t);
+      }
     });
   }catch(_){}
   var toDelete=['evaluateStateNow','pendingOutSweep_','scheduleSunEventsForToday',
