@@ -5,7 +5,7 @@
 function ensureTriggers(){
   // Purge preventivo trigger one-shot E vecchi KA triggers (previene GRACE_ERR e AUTO_OUT)
   try{
-    var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose_'];
+    var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose'];
     ScriptApp.getProjectTriggers().forEach(function(t){
       var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
       // Elimina one-shot E vecchi trigger KA (keepalive per persona)
