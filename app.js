@@ -51,7 +51,7 @@ function callAdmin(event, params) {
     u.searchParams.set('event', event);
     if(params) Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
     jsonpFetch(u.toString())
-      .then(d => { if(d && d.ok===false) toast('⚠️ '+(d.err||d.error||'Errore')); resolve(d); })
+      .then(d => { resolve(d); })
       .catch(() => { toast('❌ Errore connessione'); resolve(null); });
   });
 }
@@ -350,8 +350,18 @@ function renderPeopleDetail(m) {
           <button class="pdc-btn btn-in"  data-name="${p.name}">✅ Forza IN</button>
           <button class="pdc-btn btn-out" data-name="${p.name}">❌ Forza OUT</button>
         </div>`;
-      card.querySelector('.btn-in').addEventListener('click', async()=>{ toast('✅ Forza IN '+cap(p.name)+'…'); await callAdmin('force_in',{name:p.name}); setTimeout(loadAll,700); });
-      card.querySelector('.btn-out').addEventListener('click', async()=>{ toast('❌ Forza OUT '+cap(p.name)+'…'); await callAdmin('force_out',{name:p.name}); setTimeout(loadAll,700); });
+      card.querySelector('.btn-in').addEventListener('click', async()=>{
+        toast('⏳ Imposto IN '+cap(p.name)+'…');
+        const r = await callAdmin('force_in',{name:p.name});
+        toast(r&&r.ok!==false ? '✅ '+cap(p.name)+' → IN CASA' : '⚠️ Riprova tra qualche secondo');
+        setTimeout(loadAll,800);
+      });
+      card.querySelector('.btn-out').addEventListener('click', async()=>{
+        toast('⏳ Imposto OUT '+cap(p.name)+'…');
+        const r = await callAdmin('force_out',{name:p.name});
+        toast(r&&r.ok!==false ? '✅ '+cap(p.name)+' → FUORI' : '⚠️ Riprova tra qualche secondo');
+        setTimeout(loadAll,800);
+      });
       list.appendChild(card);
     });
   }
