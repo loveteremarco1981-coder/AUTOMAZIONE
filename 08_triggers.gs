@@ -3,6 +3,14 @@
 // ============================================================
 
 function ensureTriggers(){
+  // Purge preventivo trigger one-shot accumulati (previene GRACE_ERR)
+  try{
+    var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose_'];
+    ScriptApp.getProjectTriggers().forEach(function(t){
+      var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+      if(oneShots.indexOf(fn) >= 0) ScriptApp.deleteTrigger(t);
+    });
+  }catch(_){}
   var toDelete=['evaluateStateNow','pendingOutSweep_','scheduleSunEventsForToday',
                 'pruneOldLogs_','closeShuttersAt23IfPeopleHome_','closeLateNight_',
                 'nightWindowRunner_','onDaily0100','onDaily2300'];
