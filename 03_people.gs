@@ -245,7 +245,12 @@ function disableKAIfOut_(){ /* gestito da morningKeepAlive_ */ }
 // ============================================================
 // ALIAS — compatibilità con endpoint e vecchio codice
 // ============================================================
-function forceIn_(nm)   { lifePingNow_(nm); logEvent('FORCE_IN', nm, ''); }
+function forceIn_(nm)   {
+  var name = String(nm||'').toLowerCase();
+  ssidOn_(name, 480);          // SSID lock 8h + F=IN
+  _clearPendingOut_(name);     // cancella qualsiasi pending OUT
+  logEvent('FORCE_IN', name, 'ssid_lock+clear_pending');
+}
 function forceOut_(nm)  { markOutNow_(nm); logEvent('FORCE_OUT', nm, ''); }
 function _pendingOutKey_(nm){ return _pendingKey_(nm); }
 function _ensurePendingSweep_(){}  // gestito da trigger
@@ -254,3 +259,18 @@ function everyoneOutNow_(){
   catch(_){ return false; }
 }
 function everyoneOutWithGrace_(){ return everyoneOutNow_(); }
+
+// Pulisce tutti i trigger KA legacy (vecchio sistema keepalive per persona)
+function purgeKATriggers_(){
+  try{
+    ScriptApp.getProjectTriggers().forEach(function(t){
+      var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+      // Vecchi trigger KA avevano nomi tipo: keepalivePing_, checkKA_, kaTimer_
+      if(/^(ka|KA|keepalive|checkKA|kaTimer|kaOff|kaCheck)/i.test(fn) ||
+         fn.indexOf('keepalive') >= 0 || fn.indexOf('Keepalive') >= 0){
+        ScriptApp.deleteTrigger(t);
+        logEvent('KA_PURGE', fn, 'vecchio trigger eliminato');
+      }
+    });
+  }catch(e){ logEvent('KA_PURGE_ERR', String(e), ''); }
+}
