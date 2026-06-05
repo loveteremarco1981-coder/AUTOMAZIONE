@@ -141,9 +141,9 @@ function doGet(e){
 
     if(ev==='ssid_off'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var r2=ssidOff_(who);
+      ssidOff_(who);
       try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,name:who,guard:r2.guard,now:new Date().toISOString()});
+      return out({ok:true,name:who,guard:getExitGuardMin_(),now:new Date().toISOString()});
     }
 
     if(ev==='life_ping'){
