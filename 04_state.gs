@@ -73,7 +73,8 @@ function applySecurityDay(){
     try{
       if(!isNight() && getPianteEnabled_()){
         ScriptApp.getProjectTriggers().forEach(function(t){
-          if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
+          var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+          if(['startPianteDelayed_','startPianteAtAlbaOnce_','verifyHouseEmptyThenClose'].indexOf(fn) >= 0)
             ScriptApp.deleteTrigger(t);
         });
         var when = new Date(Date.now() + 2*60000);
