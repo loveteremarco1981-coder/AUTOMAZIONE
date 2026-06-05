@@ -319,3 +319,6 @@ function applyPresenceDebounce_(raw){
     s('Config','B6',!!raw); return {reported:!!raw};
   }
 }
+
+// Alias per trigger schedulato
+function closeShuttersAt23IfPeopleHome_(){ closeLateNight_(); }
