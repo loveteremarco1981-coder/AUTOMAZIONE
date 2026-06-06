@@ -259,14 +259,22 @@ function evaluateStateNow(){
     if(scheduleGrace){
       var EG = getEmptyGraceMin_();
       s('Stato','B11', new Date(Date.now()+EG*60000));
-      try{ ScriptApp.newTrigger('verifyHouseEmptyThenClose').timeBased().after(EG*60000).create(); }
-      catch(e){ logEvent('GRACE_ERR',String(e),''); }
+      // Elimina trigger grace precedenti prima di crearne uno nuovo
+      try{
+        ScriptApp.getProjectTriggers().forEach(function(t){
+          if((t.getHandlerFunction?t.getHandlerFunction():'') === 'verifyHouseEmptyThenClose')
+            ScriptApp.deleteTrigger(t);
+        });
+        ScriptApp.newTrigger('verifyHouseEmptyThenClose').timeBased().after(EG*60000).create();
+      } catch(e){ logEvent('GRACE_ERR',String(e),''); }
     }
 
-    // Impianti quando casa si svuota
-    if(!vac && !eff && prevEff){
-      try{ _iftttSafe_('off_termostato'); }catch(_){}
-      logEvent('VUOTA','termostati_off','');
+    // Impianti quando casa si svuota (solo se davvero vuota e non in grace)
+    if(!vac && !eff && prevEff && !scheduleGrace){
+      if(everyoneOutNow_()){
+        try{ _iftttSafe_('off_termostato'); }catch(_){}
+        logEvent('VUOTA','termostati_off','');
+      }
     }
 
     s('Config','B6', eff);
