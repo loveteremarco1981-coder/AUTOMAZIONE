@@ -182,9 +182,17 @@ function doGet(e){
 
     if(ev==='force_out'){
       if(!who) return out({ok:false,err:'missing_name'});
+      // Controlla stato attuale prima di scrivere
+      var pplNow = _getAllPeopleRaw_();
+      var personNow = null;
+      for(var i=0;i<pplNow.length;i++){
+        if(pplNow[i].name.toLowerCase()===String(who).toLowerCase()){ personNow=pplNow[i]; break; }
+      }
+      var wasIn = personNow ? personNow.online : false;
       markOutNow_(who, true); // force=true: uscita manuale dall'app
-      try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,name:who});
+      // Ricalcola stato solo se c'è stato un cambiamento reale
+      if(wasIn){ try{ evaluateStateNow(); }catch(_){} }
+      return out({ok:true,name:who,changed:wasIn});
     }
 
     if(ev==='set_vacanza'){
