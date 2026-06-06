@@ -169,6 +169,9 @@ function closeLateNight_(){
 // ---------- evaluateStateNow ----------
 function evaluateStateNow(){
   try{
+    // Purga trigger KA legacy ad ogni ciclo
+    try{ purgeKATriggers_(); }catch(_){}
+
     if(isOverride_()){
       if(String(v('Stato','C1'))!=='OVR'){ logEvent('OVERRIDE','ON',''); s('Stato','C1','OVR'); }
       s('Stato','B5',new Date()); s('Stato','B6',isNight()?'NOTTE':'GIORNO'); return;
