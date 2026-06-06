@@ -19,6 +19,7 @@ function ssidOn_(nm, holdMin){
   var hold = Number(holdMin)||480; // default 8h
   var until = Date.now() + hold*60000;
   setProp_(_ssidKey_(nm), String(until));
+  _clearPendingOut_(nm); // annulla eventuale pending OUT residuo
   setPersonIn_(nm, 'SSID_ON');
   logEvent('SSID_ON', nm, 'hold='+hold+'m');
   return true;
@@ -76,7 +77,7 @@ function pendingOutSweep_(){
       // Scaduto → conferma OUT
       if(now >= pending.fireAt){
         _clearPendingOut_(nm);
-        markOutNow_(nm);
+        markOutNow_(nm, true);
         logEvent('OUT_CONFIRMED','pending_sweep',nm);
         try{ evaluateStateNow(); }catch(_){}
       }
@@ -90,9 +91,15 @@ function markInNow_(nm, source){
   logEvent('ARRIVO', nm, source||'');
 }
 
-function markOutNow_(nm){
+function markOutNow_(nm, force){
+  // Di giorno: blocca auto-out a meno che non sia un'uscita reale (force=true)
+  // Questo impedisce a qualsiasi vecchio trigger KA di segnare OUT di giorno
+  if(!force && !isNight()){
+    logEvent('OUT_BLOCKED', nm, 'bloccato di giorno - usa force=true per uscita reale');
+    return;
+  }
   setPersonOut_(nm, 'USCITA');
-  setProp_(_ssidKey_(nm), '0'); // cancella SSID lock
+  setProp_(_ssidKey_(nm), '0');
   _clearPendingOut_(nm);
 }
 
@@ -111,7 +118,7 @@ function markOut_geofence_(nm){
     logEvent('OUT_PENDING','geofence','guard='+getExitGuardMin_()+'m '+nm);
   } else {
     // Nessun lock → OUT immediato
-    markOutNow_(nm);
+    markOutNow_(nm, true);
     logEvent('OUT','geofence',nm);
     try{ evaluateStateNow(); }catch(_){}
   }
@@ -251,7 +258,7 @@ function forceIn_(nm)   {
   _clearPendingOut_(name);     // cancella qualsiasi pending OUT
   logEvent('FORCE_IN', name, 'ssid_lock+clear_pending');
 }
-function forceOut_(nm)  { markOutNow_(nm); logEvent('FORCE_OUT', nm, ''); }
+function forceOut_(nm)  { markOutNow_(nm, true); logEvent('FORCE_OUT', nm, ''); }
 function _pendingOutKey_(nm){ return _pendingKey_(nm); }
 function _ensurePendingSweep_(){}  // gestito da trigger
 function everyoneOutNow_(){
