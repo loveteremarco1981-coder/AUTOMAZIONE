@@ -182,9 +182,9 @@ function doGet(e){
 
     if(ev==='force_out'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var fo=markOutNow_(who);
+      markOutNow_(who, true); // force=true: uscita manuale dall'app
       try{ evaluateStateNow(); }catch(_){}
-      return out(fo);
+      return out({ok:true,name:who});
     }
 
     if(ev==='set_vacanza'){
