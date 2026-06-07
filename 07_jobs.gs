@@ -1,32 +1,35 @@
 // ============================================================
 // 07_jobs.gs — alba/tramonto, piante, log prune
-// Regole piante:
-//   Feriali (lun-ven, non festivi): non prima delle 07:30
-//   Festivi/weekend:                non prima delle 09:30
-//   Se alba è prima dell'orario minimo → schedula all'orario minimo
-//   Se alba è dopo l'orario minimo   → schedula all'alba
+// Regole piante all'alba:
+//   Casa occupata:  alba+60min → piante (no alza tapparelle)
+//   Casa vuota:     alba+60min → piante (no alza)
+//   Vacanza:        alba+60min → piante
+//   Orario minimo:  feriale 07:30 / festivo 09:30
+// Piante post-uscita:
+//   uscita reale di giorno → piante dopo 2min
 // ============================================================
 
 // ---------- Orario minimo piante ----------
 function _pianteMinTime_(d){
-  // Restituisce la Date con l'orario minimo per le piante di quel giorno
   d = d || new Date();
   var base = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   if(isFeriale_(d)){
-    base.setHours(7, 30, 0, 0);  // Feriale: 07:30
+    base.setHours(7, 30, 0, 0);
   } else {
-    base.setHours(9, 30, 0, 0);  // Weekend/festivo: 09:30
+    base.setHours(9, 30, 0, 0);
   }
   return base;
 }
 
 function _pianteScheduleTime_(alba){
-  // Calcola quando pianificare le piante:
-  // max(alba, orario_minimo) — mai prima dell'orario minimo
-  var minTime = _pianteMinTime_(alba);
-  var when = (alba > minTime) ? new Date(alba) : new Date(minTime);
+  // alba + 60 minuti
+  var withDelay = new Date(alba.getTime() + 60*60000);
+  // mai prima dell'orario minimo
+  var minTime = _pianteMinTime_(withDelay);
+  var when = (withDelay > minTime) ? withDelay : minTime;
   logEvent('PIANTE_WINDOW',
     'alba=' + Utilities.formatDate(alba, Session.getScriptTimeZone(), 'HH:mm') +
+    ' +60min=' + Utilities.formatDate(withDelay, Session.getScriptTimeZone(), 'HH:mm') +
     ' min=' + Utilities.formatDate(minTime, Session.getScriptTimeZone(), 'HH:mm') +
     ' → ' + Utilities.formatDate(when, Session.getScriptTimeZone(), 'HH:mm'),
     isFeriale_(alba) ? 'feriale' : 'festivo/weekend'
@@ -62,18 +65,18 @@ function scheduleSunEventsForToday(){
     ScriptApp.newTrigger('onSunset').timeBased().at(tram).create();
 
     try{ planPianteAtAlba_(alba); }catch(_){}
-    logEvent('SCHEDULE_OK','Alba/Tramonto aggiornati','');
+    logEvent('SCHEDULE_OK','Alba/Tramonto aggiornati',
+      'alba='+Utilities.formatDate(alba,tz,'HH:mm')+
+      ' tram='+Utilities.formatDate(tram,tz,'HH:mm'));
   }catch(e){ logEvent('SCHEDULE_ERR',String(e),''); }
 }
 
 function onSunrise(){
   try{ if(!isOverride_()) evaluateStateNow(); }catch(_){}
 }
-// onSunset definito in 04_state.gs
 
 // ---------- Piante — pianificazione ----------
 function planPianteAtAlba_(alba){
-  // Cancella trigger precedenti
   ScriptApp.getProjectTriggers().forEach(function(t){
     if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteAtAlbaOnce_')
       ScriptApp.deleteTrigger(t);
@@ -81,7 +84,6 @@ function planPianteAtAlba_(alba){
 
   if(!(alba instanceof Date)){ logEvent('PIANTE_PLAN_ERR','alba non valida',''); return; }
 
-  // Calcola orario giusto: max(alba, orario_minimo_del_giorno)
   var when = _pianteScheduleTime_(alba);
 
   ScriptApp.newTrigger('startPianteAtAlbaOnce_').timeBased().at(when).create();
@@ -89,15 +91,15 @@ function planPianteAtAlba_(alba){
   logEvent('PIANTE_PLAN','pianificato', Utilities.formatDate(when, Session.getScriptTimeZone(), 'dd/MM HH:mm'));
 }
 
-// ---------- Piante — esecuzione one-shot ----------
+// ---------- Piante — esecuzione one-shot all'alba ----------
+// Regola: piante sempre (casa occupata o vuota), solo NO alza tapparelle
 function startPianteAtAlbaOnce_(){
   try{
     var now = new Date();
 
-    // Controlla orario minimo (sicurezza extra se il trigger scatta un po' prima)
+    // Controllo orario minimo
     var minTime = _pianteMinTime_(now);
     if(now < minTime){
-      // Troppo presto — riplana all'orario minimo
       ScriptApp.getProjectTriggers().forEach(function(t){
         if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteAtAlbaOnce_')
           ScriptApp.deleteTrigger(t);
@@ -109,10 +111,11 @@ function startPianteAtAlbaOnce_(){
       return;
     }
 
-    // Controlla override e vacanza anche qui (potrebbero essere cambiati dall'alba)
     if(isOverride_()){ logEvent('PIANTE_SKIP','override','startPianteAtAlbaOnce_'); return; }
-    // In vacanza le piante partono normalmente
+
+    // Avvia piante — sempre, sia casa occupata che vuota
     startPiante_('alba');
+
   }catch(e){ logEvent('PIANTE_ERR',String(e),'alba'); }
 }
 
@@ -121,7 +124,6 @@ function startPiante_(origin){
   try{
     if(!getPianteEnabled_()){ logEvent('PIANTE_SKIP','disabled',''); return false; }
     if(isOverride_()){ logEvent('PIANTE_SKIP','override',''); return false; }
-    // In vacanza le piante partono normalmente
 
     var lastMs = Number(getProp_('PLANTS_LAST_RUN_MS','0'))||0;
     var gapMin = (Date.now()-lastMs)/60000;
@@ -133,8 +135,6 @@ function startPiante_(origin){
     setProp_('PLANTS_LAST_RUN_MS', String(Date.now()));
     s('Stato','B10', new Date());
     logEvent('PIANTE_START','ok',String(origin||''));
-
-    // L'applet IFTTT 'piante' gestisce già irrigazione + tapparelle giuste
     logEvent('PIANTE_ALZA','via applet piante','');
     return true;
   }catch(e){ logEvent('PIANTE_ERR',String(e),String(origin||'')); return false; }
@@ -189,17 +189,14 @@ function pianteDiagNext_(){
   );
 }
 
-// ========== Piante delayed (dopo abbassa_tutto) ==========
-// Chiamato 10 minuti dopo che la casa si svuota di giorno
+// ---------- Piante delayed (2min dopo abbassa_tutto post-uscita) ----------
 function startPianteDelayed_(){
   try{
-    // Auto-cancella questo trigger
     ScriptApp.getProjectTriggers().forEach(function(t){
       if(t.getHandlerFunction && t.getHandlerFunction()==='startPianteDelayed_')
         ScriptApp.deleteTrigger(t);
     });
 
-    // Controlla orario minimo (feriale 7:30 / festivo 9:30)
     var now = new Date();
     var minTime = _pianteMinTime_(now);
     if(now < minTime){
@@ -208,14 +205,12 @@ function startPianteDelayed_(){
       return;
     }
 
-    // Non partire se la casa si è riempita nel frattempo
     var effettiva = v('Config','B6');
     if(String(effettiva).toUpperCase()==='TRUE' || effettiva===true){
       logEvent('PIANTE_DELAYED_SKIP','casa occupata di nuovo','');
       return;
     }
 
-    // Non partire di notte
     if(isNight()){
       logEvent('PIANTE_DELAYED_SKIP','notte','');
       return;
