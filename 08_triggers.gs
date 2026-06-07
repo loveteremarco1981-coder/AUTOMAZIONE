@@ -3,12 +3,10 @@
 // ============================================================
 
 function ensureTriggers(){
-  // Purge preventivo trigger one-shot E vecchi KA triggers (previene GRACE_ERR e AUTO_OUT)
   try{
     var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose'];
     ScriptApp.getProjectTriggers().forEach(function(t){
       var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
-      // Elimina one-shot E vecchi trigger KA (keepalive per persona)
       if(oneShots.indexOf(fn) >= 0 ||
          /^(ka|KA|keepalive|checkKA|kaTimer)/i.test(fn) ||
          fn.indexOf('keepalive') >= 0){
@@ -16,21 +14,16 @@ function ensureTriggers(){
       }
     });
   }catch(_){}
+
   var toDelete=['evaluateStateNow','pendingOutSweep_','scheduleSunEventsForToday',
                 'pruneOldLogs_','closeShuttersAt23IfPeopleHome_','closeLateNight_',
+                'morningKeepAlive_','eveningKeepAlive_',
                 'nightWindowRunner_','onDaily0100','onDaily2300'];
   toDelete.forEach(function(h){
     ScriptApp.getProjectTriggers().forEach(function(t){
       try{ if(t.getHandlerFunction&&t.getHandlerFunction()===h)ScriptApp.deleteTrigger(t); }catch(_){}
     });
   });
-
-  function addTrigger(fn,desc,creator){
-    try{
-      if(typeof this[fn]==='function'){ creator(); logEvent('TRIGGER_ON',fn,desc); }
-      else logEvent('ENSURE_SKIP',fn,'missing');
-    }catch(e){ logEvent('ENSURE_ERR',fn,String(e)); }
-  }
 
   // evaluateStateNow ogni 5 min
   try{
@@ -56,19 +49,19 @@ function ensureTriggers(){
     logEvent('TRIGGER_ON','pruneOldLogs_','daily @3:30');
   }catch(e){ logEvent('ENSURE_ERR','pruneOldLogs_',String(e)); }
 
-  // Morning keepalive alle 6:30 — mantiene IN chi ha SSID lock attivo
-  try{
-    ScriptApp.newTrigger('morningKeepAlive_').timeBased().atHour(6).nearMinute(30).everyDays(1).create();
-    logEvent('TRIGGER_ON','morningKeepAlive_','daily @6:30');
-  }catch(e){ logEvent('ENSURE_ERR','morningKeepAlive_',String(e)); }
-
   // closeShuttersAt23 ogni giorno alle 23:00
   try{
     ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(23).nearMinute(0).everyDays(1).create();
-    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_','closeLateNight_','daily @23:00');
-  }catch(e){ logEvent('ENSURE_ERR','closeShuttersAt23IfPeopleHome_','closeLateNight_',String(e)); }
+    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_','daily @23:00');
+  }catch(e){ logEvent('ENSURE_ERR','closeShuttersAt23IfPeopleHome_',String(e)); }
 
-  logEvent('ENSURE_DONE','core triggers','');
+  // Trigger mezzanotte (festivi/weekend) — closeLateNight_ controlla da sola se è festivo
+  try{
+    ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(0).nearMinute(5).everyDays(1).create();
+    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_@00:05','daily @00:05 festivi');
+  }catch(e){ logEvent('ENSURE_ERR','closeShutters@00:05',String(e)); }
+
+  logEvent('ENSURE_DONE','core triggers','no morningKeepAlive - solo 3 shortcut');
 }
 
 function _LAUNCH_RESET_AND_ENSURE_(){
