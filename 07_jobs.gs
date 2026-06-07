@@ -161,32 +161,46 @@ function pruneOldLogs_(){
 
 // ---------- Menu helpers ----------
 function pianteStartNow_(){
-  var ok=startPiante_('manual');
-  SpreadsheetApp.getUi().alert('PIANTE → '+(ok?'avviate':'saltate (disabled/min-interval)'));
+  try{
+    var ok=startPiante_('manual');
+    logEvent('PIANTE_MANUAL', ok?'avviate':'saltate', 'pianteStartNow_');
+    try{ SpreadsheetApp.getActiveSpreadsheet().toast(ok?'🌿 Piante avviate':'⚠️ Saltate (interval/disabled)','Piante',5); }catch(_){}
+  }catch(e){ logEvent('PIANTE_MANUAL_ERR',String(e),''); }
 }
+
 function pianteCancelPlanned_(){
-  var cnt=0;
-  ScriptApp.getProjectTriggers().forEach(function(t){
-    if(t.getHandlerFunction&&t.getHandlerFunction()==='startPianteAtAlbaOnce_'){
-      try{ ScriptApp.deleteTrigger(t); cnt++; }catch(_){}
-    }
-  });
-  setProp_('PLANTS_NEXT_ISO','');
-  SpreadsheetApp.getUi().alert('Pianificazioni piante annullate: '+cnt);
+  try{
+    var cnt=0;
+    ScriptApp.getProjectTriggers().forEach(function(t){
+      var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+      if(fn==='startPianteAtAlbaOnce_' || fn==='startPianteDelayed_'){
+        try{ ScriptApp.deleteTrigger(t); cnt++; }catch(_){}
+      }
+    });
+    setProp_('PLANTS_NEXT_ISO','');
+    logEvent('PIANTE_CANCEL','trigger eliminati: '+cnt,'pianteCancelPlanned_');
+    try{ SpreadsheetApp.getActiveSpreadsheet().toast('✅ Annullate '+cnt+' pianificazioni piante','Piante',5); }catch(_){}
+  }catch(e){ logEvent('PIANTE_CANCEL_ERR',String(e),''); }
 }
+
 function pianteDiagNext_(){
-  var iso  = String(getProp_('PLANTS_NEXT_ISO',''));
-  var last = new Date(Number(getProp_('PLANTS_LAST_RUN_MS','0')));
-  var alba = v('Stato','B3');
-  var oggi = new Date();
-  var min  = _pianteMinTime_(oggi);
-  SpreadsheetApp.getUi().alert(
-    'Prossimo run: ' + (iso||'(nessuno)') + '\n' +
-    'Ultimo run:   ' + last.toISOString() + '\n\n' +
-    'Alba oggi:    ' + (alba instanceof Date ? Utilities.formatDate(alba, Session.getScriptTimeZone(), 'HH:mm') : '—') + '\n' +
-    'Orario min:   ' + Utilities.formatDate(min, Session.getScriptTimeZone(), 'HH:mm') +
-    ' (' + (isFeriale_(oggi) ? 'feriale' : 'festivo/weekend') + ')'
-  );
+  try{
+    var iso  = String(getProp_('PLANTS_NEXT_ISO',''));
+    var lastMs = Number(getProp_('PLANTS_LAST_RUN_MS','0'))||0;
+    var last = lastMs ? new Date(lastMs) : null;
+    var alba = v('Stato','B3');
+    var oggi = new Date();
+    var tz   = Session.getScriptTimeZone();
+    var min  = _pianteMinTime_(oggi);
+    var msg =
+      'Prossimo: '+(iso||'(nessuno)')+' | '+
+      'Ultimo: '+(last?Utilities.formatDate(last,tz,'dd/MM HH:mm'):'mai')+' | '+
+      'Alba: '+(alba instanceof Date?Utilities.formatDate(alba,tz,'HH:mm'):'—')+' | '+
+      'Min: '+Utilities.formatDate(min,tz,'HH:mm')+
+      ' ('+(isFeriale_(oggi)?'feriale':'festivo')+')';
+    logEvent('PIANTE_DIAG', msg, '');
+    try{ SpreadsheetApp.getActiveSpreadsheet().toast(msg,'Piante diagnostica',10); }catch(_){}
+  }catch(e){ logEvent('PIANTE_DIAG_ERR',String(e),''); }
 }
 
 // ---------- Piante delayed (2min dopo abbassa_tutto post-uscita) ----------
