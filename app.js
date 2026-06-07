@@ -1,5 +1,5 @@
 // ============================================================
-// app.js — Automazione Casa · SmartThings-style v2.1
+// app.js — Automazione Casa v2.2
 // ============================================================
 'use strict';
 
@@ -59,7 +59,7 @@ function callAdmin(event, params) {
 function fetchModel() { return jsonpFetch(CONFIG.DOGET_URL); }
 function fetchLogs()  { return jsonpFetch(CONFIG.DOGET_URL + '?logs=1'); }
 
-/* ---- Weather client-side ---- */
+/* ---- Weather ---- */
 async function fetchWeatherClient() {
   const w = CONFIG.WEATHER||{}; if(!w.lat||!w.lon) return null;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=${encodeURIComponent(w.tz||'Europe/Rome')}`;
@@ -97,7 +97,6 @@ function renderWeather(w) {
   const tv=$('#temp-val'); if(tv&&w.tempC!=null)    tv.textContent=Math.round(w.tempC);
   const hv=$('#hum-val');  if(hv&&w.humidity!=null) hv.textContent=Math.round(w.humidity);
   const wv=$('#wind-val'); if(wv&&w.windKmh!=null)  wv.textContent=Math.round(w.windKmh);
-  // Pill topbar
   const pe=$('#weather-emoji');
   const pt=$('#weather-pill-temp');
   if(pe) pe.textContent = w.icon!=null ? weatherEmoji(w.icon) : (w.iconEmoji||'🌡️');
@@ -131,15 +130,6 @@ function renderFavorites(m) {
       else if(f.id==='vacanza'){ const next=!isOn; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }
       else if(f.id==='override'){ const next=!isOn; toast(next?'🛡️ Override ON':'✅ OFF'); await callAdmin('set_override',{value:String(next)}); setTimeout(loadAll,500); }
       else if(f.kind==='toggle'&&f.toggleEvent){ const next=!isOn; toast(`${f.label}: ${next?'ON':'OFF'}`); await callAdmin(f.toggleEvent,{value:String(next)}); setTimeout(loadAll,500); }
-      else if(f.id==='sonoincasa'){
-        // Manda life_ping per tutte le persone in CONFIG.PEOPLE
-        const people = CONFIG.PEOPLE || [];
-        toast('🏠 Ping presenza per ' + people.length + ' persone…');
-        for(const name of people){
-          await callAdmin('life_ping', { name });
-        }
-        setTimeout(loadAll, 800);
-      }
       else if(f.kind==='action'&&f.event){ toast(`▶️ ${f.label}…`); await callAdmin(f.event); }
     };
     card.addEventListener('click', e => { if(!e.target.closest('.fav-action')) doAction(); });
@@ -148,7 +138,6 @@ function renderFavorites(m) {
   });
 }
 
-/* ---- People chips con indicatore SSID ---- */
 function renderPeopleChips(m) {
   const host = $('#people-chips'); if(!host) return;
   host.className = 'people-chips'; host.innerHTML = '';
@@ -162,10 +151,7 @@ function renderPeopleChips(m) {
     const st = p.onlineSmart ? 'in' : 'out';
     const ini = String(p.name||'?').charAt(0).toUpperCase();
     const ago = p.lastLifeMinAgo!=null ? `${p.lastLifeMinAgo} min fa` : '—';
-    // SSID lock badge
-    const ssidBadge = p.ssidLock
-      ? '<span class="ssid-badge">📶 Wi-Fi</span>'
-      : '';
+    const ssidBadge = p.ssidLock ? '<span class="ssid-badge">📶 Wi-Fi</span>' : '';
     const chip = document.createElement('div');
     chip.className = `person-chip ${st}`;
     chip.innerHTML = `
@@ -184,9 +170,9 @@ function renderEvents(m) {
   list.innerHTML = '';
   const nx = m.next||{};
   const rows = [
-    ['Piante (alba)',         nx.pianteAlba||null],
-    ['Piante (post chiusura)',nx.piantePostClose||null],
-    ['Chiusura tardiva',      nx.lateClose||null],
+    ['Piante (alba)',          nx.pianteAlba||null],
+    ['Piante (post chiusura)', nx.piantePostClose||null],
+    ['Chiusura tardiva',       nx.lateClose||null],
   ].filter(r=>r[1]);
   if(!rows.length){ list.innerHTML='<div class="empty-state">Nessun evento programmato.</div>'; return; }
   rows.forEach(([label,val]) => {
@@ -196,12 +182,13 @@ function renderEvents(m) {
   });
 }
 
+/* ---- Devices ---- */
 function renderDevices() {
   const DEV = CONFIG.DEVICES || {};
 
-  /* ---- App links ---- */
+  /* App links */
   const appLinks = $('#app-links');
-  if (appLinks) {
+  if(appLinks) {
     appLinks.innerHTML = '';
     (DEV.APPS || []).forEach(app => {
       const card = document.createElement('a');
@@ -213,28 +200,23 @@ function renderDevices() {
           <div class="app-link-name">${app.label}</div>
           <div class="app-link-sub">${app.subtitle||''}</div>
         </div>
-        <span class="app-link-arrow">›</span>
-      `;
+        <span class="app-link-arrow">›</span>`;
       card.addEventListener('click', e => {
         e.preventDefault();
-        // Su iOS: window.location.href con URL scheme apre l'app se installata.
-        // Se l'app non è installata, la pagina rimane e dopo 2s mandiamo all'App Store.
         const fallback = app.urlFallback || app.url;
         const t = setTimeout(() => { window.location.href = fallback; }, 2000);
         window.location.href = app.url;
-        // Se l'app si apre, la pagina va in background e il timeout non scatta
-        // (oppure viene cancellato al ritorno in foreground — buon comportamento)
         document.addEventListener('visibilitychange', function cancel() {
-          if (document.hidden) { clearTimeout(t); document.removeEventListener('visibilitychange', cancel); }
+          if(document.hidden){ clearTimeout(t); document.removeEventListener('visibilitychange', cancel); }
         });
       });
       appLinks.appendChild(card);
     });
   }
 
-  /* ---- Tapparelle ---- */
+  /* Tapparelle */
   const shutterList = $('#shutter-list');
-  if (shutterList) {
+  if(shutterList) {
     shutterList.innerHTML = '';
     (DEV.SHUTTERS || []).forEach(sh => {
       const card = document.createElement('div');
@@ -249,16 +231,16 @@ function renderDevices() {
       card.querySelectorAll('.sh-btn').forEach(b => {
         b.addEventListener('click', async () => {
           toast(b.dataset.ev.startsWith('alza') ? `⬆️ ${sh.label}…` : `⬇️ ${sh.label}…`);
-          await callAdmin(b.dataset.ev, { manual: 'TRUE' });
+          await callAdmin(b.dataset.ev, { manual:'TRUE' });
         });
       });
       shutterList.appendChild(card);
     });
   }
 
-  /* ---- Termostati ---- */
+  /* Termostati */
   const thermoList = $('#thermostat-list');
-  if (thermoList) {
+  if(thermoList) {
     thermoList.innerHTML = '';
     (DEV.THERMOSTATS || []).forEach(t => {
       const card = document.createElement('div');
@@ -277,51 +259,52 @@ function renderDevices() {
     });
   }
 
-  /* ---- Telecamere ---- */
+  /* ---- Telecamere ---- 
+     CONFIG.DEVICES.CAMERAS è un array piatto di oggetti {id, label, icon, event, color}
+     Ogni oggetto ha il proprio pulsante. Lo stato visivo viene dallo stato casa. */
   const camList = $('#camera-list');
-  if (camList) {
+  if(camList) {
     camList.innerHTML = '';
-    const stato = (window._lastModel && window._lastModel.stato) || '';
-    // Deduce stato cam dallo stato casa
+    const stato    = (MODEL && MODEL.state) ? String(MODEL.state).toUpperCase() : '';
     const camIntON = stato.startsWith('SECURITY');
     const camEstON = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
 
-    const cams = DEV.CAMERAS || [];
-    const pairs = [];
-    for (let i = 0; i < cams.length; i += 2) pairs.push([cams[i], cams[i+1]]);
-    pairs.forEach(([on, off], idx) => {
-      if (!on) return;
+    (DEV.CAMERAS || []).forEach(cam => {
+      // Determina se questa cam è attiva in base all'id
+      const isOnId = cam.id.endsWith('_on');
+      const isInt  = cam.id.startsWith('int');
+      const active = isOnId ? (isInt ? camIntON : camEstON) : !(isInt ? camIntON : camEstON);
+
       const card = document.createElement('div');
-      card.className = 'shutter-card';
-      const label = on.label.replace(' ON','').replace(' ON','');
-      const isActive = idx === 0 ? camIntON : camEstON;
-      const onStyle  = isActive
-        ? 'font-size:12px;font-weight:700;background:var(--green);color:#fff;border-radius:6px;padding:4px 10px'
-        : 'font-size:12px;font-weight:700;color:var(--muted)';
-      const offStyle = !isActive
-        ? 'font-size:12px;font-weight:700;background:var(--red,#d93025);color:#fff;border-radius:6px;padding:4px 10px'
-        : 'font-size:12px;font-weight:700;color:var(--muted)';
+      card.className = 'shutter-card' + (active ? ' cam-active' : '');
       card.innerHTML = `
-        <span class="shutter-icon">${on.icon||'📷'}</span>
-        <span class="shutter-label">${label}</span>
+        <span class="shutter-icon">${cam.icon||'📷'}</span>
+        <span class="shutter-label">${cam.label}</span>
         <div class="shutter-btns">
-          <button class="sh-btn sh-on"  data-ev="${on.event}"  title="ON"  style="${onStyle}">ON</button>
-          ${off ? `<button class="sh-btn sh-off" data-ev="${off.event}" title="OFF" style="${offStyle}">OFF</button>` : ''}
+          <button class="sh-btn cam-btn ${isOnId ? 'cam-on' : 'cam-off'}"
+                  data-ev="${cam.event}"
+                  style="${active
+                    ? 'font-weight:700;background:var(--green,#1e8e3e);color:#fff;border-radius:6px;padding:4px 12px;font-size:12px'
+                    : 'font-weight:700;color:var(--muted,#888);font-size:12px'}"
+                  title="${cam.label}">
+            ${isOnId ? 'ON' : 'OFF'}
+          </button>
         </div>`;
-      card.querySelectorAll('.sh-btn').forEach(b => {
-        b.addEventListener('click', async () => {
-          const isOn = b.classList.contains('sh-on');
-          toast(`${on.icon} ${label} ${isOn ? 'ON' : 'OFF'}…`);
-          await callAdmin(b.dataset.ev);
-          setTimeout(loadAll, 800);
-        });
+      card.querySelector('.cam-btn').addEventListener('click', async () => {
+        toast(`${cam.icon} ${cam.label}…`);
+        const result = await callAdmin(cam.event);
+        if(result && result.ok === false){
+          toast('❌ Errore: ' + (result.error||'risposta non valida'));
+        } else {
+          toast(`✅ ${cam.label} inviato`);
+        }
+        setTimeout(loadAll, 1200);
       });
       camList.appendChild(card);
     });
   }
 }
 
-/* ---- People detail con SSID badge ---- */
 function renderPeopleDetail(m) {
   const list = $('#people-detail');
   if(list) {
@@ -342,7 +325,9 @@ function renderPeopleDetail(m) {
           <div class="pdc-avatar ${st}">${ini}</div>
           <div>
             <div class="pdc-name">${cap(p.name)}</div>
-            <div class="pdc-state" style="color:${st==='in'?'var(--green)':'var(--muted)'}">${st==='in'?'● In casa':'○ Fuori'} · ${ago}</div>
+            <div class="pdc-state" style="color:${st==='in'?'var(--green)':'var(--muted)'}">
+              ${st==='in'?'● In casa':'○ Fuori'} · ${ago}
+            </div>
             <div class="pdc-ssid">${ssidStatus}</div>
           </div>
         </div>
@@ -370,12 +355,12 @@ function renderPeopleDetail(m) {
   if(qa){
     qa.innerHTML='';
     [
-      {icon:'⬆️',label:'Alza tutto',    fn:async()=>{ toast('⬆️ Alzo…'); setShuttersUp(true);  await callAdmin('alza_tutto',{manual:'TRUE'}); }},
-      {icon:'⬇️',label:'Abbassa tutto', fn:async()=>{ toast('⬇️ Abbasso…'); setShuttersUp(false); await callAdmin('abbassa_tutto'); }},
-      {icon:'🌿',label:'Piante ora',    fn:async()=>{ toast('🌿 Irrigazione…'); await callAdmin('piante'); }},
-      {icon:'🏝️',label:'Toggle vacanza',fn:async()=>{ const next=!MODEL?.vacanza; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }},
+      {icon:'⬆️',label:'Alza tutto',     fn:async()=>{ toast('⬆️ Alzo…'); setShuttersUp(true);  await callAdmin('alza_tutto',{manual:'TRUE'}); }},
+      {icon:'⬇️',label:'Abbassa tutto',  fn:async()=>{ toast('⬇️ Abbasso…'); setShuttersUp(false); await callAdmin('abbassa_tutto'); }},
+      {icon:'🌿',label:'Piante ora',     fn:async()=>{ toast('🌿 Irrigazione…'); await callAdmin('piante'); }},
+      {icon:'🏝️',label:'Toggle vacanza', fn:async()=>{ const next=!MODEL?.vacanza; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }},
       {icon:'🛡️',label:'Toggle override',fn:async()=>{ const next=!MODEL?.override; toast(next?'🛡️ Override ON':'✅ OFF'); await callAdmin('set_override',{value:String(next)}); setTimeout(loadAll,500); }},
-      {icon:'🔄',label:'Aggiorna',      fn:()=>loadAll()},
+      {icon:'🔄',label:'Aggiorna',       fn:()=>loadAll()},
     ].forEach(a=>{
       const btn=document.createElement('button'); btn.className='qa-btn';
       btn.innerHTML=`<span class="qa-icon">${a.icon}</span>${a.label}`;
@@ -405,16 +390,15 @@ function renderSettings(m) {
     const tram    = m.meta?.tramontoIso? fmtTime(m.meta.tramontoIso): (m.next?.tramonto? fmtDateTime(m.next.tramonto): '—');
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
-    // Conta persone con SSID lock attivo
     const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.ssidLock).map(p=>cap(p.name)).join(', ')||'—';
     info.innerHTML=[
-      ['Stato',       stato],
-      ['Ora',         night],
-      ['Alba',        alba],
-      ['Tramonto',    tram],
-      ['Aggiornato',  updated],
-      ['Errori log',  String(errors)],
-      ['Wi-Fi lock',  ssidActive],
+      ['Stato',      stato],
+      ['Ora',        night],
+      ['Alba',       alba],
+      ['Tramonto',   tram],
+      ['Aggiornato', updated],
+      ['Errori log', String(errors)],
+      ['Wi-Fi lock', ssidActive],
     ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
   }
 }
@@ -449,18 +433,16 @@ async function loadAll() {
   try{
     const m = await fetchModel();
     MODEL = m;
+    window._lastModel = m;
     renderBanner(m); renderCards(m); renderFavorites(m);
     renderPeopleChips(m); renderEvents(m); renderDevices();
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
     const w=m.weather||{};
-    // Temperatura/umidità/vento dal backend se disponibili
     if(w.tempC!=null||w.humidity!=null) renderWeather(w);
-    // Sempre ricarica da Open-Meteo per emoji aggiornata e sync al backend
     fetchWeatherClient().then(ww => {
       if(!ww) return;
       renderWeather(ww);
-      // Sincronizza meteo al foglio per il CRUSCOTTO (fire & forget)
       try{
         const u = new URL(CONFIG.DOGET_URL);
         u.searchParams.set('event','update_weather');
@@ -490,13 +472,9 @@ function activateTab(target) {
 document.addEventListener('DOMContentLoaded', () => {
   $$('.tab').forEach(t=>t.addEventListener('click',()=>activateTab(t.dataset.target)));
   $('#btn-refresh')?.addEventListener('click',()=>{
-    // Hard reload — bypassa service worker e cache browser
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
-      });
+      navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); });
     }
-    // Forza reload senza cache
     window.location.reload(true);
   });
   $('#btn-log')?.addEventListener('click',()=>activateTab('log'));
