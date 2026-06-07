@@ -260,8 +260,7 @@ function renderDevices() {
   }
 
   /* ---- Telecamere ---- 
-     CONFIG.DEVICES.CAMERAS è un array piatto di oggetti {id, label, icon, event, color}
-     Ogni oggetto ha il proprio pulsante. Lo stato visivo viene dallo stato casa. */
+     Telecamere: 2 righe (interne/esterne), ON verde + OFF rosso sulla stessa riga */
   const camList = $('#camera-list');
   if(camList) {
     camList.innerHTML = '';
@@ -269,36 +268,49 @@ function renderDevices() {
     const camIntON = stato.startsWith('SECURITY');
     const camEstON = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
 
-    (DEV.CAMERAS || []).forEach(cam => {
-      // Determina se questa cam è attiva in base all'id
-      const isOnId = cam.id.endsWith('_on');
-      const isInt  = cam.id.startsWith('int');
-      const active = isOnId ? (isInt ? camIntON : camEstON) : !(isInt ? camIntON : camEstON);
+    // Raggruppa per prefisso: int_ e est_
+    const groups = [
+      { key:'int', icon:'📷', label:'Cam interne', isOn: camIntON },
+      { key:'est', icon:'📹', label:'Cam esterne', isOn: camEstON },
+    ];
+
+    groups.forEach(function(g) {
+      const camOn  = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_on');
+      const camOff = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_off');
+      if(!camOn || !camOff) return;
 
       const card = document.createElement('div');
-      card.className = 'shutter-card' + (active ? ' cam-active' : '');
+      card.className = 'shutter-card';
+      card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px';
       card.innerHTML = `
-        <span class="shutter-icon">${cam.icon||'📷'}</span>
-        <span class="shutter-label">${cam.label}</span>
-        <div class="shutter-btns">
-          <button class="sh-btn cam-btn ${isOnId ? 'cam-on' : 'cam-off'}"
-                  data-ev="${cam.event}"
-                  style="${active
-                    ? 'font-weight:700;background:var(--green,#1e8e3e);color:#fff;border-radius:6px;padding:4px 12px;font-size:12px'
-                    : 'font-weight:700;color:var(--muted,#888);font-size:12px'}"
-                  title="${cam.label}">
-            ${isOnId ? 'ON' : 'OFF'}
-          </button>
+        <span style="font-size:20px">${g.icon}</span>
+        <span style="flex:1;font-size:14px;font-weight:500">${g.label}</span>
+        <div style="display:flex;gap:6px">
+          <button class="cam-row-btn" data-ev="${camOn.event}" style="
+            padding:5px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:13px;
+            background:${g.isOn ? '#1e8e3e' : 'transparent'};
+            color:${g.isOn ? '#fff' : '#888'};
+            border:2px solid ${g.isOn ? '#1e8e3e' : '#555'};
+            transition:all .15s">ON</button>
+          <button class="cam-row-btn" data-ev="${camOff.event}" style="
+            padding:5px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:13px;
+            background:${!g.isOn ? '#c5221f' : 'transparent'};
+            color:${!g.isOn ? '#fff' : '#888'};
+            border:2px solid ${!g.isOn ? '#c5221f' : '#555'};
+            transition:all .15s">OFF</button>
         </div>`;
-      card.querySelector('.cam-btn').addEventListener('click', async () => {
-        toast(`${cam.icon} ${cam.label}…`);
-        const result = await callAdmin(cam.event);
-        if(result && result.ok === false){
-          toast('❌ Errore: ' + (result.error||'risposta non valida'));
-        } else {
-          toast(`✅ ${cam.label} inviato`);
-        }
-        setTimeout(loadAll, 1200);
+      card.querySelectorAll('.cam-row-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const evName = btn.dataset.ev;
+          toast(`${g.icon} ${evName.includes('on') ? 'Accendo' : 'Spengo'} ${g.label}…`);
+          const result = await callAdmin(evName);
+          if(result && result.ok === false){
+            toast('❌ Errore: ' + (result.error||'risposta non valida'));
+          } else {
+            toast(`✅ ${g.label} ${evName.includes('_on') ? 'ON' : 'OFF'}`);
+          }
+          setTimeout(loadAll, 1200);
+        });
       });
       camList.appendChild(card);
     });
@@ -482,3 +494,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if(CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadAll(); });
 });
+
