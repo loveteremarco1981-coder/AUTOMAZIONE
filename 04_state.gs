@@ -1,12 +1,12 @@
 // ============================================================
 // 04_state.gs — macchina a stati + azioni IFTTT
 // Regole tapparelle:
-//   SECURITY (casa vuota):    abbassa_tutto
-//   COMFY (casa occupata):    NON toccare tapparelle (gestite da piante/manuale)
-//   Tramonto casa vuota:      abbassa_tutto
-//   Tramonto casa occupata:   niente (aspetta 23:00 feriali / 00:00 festivi)
-//   23:00 feriali:            abbassa_tutto se casa occupata
-//   00:00 festivi/weekend:    abbassa_tutto se casa occupata
+//   SECURITY (uscita reale):      abbassa_tutto
+//   COMFY (casa occupata):        NON toccare tapparelle
+//   Tramonto casa vuota:          abbassa_tutto
+//   Tramonto casa occupata:       niente (aspetta 23:00 feriali / 00:00 festivi)
+//   23:00 feriali:                abbassa_tutto se casa occupata
+//   00:00 festivi/weekend:        abbassa_tutto se casa occupata
 // ============================================================
 
 function setState_(val){ s('Config','B1',val); }
@@ -20,21 +20,16 @@ function camsExtOn_(why){  _iftttSafe_('ezviz_esterne_on'); logEvent('CAMS_EXT_O
 function applySecurityNight(){
   camsOnBoth_('SECURITY_NIGHT');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
-  // Abbassa tapparelle solo se casa vuota (evita di abbassare se override/vacanza)
+  try{ _iftttSafe_('spegni_clima'); }catch(_){}
   try{ actLowerAll_('SECURITY_NIGHT'); }catch(_){}
-  logEvent('SECURITY_NIGHT','cams_on+termostati_off+abbassa','');
+  logEvent('SECURITY_NIGHT','cams_on+termostati_off+clima_off+abbassa','');
 }
 
-// Verifica se l'uscita è stata REALE (SSID/geofence) o solo timeout
-// Uscita reale = almeno una persona ha last_event USCITA o OUT_CONFIRMED
-// Uscita solo timeout = tutti AUTO_OUT → NON abbassare tapparelle
 function allOutByAutoTimeout_(){
   try{
     var ppl = _getAllPeopleRaw_();
     var outPpl = ppl.filter(function(p){ return !p.online; });
     if(!outPpl.length) return false;
-    // Abbassa solo se TUTTI hanno uscita reale (USCITA confermata)
-    // Se anche solo UNO e' AUTO_OUT → potrebbe essere in casa → non abbassare
     var anyAutoOut = outPpl.some(function(p){
       return String(p.lastEvent||'') === 'AUTO_OUT';
     });
@@ -46,7 +41,6 @@ function allOutByAutoTimeout_(){
   }catch(_){ return false; }
 }
 
-// ---------- Helper presenza ----------
 function everyoneOutNow_(){
   try{
     return !_getAllPeopleRaw_().some(function(p){ return p.online; });
@@ -54,22 +48,19 @@ function everyoneOutNow_(){
 }
 
 function everyoneOutWithGrace_(){
-  // Alias di everyoneOutNow_ — compatibilità
   return everyoneOutNow_();
 }
-
 
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
+  try{ _iftttSafe_('spegni_clima'); }catch(_){}
 
-  // Abbassa tapparelle SOLO se almeno una persona è uscita per SSID/geofence
-  // Se tutti OUT per timeout automatico → potrebbe essere falso negativo, non abbassare
   if(!allOutByAutoTimeout_()){
     try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
-    logEvent('SECURITY_DAY','cams_on+termostati_off+abbassa','uscita_reale');
+    logEvent('SECURITY_DAY','cams_on+termostati_off+clima_off+abbassa','uscita_reale');
 
-    // Schedula piante 2min dopo solo se abbasso
+    // Piante 2min dopo chiusura (solo di giorno)
     try{
       if(!isNight() && getPianteEnabled_()){
         ScriptApp.getProjectTriggers().forEach(function(t){
@@ -83,20 +74,20 @@ function applySecurityDay(){
       }
     }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
   } else {
-    logEvent('SECURITY_DAY','cams_on+termostati_off','timeout_only_no_abbassa');
+    logEvent('SECURITY_DAY','cams_on+termostati_off+clima_off','timeout_only_no_abbassa');
   }
 }
+
 function applyComfyDay(){
   camsAllOff_('COMFY_DAY');
   try{ _iftttSafe_('termostato_auto'); }catch(_){}
-  // NON toccare tapparelle — gestite da piante o manuale
   logEvent('COMFY_DAY','cams_off+termostati_auto','');
 }
+
 function applyComfyNight(){
   camsAllOff_('COMFY_NIGHT');
   camsExtOn_('COMFY_NIGHT');
   try{ _iftttSafe_('termostato_auto'); }catch(_){}
-  // NON toccare tapparelle
   logEvent('COMFY_NIGHT','cam_esterne_on+termostati_auto','');
 }
 
@@ -128,15 +119,13 @@ function onSunset(){
     if(isOverride_()) return;
     evaluateStateNow();
     if(isVacanza_()){
-      // In vacanza: abbassa sempre al tramonto
       actLowerAll_('tramonto_vacanza');
       logEvent('TRAMONTO','abbassa — vacanza','');
     } else if(everyoneOutWithGrace_()){
-      // Casa vuota: abbassa al tramonto
       actLowerAll_('tramonto_casa_vuota');
       logEvent('TRAMONTO','abbassa — casa vuota','');
     } else {
-      // Casa occupata: aspetta 23:00/00:00
+      // Casa occupata: NON abbassare, aspetta 23:00/00:00
       logEvent('TRAMONTO','casa occupata — aspetta 23:00/00:00','');
     }
   }catch(e){ logEvent('ERROR_SUNSET',String(e),''); }
@@ -148,15 +137,9 @@ function closeLateNight_(){
     var now = new Date();
     var h   = now.getHours();
     var feriale = isFeriale_(now);
-
-    // Feriali: chiudi alle 23:00
-    // Festivi/weekend: chiudi a mezzanotte (trigger alle 00:00)
     var isRightHour = feriale ? (h === 23) : (h === 0);
     if(!isRightHour) return;
-
     if(isOverride_() || isVacanza_()) return;
-
-    // Chiudi solo se c'è qualcuno in casa
     if(!everyoneOutNow_()){
       actLowerAll_(feriale ? 'chiusura_23:00_feriale' : 'chiusura_00:00_festivo');
       logEvent('CLOSE_LATE', feriale ? '23:00 feriale' : '00:00 festivo', 'casa occupata');
@@ -169,7 +152,6 @@ function closeLateNight_(){
 // ---------- evaluateStateNow ----------
 function evaluateStateNow(){
   try{
-    // Purga trigger KA legacy ad ogni ciclo
     try{ purgeKATriggers_(); }catch(_){}
 
     if(isOverride_()){
@@ -186,11 +168,6 @@ function evaluateStateNow(){
     var notte  = isNight();
     var giorno = !notte;
 
-    // Presenza raw
-    // PRESENZA: sorgente di verità = colonna F del foglio Persone
-    // DI GIORNO: F=IN → sei IN. Punto. Nessun ping necessario.
-    // DI NOTTE: F=IN → sei IN (sei a letto, non sei uscito)
-    // L'unico modo di diventare OUT è un segnale esplicito (ssid_off + geofence)
     var ppl = _getAllPeopleRaw_();
     var raw = ppl.some(function(p){ return p.online; });
     s('Config','B5', raw);
@@ -205,14 +182,11 @@ function evaluateStateNow(){
       if(_minutesAgo_(alba) <= getMorningHoldMin_() && prevEff && raw) eff = true;
     }
 
-    // Grace: everyoneOut con ping recente
     if(everyoneOutWithGrace_()){ eff=false; prevEff=false; }
 
-    // Presenza effettiva da colonna F
     var effReal = updatePresenceEffective_();
     if(!effReal) eff = false;
 
-    // Stato desiderato
     var desired = stato, scheduleGrace = false;
     if(vac){
       desired = notte ? 'SECURITY_NIGHT' : 'SECURITY_DAY';
@@ -243,7 +217,6 @@ function evaluateStateNow(){
       }
     }
 
-    // Applica cambio stato
     if(desired !== stato){
       setState_(desired);
       logEvent('STATE_CHANGE','->'+desired,'');
@@ -255,11 +228,9 @@ function evaluateStateNow(){
       }catch(_){}
     }
 
-    // Grace timer uscita
     if(scheduleGrace){
       var EG = getEmptyGraceMin_();
       s('Stato','B11', new Date(Date.now()+EG*60000));
-      // Elimina trigger grace precedenti prima di crearne uno nuovo
       try{
         ScriptApp.getProjectTriggers().forEach(function(t){
           if((t.getHandlerFunction?t.getHandlerFunction():'') === 'verifyHouseEmptyThenClose')
@@ -269,11 +240,11 @@ function evaluateStateNow(){
       } catch(e){ logEvent('GRACE_ERR',String(e),''); }
     }
 
-    // Impianti quando casa si svuota (solo se davvero vuota e non in grace)
     if(!vac && !eff && prevEff && !scheduleGrace){
       if(everyoneOutNow_()){
         try{ _iftttSafe_('off_termostato'); }catch(_){}
-        logEvent('VUOTA','termostati_off','');
+        try{ _iftttSafe_('spegni_clima'); }catch(_){}
+        logEvent('VUOTA','termostati_off+clima_off','');
       }
     }
 
@@ -283,7 +254,7 @@ function evaluateStateNow(){
     s('Stato','B6',  notte ? 'NOTTE' : 'GIORNO');
 
   }catch(e){ logEvent('ERROR_EVAL',String(e),''); }
-  try{ disableKAIfOut_(); }catch(_){}
+  try{ disableKAIfOut_(); }catch(_){} 
 }
 
 function verifyHouseEmptyThenClose(){
@@ -331,5 +302,4 @@ function applyPresenceDebounce_(raw){
   }
 }
 
-// Alias per trigger schedulato
 function closeShuttersAt23IfPeopleHome_(){ closeLateNight_(); }
