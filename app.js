@@ -183,7 +183,7 @@ function renderEvents(m) {
 }
 
 /* ---- Devices ---- */
-function renderDevices() {
+function renderDevices(m) {
   const DEV = CONFIG.DEVICES || {};
 
   /* App links */
@@ -259,62 +259,77 @@ function renderDevices() {
     });
   }
 
-  /* ---- Telecamere ---- 
-     Telecamere: 2 righe (interne/esterne), ON verde + OFF rosso sulla stessa riga */
+  /* ---- Telecamere ---- */
   const camList = $('#camera-list');
   if(camList) {
-    camList.innerHTML = '';
-    const stato    = (MODEL && MODEL.state) ? String(MODEL.state).toUpperCase() : '';
-    const camIntON = stato.startsWith('SECURITY');
-    const camEstON = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
-
-    // Raggruppa per prefisso: int_ e est_
-    const groups = [
-      { key:'int', icon:'📷', label:'Cam interne', isOn: camIntON },
-      { key:'est', icon:'📹', label:'Cam esterne', isOn: camEstON },
-    ];
-
-    groups.forEach(function(g) {
-      const camOn  = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_on');
-      const camOff = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_off');
-      if(!camOn || !camOff) return;
-
-      const card = document.createElement('div');
-      card.className = 'shutter-card';
-      card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px';
-      card.innerHTML = `
-        <span style="font-size:20px">${g.icon}</span>
-        <span style="flex:1;font-size:14px;font-weight:500">${g.label}</span>
-        <div style="display:flex;gap:6px">
-          <button class="cam-row-btn" data-ev="${camOn.event}" style="
-            padding:5px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:13px;
-            background:${g.isOn ? '#1e8e3e' : 'transparent'};
-            color:${g.isOn ? '#fff' : '#888'};
-            border:2px solid ${g.isOn ? '#1e8e3e' : '#555'};
-            transition:all .15s">ON</button>
-          <button class="cam-row-btn" data-ev="${camOff.event}" style="
-            padding:5px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:13px;
-            background:${!g.isOn ? '#c5221f' : 'transparent'};
-            color:${!g.isOn ? '#fff' : '#888'};
-            border:2px solid ${!g.isOn ? '#c5221f' : '#555'};
-            transition:all .15s">OFF</button>
-        </div>`;
-      card.querySelectorAll('.cam-row-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const evName = btn.dataset.ev;
-          toast(`${g.icon} ${evName.includes('on') ? 'Accendo' : 'Spengo'} ${g.label}…`);
-          const result = await callAdmin(evName);
-          if(result && result.ok === false){
-            toast('❌ Errore: ' + (result.error||'risposta non valida'));
-          } else {
-            toast(`✅ ${g.label} ${evName.includes('_on') ? 'ON' : 'OFF'}`);
-          }
-          setTimeout(loadAll, 1200);
+    // Costruisce le righe solo se non esistono ancora
+    if(!camList.dataset.built) {
+      camList.innerHTML = '';
+      const groups = [
+        { key:'int', icon:'📷', label:'Cam interne' },
+        { key:'est', icon:'📹', label:'Cam esterne' },
+      ];
+      groups.forEach(function(g) {
+        const camOn  = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_on');
+        const camOff = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_off');
+        if(!camOn || !camOff) return;
+        const card = document.createElement('div');
+        card.className = 'shutter-card';
+        card.dataset.camKey = g.key;
+        card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px';
+        card.innerHTML = `
+          <span style="font-size:20px">${g.icon}</span>
+          <span style="flex:1;font-size:14px;font-weight:500">${g.label}</span>
+          <div style="display:flex;gap:6px">
+            <button class="cam-row-btn" data-ev="${camOn.event}" data-state="on"
+              style="padding:5px 16px;border-radius:6px;border:2px solid #555;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#888;transition:all .15s">ON</button>
+            <button class="cam-row-btn" data-ev="${camOff.event}" data-state="off"
+              style="padding:5px 16px;border-radius:6px;border:2px solid #555;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#888;transition:all .15s">OFF</button>
+          </div>`;
+        card.querySelectorAll('.cam-row-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const evName = btn.dataset.ev;
+            toast(`${g.icon} ${btn.dataset.state==='on' ? 'Accendo' : 'Spengo'} ${g.label}…`);
+            const result = await callAdmin(evName);
+            if(result && result.ok === false){
+              toast('❌ Errore: ' + (result.error||''));
+            } else {
+              toast(`✅ ${g.label} ${btn.dataset.state.toUpperCase()}`);
+            }
+            setTimeout(loadAll, 1200);
+          });
         });
+        camList.appendChild(card);
       });
-      camList.appendChild(card);
-    });
+      camList.dataset.built = '1';
+    }
+    // Aggiorna colori in base allo stato passato
+    updateCamStates(m);
   }
+}
+
+function updateCamStates(m) {
+  const stato   = (m && m.state) ? String(m.state).toUpperCase() : '';
+  const intON   = stato.startsWith('SECURITY');
+  const estON   = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
+  const stateMap = { int: intON, est: estON };
+
+  $$('[data-cam-key]').forEach(card => {
+    const isOn = !!stateMap[card.dataset.camKey];
+    card.querySelectorAll('.cam-row-btn').forEach(btn => {
+      const active = btn.dataset.state === 'on' ? isOn : !isOn;
+      if(active) {
+        const bg = btn.dataset.state === 'on' ? '#1e8e3e' : '#c5221f';
+        btn.style.background = bg;
+        btn.style.color = '#fff';
+        btn.style.borderColor = bg;
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.color = '#888';
+        btn.style.borderColor = '#555';
+      }
+    });
+  });
 }
 
 function renderPeopleDetail(m) {
@@ -447,7 +462,7 @@ async function loadAll() {
     MODEL = m;
     window._lastModel = m;
     renderBanner(m); renderCards(m); renderFavorites(m);
-    renderPeopleChips(m); renderEvents(m); renderDevices();
+    renderPeopleChips(m); renderEvents(m); renderDevices(m);
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
     const w=m.weather||{};
@@ -494,4 +509,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if(CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadAll(); });
 });
+
 
