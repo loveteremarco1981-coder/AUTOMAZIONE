@@ -1,8 +1,5 @@
 // ============================================================
 // 05_endpoint.gs — doGet
-// Senza ?event= → modello completo per la webapp
-// Con ?event=xxx → comandi
-// Con ?logs=1    → ultimi 50 log
 // ============================================================
 
 function buildModel_(){
@@ -16,14 +13,11 @@ function buildModel_(){
   var nowMs = now.getTime();
   var STRICT = getStrictLifeMin_();
 
-  // Persone
   var rawPeople = _getAllPeopleRaw_();
   var people = rawPeople.map(function(p){
-    var nm         = p.name.toLowerCase();
-    var ssidLock   = hasSsidLock_(nm);
-    var lifeRecent = !!(p.lifeMs && (nowMs - p.lifeMs) <= STRICT * 60000);
-    // SSID lock o F=IN con ping recente (8h di giorno, STRICT di notte)
-    var staleMins = notte ? STRICT : 480; // giorno = 8h, notte = STRICT_LIFE
+    var nm       = p.name.toLowerCase();
+    var ssidLock = hasSsidLock_(nm);
+    var staleMins = notte ? STRICT : 480;
     var lifeOk = !!(p.lifeMs && ((nowMs - p.lifeMs) <= staleMins * 60000));
     var onlineSmart = p.online ? (ssidLock ? true : (notte ? true : lifeOk)) : false;
     var lastLifeMinAgo = p.lifeMs ? Math.round((nowMs - p.lifeMs) / 60000) : null;
@@ -33,12 +27,10 @@ function buildModel_(){
       onlineRaw:      p.online,
       lastEvent:      p.lastEvent,
       lastLifeMinAgo: lastLifeMinAgo,
-      tsText:         p.lifeDate ? Utilities.formatDate(p.lifeDate, tz, 'dd/MM HH:mm') : null,
       ssidLock:       ssidLock
     };
   });
 
-  // Meteo (letto dal foglio — opzionale, fallback a Open-Meteo lato client)
   var weather = {
     tempC:    _numSafe_(v('Config','B22'), null),
     humidity: _numSafe_(v('Config','B23'), null),
@@ -47,7 +39,6 @@ function buildModel_(){
     provider: 'Open-Meteo'
   };
 
-  // Prossimi eventi
   var pianteNext = v('Stato','B10');
   var albaDate   = v('Stato','B3');
   var tramDate   = v('Stato','B4');
@@ -59,7 +50,6 @@ function buildModel_(){
     tramonto:        (tramDate  instanceof Date) ? tramDate.toISOString() : null
   };
 
-  // Errori log
   var logErrors = 0;
   try{
     var sheet = sh('Log'), last = sheet.getLastRow();
@@ -84,7 +74,7 @@ function buildModel_(){
     meta: {
       nowIso:      now.toISOString(),
       tz:          tz,
-      version:     '2.1',
+      version:     '2.2',
       albaIso:     (albaDate instanceof Date) ? albaDate.toISOString() : null,
       tramontoIso: (tramDate  instanceof Date) ? tramDate.toISOString() : null
     }
@@ -125,8 +115,6 @@ function doGet(e){
   }
 
   try{
-
-    // Nessun event → modello webapp
     if(!ev){
       if(String(p.logs||'')==='1') return out({ logs: buildLogs_(50) });
       return out(buildModel_());
@@ -134,81 +122,78 @@ function doGet(e){
 
     if(ev==='ssid_on'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var r=ssidOn_(who,Number(p.hold||''));
+      var r = ssidOn_(who, Number(p.hold||'480'));
       try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,name:who,hold:r.hold,now:new Date().toISOString()});
+      return out({ok:true, name:who, hold:r.hold, now:new Date().toISOString()});
     }
 
     if(ev==='ssid_off'){
       if(!who) return out({ok:false,err:'missing_name'});
-      ssidOff_(who);
+      var r2 = ssidOff_(who);
       try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,name:who,guard:getExitGuardMin_(),now:new Date().toISOString()});
+      return out({ok:true, name:who, guard:r2.guard, now:new Date().toISOString()});
     }
 
     if(ev==='life_ping'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var r3=lifePingNow_(who);
+      var r3 = lifePingNow_(who);
       try{ evaluateStateNow(); }catch(_){}
       return out(r3);
     }
 
     if(ev==='mark_out'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var src=String(p.source||'').toLowerCase();
+      var src = String(p.source||'').toLowerCase();
       if(hasSsidLock_(who)){
         logEvent('OUT_SSID_LOCK',who,src);
         return out({ok:true,ignored:true,reason:'ssid_lock',now:new Date().toISOString()});
       }
       if(src==='geofence'){
-        var g=getExitGuardMin_();
-        setProp_(_pendingOutKey_(who),String(Date.now()+g*60000));
-        _ensurePendingSweep_();
+        var g = getExitGuardMin_();
+        _setPendingOut_(who, 'geofence', g);
         logEvent('OUT_PENDING','geofence','guard='+g+'m '+who);
         try{ evaluateStateNow(); }catch(_){}
         return out({ok:true,pending:true,guard:g,now:new Date().toISOString()});
       }
-      var rr=markOutNow_(who);
+      var rr = markOutNow_(who, true);
       try{ evaluateStateNow(); }catch(_){}
       return out(rr);
     }
 
     if(ev==='force_in'){
       if(!who) return out({ok:false,err:'missing_name'});
-      var fi=forceIn_(who);
+      var fi = forceIn_(who);
       try{ evaluateStateNow(); }catch(_){}
       return out(fi);
     }
 
     if(ev==='force_out'){
       if(!who) return out({ok:false,err:'missing_name'});
-      // Controlla stato attuale prima di scrivere
       var pplNow = _getAllPeopleRaw_();
       var personNow = null;
       for(var i=0;i<pplNow.length;i++){
-        if(pplNow[i].name.toLowerCase()===String(who).toLowerCase()){ personNow=pplNow[i]; break; }
+        if(pplNow[i].name.toLowerCase()===who){ personNow=pplNow[i]; break; }
       }
       var wasIn = personNow ? personNow.online : false;
-      markOutNow_(who, true); // force=true: uscita manuale dall'app
-      // Ricalcola stato solo se c'è stato un cambiamento reale
+      markOutNow_(who, true);
       if(wasIn){ try{ evaluateStateNow(); }catch(_){} }
-      return out({ok:true,name:who,changed:wasIn});
+      return out({ok:true, name:who, changed:wasIn});
     }
 
     if(ev==='set_vacanza'){
-      var next=(String(p.value||'').toUpperCase()==='TRUE'||p.value==='1');
-      s('Config','B3',next);
-      logEvent('SET_VACANZA',String(next),'');
+      var nv=(String(p.value||'').toUpperCase()==='TRUE'||p.value==='1');
+      s('Config','B3',nv);
+      logEvent('SET_VACANZA',String(nv),'');
       try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,vacanza:next});
+      return out({ok:true,vacanza:nv});
     }
 
     if(ev==='set_override'){
-      var next2=(String(p.value||'').toUpperCase()==='TRUE'||p.value==='1');
-      s('Config','B4',next2);
-      logEvent('SET_OVERRIDE',String(next2),'');
+      var no=(String(p.value||'').toUpperCase()==='TRUE'||p.value==='1');
+      s('Config','B4',no);
+      logEvent('SET_OVERRIDE',String(no),'');
       try{ evaluateStateNow(); }catch(_){}
-      return out({ok:true,override:next2});
+      return out({ok:true,override:no});
     }
 
     if(ev==='alza_tutto'){
@@ -236,30 +221,29 @@ function doGet(e){
       return out({ok:ok});
     }
 
-    // ---- Comandi IFTTT manuali dal tab Dispositivi ----
-    var iftttDirect = ['ezviz_interne_on','ezviz_interne_off',
-                       'ezviz_esterne_on','ezviz_esterne_off',
-                       'off_termostato','termostato_auto',
-                       'abbassa_tutto','alza_tutto'];
+    // Comandi IFTTT diretti dal tab Dispositivi
+    var iftttDirect = [
+      'ezviz_interne_on','ezviz_interne_off',
+      'ezviz_esterne_on','ezviz_esterne_off',
+      'off_termostato','termostato_auto',
+      'spegni_clima'
+    ];
     if(iftttDirect.indexOf(ev) >= 0){
       try{ _iftttSafe_(ev); return out({ok:true,event:ev}); }
       catch(e){ return out({ok:false,err:String(e)}); }
     }
 
-    if(ev==='diag') return out(buildModel_());
-
-    // ---- UPDATE WEATHER (dall'app, per aggiornare il CRUSCOTTO) ----
     if(ev==='update_weather'){
       try{
-        var wt = p.temp, wh = p.hum, ww = p.wind, wi = p.icon;
-        if(wt) s('Config','B22', Number(wt));
-        if(wh) s('Config','B23', Number(wh));
-        if(ww) s('Config','B24', Number(ww));
-        if(wi) s('Config','B21', String(wi));
-        s('Config','B20_ts', new Date());
+        if(p.temp) s('Config','B22', Number(p.temp));
+        if(p.hum)  s('Config','B23', Number(p.hum));
+        if(p.wind) s('Config','B24', Number(p.wind));
+        if(p.icon) s('Config','B21', String(p.icon));
         return out({ok:true});
       }catch(e){ return out({ok:false,err:String(e)}); }
     }
+
+    if(ev==='diag') return out(buildModel_());
 
     return out({ok:true,note:'unknown_event',event:ev});
 
