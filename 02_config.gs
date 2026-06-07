@@ -1,16 +1,13 @@
 // ============================================================
 // 02_config.gs — lettura centralizzata Config sheet
-// Mappa: Config!B1..B30 (stessa struttura esistente)
 // ============================================================
 
 function getCfg_(row){ return v('Config','B'+row); }
 
-// Stato / flags
 function getStatoCorrente_(){ return String(getCfg_(1)||''); }
 function isVacanza_(){ return String(getCfg_(3)).toUpperCase()==='TRUE'; }
 function isOverride_(){ return String(getCfg_(4)).toUpperCase()==='TRUE'; }
 
-// Timing (stessa posizione del vecchio codice)
 function getStrictLifeMin_(){ return _numSafe_(getCfg_(9),  20); }
 function getMorningHoldMin_(){ return _numSafe_(getCfg_(10), 30); }
 function getExitGuardMin_(){   return _numSafe_(getCfg_(12), 10); }
@@ -23,22 +20,27 @@ function getEmptyGraceMin_(){  return _numSafe_(getCfg_(18),  7); }
 function getPianteMinIntervalMin_(){ return _numSafe_(getCfg_(19),60); }
 function getPianteEnabled_(){ return String(getCfg_(20)).toUpperCase()!=='FALSE'; }
 function getAlzaCon_(){ return String(getCfg_(30)||'ARRIVO').toUpperCase(); }
-
-// NUOVO — buffer IFTTT aggiuntivo sopra LIFE_TIMEOUT (default 8 min)
-// Salvato in B25 — se vuoto usa 8
 function getIftttBufferMin_(){ return _numSafe_(getCfg_(25), 8); }
-
-// NUOVO — cooldown post-uscita configurabile (B26, default 15 min)
 function getExitCooldownMin_(){ return _numSafe_(getCfg_(26), 15); }
 
-// Notte
+// Buffer minuti dopo il tramonto prima di considerare "notte" (default 90)
+function getNightBufferMin_(){ return _numSafe_(getCfg_(27), 90); }
+
+// isNight: notte = (tramonto + buffer) oppure prima dell'alba
+// Fallback orario: 22:30 - 07:00
 function isNight(){
   try{
     var alba=v('Stato','B3'), tram=v('Stato','B4'), now=new Date();
-    if(alba instanceof Date && tram instanceof Date) return (now>=tram)||(now<alba);
+    if(alba instanceof Date && tram instanceof Date){
+      var bufMin = getNightBufferMin_();
+      var notteStart = new Date(tram.getTime() + bufMin * 60000);
+      return (now >= notteStart) || (now < alba);
+    }
   }catch(_){}
-  var h=new Date().getHours(); return (h>=22||h<8);
+  var h=new Date().getHours(), m=new Date().getMinutes();
+  return (h > 22 || (h === 22 && m >= 30) || h < 7);
 }
+
 function isQuietHours_(d){
   d=d||new Date(); var h=d.getHours(); return (h>=22||h<8);
 }
