@@ -1,14 +1,9 @@
 // ============================================================
-// 03_people.gs — PRESENZA SEMPLIFICATA E BLINDATA
-//
-// REGOLE:
-//   IN  = ssid_on ricevuto (lock attivo per 8h)
-//         o morningKeepAlive alle 6:30
-//   OUT = ssid_off confermato (nessun ricollegamento in EXIT_GUARD min)
-//         o geofence uscita confermata
-//         o force_out manuale
-//   MAI auto-out durante il giorno per timeout
-//   Di notte: auto-out solo dopo 8h di silenzio completo
+// 03_people.gs — PRESENZA SEMPLIFICATA
+// IN  = ssid_on ricevuto (lock 8h)
+// OUT = ssid_off confermato (guard 20m) o geofence o force_out
+// MAI auto-out di giorno per timeout
+// Di notte: auto-out solo dopo 8h di silenzio assoluto
 // ============================================================
 
 // ---------- SSID lock ----------
@@ -16,46 +11,44 @@ function _ssidKey_(nm){ return 'SSID_LOCK_'+String(nm||'').toUpperCase(); }
 function _ssidUntil_(nm){ return Number(getProp_(_ssidKey_(nm),'0'))||0; }
 
 function ssidOn_(nm, holdMin){
-  var hold = Number(holdMin)||480; // default 8h
+  var hold = Number(holdMin)||480;
   var until = Date.now() + hold*60000;
   setProp_(_ssidKey_(nm), String(until));
-  _clearPendingOut_(nm); // annulla eventuale pending OUT residuo
+  _clearPendingOut_(nm);
   setPersonIn_(nm, 'SSID_ON');
   logEvent('SSID_ON', nm, 'hold='+hold+'m');
-  return true;
+  return {ok:true, hold:hold, until:until};
 }
 
 function ssidOff_(nm){
   var guard = getExitGuardMin_();
   _setPendingOut_(nm, 'ssid_off', guard);
   logEvent('SSID_OFF', nm, 'guard='+guard+'m');
+  return {ok:true, guard:guard};
 }
 
 function hasSsidLock_(nm){
   var until = _ssidUntil_(nm);
   if(!until) return false;
   if(Date.now() <= until) return true;
-  // Scaduto — pulisci
   setProp_(_ssidKey_(nm), '0');
   return false;
 }
 
 // ---------- Pending OUT ----------
 function _pendingKey_(nm){ return 'PENDING_OUT_'+String(nm||'').toUpperCase(); }
+function _pendingOutKey_(nm){ return _pendingKey_(nm); }
 
 function _setPendingOut_(nm, source, guardMin){
   var fireAt = Date.now() + (Number(guardMin)||20)*60000;
-  setProp_(_pendingKey_(nm), JSON.stringify({
-    fireAt: fireAt,
-    source: String(source||'')
-  }));
+  setProp_(_pendingKey_(nm), JSON.stringify({ fireAt:fireAt, source:String(source||'') }));
 }
 
 function _clearPendingOut_(nm){
   setProp_(_pendingKey_(nm), '');
 }
 
-// Sweep ogni 5 min — conferma OUT se il pending è scaduto
+// Sweep ogni 5 min
 function pendingOutSweep_(){
   try{
     var ppl = _getAllPeopleRaw_();
@@ -67,14 +60,11 @@ function pendingOutSweep_(){
       var pending;
       try{ pending = JSON.parse(raw); }catch(_){ return; }
       if(!pending || !pending.fireAt) return;
-
-      // Se si è riconnesso nel frattempo → annulla
       if(hasSsidLock_(nm)){
         _clearPendingOut_(nm);
         logEvent('OUT_PENDING_ABORT','ssid_reconnected',nm);
         return;
       }
-      // Scaduto → conferma OUT
       if(now >= pending.fireAt){
         _clearPendingOut_(nm);
         markOutNow_(nm, true);
@@ -92,15 +82,14 @@ function markInNow_(nm, source){
 }
 
 function markOutNow_(nm, force){
-  // Di giorno: blocca auto-out a meno che non sia un'uscita reale (force=true)
-  // Questo impedisce a qualsiasi vecchio trigger KA di segnare OUT di giorno
   if(!force && !isNight()){
-    logEvent('OUT_BLOCKED', nm, 'bloccato di giorno - usa force=true per uscita reale');
-    return;
+    logEvent('OUT_BLOCKED', nm, 'bloccato di giorno - usa force=true');
+    return {ok:false, blocked:true};
   }
   setPersonOut_(nm, 'USCITA');
   setProp_(_ssidKey_(nm), '0');
   _clearPendingOut_(nm);
+  return {ok:true};
 }
 
 function markAutoOut_(nm){
@@ -110,45 +99,36 @@ function markAutoOut_(nm){
   logEvent('AUTO_OUT', 'timeout', nm);
 }
 
-// Geofence uscita
 function markOut_geofence_(nm){
   if(hasSsidLock_(nm)){
-    // SSID ancora attivo → non uscire subito, metti pending breve
     _setPendingOut_(nm, 'geofence', getExitGuardMin_());
     logEvent('OUT_PENDING','geofence','guard='+getExitGuardMin_()+'m '+nm);
   } else {
-    // Nessun lock → OUT immediato
     markOutNow_(nm, true);
     logEvent('OUT','geofence',nm);
     try{ evaluateStateNow(); }catch(_){}
   }
 }
 
-// ---------- Auto-OUT (solo casi estremi) ----------
+// ---------- Auto-OUT di notte ----------
 function autoOutByLifeTimeout_(){
   try{
+    if(!isNight()) return;
     var now = Date.now();
-    var night = isNight();
-
-    // DI GIORNO: mai auto-out (SSID e geofence pensano a tutto)
-    // DI NOTTE: auto-out solo dopo 8h di silenzio assoluto
-    if(!night) return;
-
     var ppl = _getAllPeopleRaw_();
     ppl.forEach(function(p){
       if(!p.online) return;
       if(hasSsidLock_(p.name.toLowerCase())) return;
       if(!p.lifeMs) return;
       var ageMin = (now - p.lifeMs) / 60000;
-      if(ageMin >= 480){ // 8h di notte = dormiva fuori casa
+      if(ageMin >= 480){
         markAutoOut_(p.name.toLowerCase());
       }
     });
   }catch(e){ logEvent('AUTO_OUT_ERR',String(e),''); }
 }
 
-// ---------- Morning KeepAlive (6:30) ----------
-// Mantiene IN chi era IN ieri (ha SSID lock o era online)
+// ---------- morningKeepAlive (opzionale, conservato per compatibilità) ----------
 function morningKeepAlive_(){
   try{
     var ppl = _getAllPeopleRaw_();
@@ -156,7 +136,6 @@ function morningKeepAlive_(){
     ppl.forEach(function(p){
       var nm = p.name.toLowerCase();
       if(hasSsidLock_(nm)){
-        // Rinnova il lock per 8h
         var until = Date.now() + 480*60000;
         setProp_(_ssidKey_(nm), String(until));
         setPersonIn_(nm, 'MORNING_KA');
@@ -168,7 +147,7 @@ function morningKeepAlive_(){
   }catch(e){ logEvent('MORNING_KA_ERR',String(e),''); }
 }
 
-// ---------- lifePingNow_ — aggiorna last_life senza cambiare stato OUT/IN ----------
+// ---------- lifePingNow_ ----------
 function lifePingNow_(nm){
   try{
     var name = String(nm||'').toLowerCase();
@@ -178,9 +157,8 @@ function lifePingNow_(nm){
     for(var i=0; i<rows.length; i++){
       if(String(rows[i][0]||'').trim().toLowerCase() === name){
         var now = new Date();
-        P.getRange(2+i,3).setValue(now); // last_life_raw
-        P.getRange(2+i,5).setValue(now); // last_life_dt
-        // Se era OUT → lo rimette IN (ping = sei qui)
+        P.getRange(2+i,3).setValue(now);
+        P.getRange(2+i,5).setValue(now);
         var online = String(P.getRange(2+i,6).getValue()||'').toUpperCase();
         if(online !== 'IN'){
           P.getRange(2+i,4).setValue('ARRIVO');
@@ -246,33 +224,27 @@ function _getAllPeopleRaw_(){
   }catch(e){logEvent('PPL_ERR',String(e),'');return[];}
 }
 
-// ---------- Keepalive KA trigger ----------
-function disableKAIfOut_(){ /* gestito da morningKeepAlive_ */ }
-
-// ============================================================
-// ALIAS — compatibilità con endpoint e vecchio codice
-// ============================================================
-function forceIn_(nm)   {
+// ---------- Alias e compatibilità ----------
+function forceIn_(nm){
   var name = String(nm||'').toLowerCase();
-  ssidOn_(name, 480);          // SSID lock 8h + F=IN
-  _clearPendingOut_(name);     // cancella qualsiasi pending OUT
+  var res = ssidOn_(name, 480);
+  _clearPendingOut_(name);
   logEvent('FORCE_IN', name, 'ssid_lock+clear_pending');
+  return {ok:true, name:name};
 }
-function forceOut_(nm)  { markOutNow_(nm, true); logEvent('FORCE_OUT', nm, ''); }
-function _pendingOutKey_(nm){ return _pendingKey_(nm); }
-function _ensurePendingSweep_(){}  // gestito da trigger
+function forceOut_(nm){ var r=markOutNow_(nm, true); logEvent('FORCE_OUT', nm, ''); return r; }
+function disableKAIfOut_(){ }
+function _ensurePendingSweep_(){}
 function everyoneOutNow_(){
   try{ return !_getAllPeopleRaw_().some(function(p){ return p.online; }); }
   catch(_){ return false; }
 }
 function everyoneOutWithGrace_(){ return everyoneOutNow_(); }
 
-// Pulisce tutti i trigger KA legacy (vecchio sistema keepalive per persona)
 function purgeKATriggers_(){
   try{
     ScriptApp.getProjectTriggers().forEach(function(t){
       var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
-      // Vecchi trigger KA avevano nomi tipo: keepalivePing_, checkKA_, kaTimer_
       if(/^(ka|KA|keepalive|checkKA|kaTimer|kaOff|kaCheck)/i.test(fn) ||
          fn.indexOf('keepalive') >= 0 || fn.indexOf('Keepalive') >= 0){
         ScriptApp.deleteTrigger(t);
@@ -281,3 +253,11 @@ function purgeKATriggers_(){
     });
   }catch(e){ logEvent('KA_PURGE_ERR', String(e), ''); }
 }
+
+// Cooldown helpers (usati da 09_menu diagnostica)
+function getCooldown_(nm){ return Number(getProp_('COOLDOWN_'+String(nm).toUpperCase(),'0'))||0; }
+function setCooldown_(nm,until){ setProp_('COOLDOWN_'+String(nm).toUpperCase(),String(until)); }
+function clearCooldown_(nm){ setProp_('COOLDOWN_'+String(nm).toUpperCase(),'0'); }
+
+// getPeople_ alias usato da 09_menu
+function getPeople_(){ return { people: _getAllPeopleRaw_() }; }
