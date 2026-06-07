@@ -41,15 +41,6 @@ function allOutByAutoTimeout_(){
   }catch(_){ return false; }
 }
 
-function everyoneOutNow_(){
-  try{
-    return !_getAllPeopleRaw_().some(function(p){ return p.online; });
-  }catch(_){ return false; }
-}
-
-function everyoneOutWithGrace_(){
-  return everyoneOutNow_();
-}
 
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
