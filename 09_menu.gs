@@ -46,7 +46,7 @@ function _menuForceOutPrompt_(){
   var r=ui.prompt('FORZA OUT','Nome:',ui.ButtonSet.OK_CANCEL);
   if(r.getSelectedButton()!==ui.Button.OK)return;
   var who=String(r.getResponseText()||'').trim().toLowerCase();
-  try{ var res=markOutNow_(who); evaluateStateNow(); ui.alert('FORZA OUT ('+who+'): '+(res&&res.ok?'OK':'KO')); }
+  try{ var res=markOutNow_(who,true); evaluateStateNow(); ui.alert('FORZA OUT ('+who+'): '+(res&&res.ok?'OK':'KO')); }
   catch(e){ ui.alert('ERR: '+e); }
 }
 
@@ -59,7 +59,6 @@ function _menuLowerNow_(){
   catch(e){ SpreadsheetApp.getUi().alert('ABBASSA ERR: '+e); }
 }
 
-// ---------- Cooldown diagnostica ----------
 function diag_listTriggers_(){
   var ts=ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction?t.getHandlerFunction():'?'; });
   SpreadsheetApp.getUi().alert('Trigger attivi ('+ts.length+'):\n\n'+(ts.length?ts.join('\n'):'(nessuno)'));
@@ -71,7 +70,7 @@ function diag_showCooldownPrompt_(){
   if(r.getSelectedButton()!==ui.Button.OK)return;
   var nm=String(r.getResponseText()||'').trim().toLowerCase();
   var until=getCooldown_(nm);
-  ui.alert('Cooldown '+nm+':\n'+(until?('fino al '+new Date(until).toISOString()):'(nessuno)')+'\nOra: '+new Date().toISOString());
+  ui.alert('Cooldown '+nm+':\n'+(until?('fino al '+new Date(until).toISOString()):'(nessuno)')+'\\nOra: '+new Date().toISOString());
 }
 function diag_clearCooldownPrompt_(){
   var ui=SpreadsheetApp.getUi();
@@ -94,29 +93,33 @@ function diag_setCooldownPrompt_(){
   ui.alert('Cooldown '+nm+': '+new Date(until).toISOString());
 }
 
-// ---------- Test completo ----------
 function diag_fullSystemTest_(){
   var ui=SpreadsheetApp.getUi();
   try{
     var ppl=getPeople_().people||[];
-    var pplStr=ppl.map(function(p){ return p.name+':'+(p.online?'IN':'OUT')+(p.tsText?' ('+p.tsText+')':''); }).join('\n  ');
+    var pplStr=ppl.map(function(p){
+      return p.name+':'+(p.online?'IN':'OUT')+
+        (hasSsidLock_(p.name.toLowerCase())?' [SSID]':'')+
+        (p.lifeMs?' ping '+Math.round((Date.now()-p.lifeMs)/60000)+'m fa':'');
+    }).join('\n  ');
     var ts=ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction?t.getHandlerFunction():'?'; });
+    var alba=v('Stato','B3'), tram=v('Stato','B4');
+    var tz=Session.getScriptTimeZone();
     var msg=
       '=== STATO SISTEMA ===\n'+
       'Ora: '+new Date().toISOString()+'\n'+
+      'isNight: '+(isNight()?'SI':'NO')+'\n'+
       'Profilo: '+getStatoCorrente_()+'\n'+
-      'Notte: '+(isNight()?'SI':'NO')+'\n'+
       'Vacanza: '+(isVacanza_()?'SI':'NO')+'\n'+
-      'Override: '+(isOverride_()?'SI (ATTENZIONE!)':'NO')+'\n'+
-      'Presenza eff: '+(v('Config','B6')?'SI':'NO')+'\n\n'+
+      'Override: '+(isOverride_()?'SI ⚠️':'NO')+'\n'+
+      'Presenza eff: '+(v('Config','B6')?'SI':'NO')+'\n'+
+      'Alba: '+(alba instanceof Date?Utilities.formatDate(alba,tz,'HH:mm'):'—')+
+      '  Tramonto: '+(tram instanceof Date?Utilities.formatDate(tram,tz,'HH:mm'):'—')+'\n'+
+      'Night buffer: '+getNightBufferMin_()+'min\n\n'+
       'Persone ('+ppl.length+'):\n  '+pplStr+'\n\n'+
-      'Trigger attivi ('+ts.length+'):\n  '+ts.join('\n  ')+'\n\n'+
-      'STRICT_LIFE: '+getStrictLifeMin_()+'m\n'+
-      'LIFE_TIMEOUT: '+getLifeTimeoutMin_()+'m + buffer '+getIftttBufferMin_()+'m\n'+
-      'EXIT_COOLDOWN: '+getExitCooldownMin_()+'m\n'+
-      'EXIT_GUARD: '+getExitGuardMin_()+'m';
+      'Trigger attivi ('+ts.length+'):\n  '+ts.join('\n  ');
     ui.alert(msg);
-    logEvent('DIAG_FULL','ok',msg.substring(0,200));
+    logEvent('DIAG_FULL','ok','');
   }catch(e){ ui.alert('DIAG ERR: '+e); }
 }
 
@@ -124,19 +127,18 @@ function menuShowUtilityLegend_(){
   SpreadsheetApp.getUi().alert(
     "LEGENDA MENU UTILITY\n\n"+
     "• Purge + Ensure + Eval → Reset completo trigger + eval immediata\n"+
-    "• FORZA IN → Simula arrivo manuale\n"+
-    "• FORZA OUT → Simula uscita manuale con cooldown\n"+
+    "• FORZA IN → ssid_on 8h + clear pending\n"+
+    "• FORZA OUT → uscita manuale force=true\n"+
     "• ALZA/ABBASSA ora → Tapparelle immediate\n"+
     "• PIANTE → Avvia/annulla/diagnostica irrigazione\n"+
-    "• Cooldown → Mostra/azzera/imposta cooldown per nome\n"+
+    "• Cooldown → Mostra/azzera/imposta cooldown\n"+
     "• Diagnostica completa → Snapshot stato + persone + trigger\n\n"+
     "PARAMETRI CHIAVE (Config sheet):\n"+
-    "B9  = STRICT_LIFE_MIN (ping recente per considerarsi IN di giorno)\n"+
-    "B12 = EXIT_GUARD_MIN (delay dopo SSID OFF prima di OUT)\n"+
-    "B13 = EXIT_CONFIRM_MIN (se ping recente annulla pending OUT)\n"+
-    "B15 = LIFE_TIMEOUT_MIN (timeout life ping → auto OUT)\n"+
-    "B25 = IFTTT_BUFFER_MIN (buffer extra su timeout, default 8)\n"+
-    "B26 = EXIT_COOLDOWN_MIN (cooldown post-uscita, default 15)\n"+
+    "B9  = STRICT_LIFE_MIN\n"+
+    "B12 = EXIT_GUARD_MIN (guard dopo SSID OFF)\n"+
+    "B15 = LIFE_TIMEOUT_MIN\n"+
+    "B26 = EXIT_COOLDOWN_MIN\n"+
+    "B27 = NIGHT_BUFFER_MIN (buffer tramonto→notte, default 90)\n"+
     "B30 = ALZA_CON (ARRIVO/PIANTE/MAI)"
   );
 }
