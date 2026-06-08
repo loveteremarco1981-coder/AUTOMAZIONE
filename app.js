@@ -289,14 +289,22 @@ function renderDevices(m) {
         card.querySelectorAll('.cam-row-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
             const evName = btn.dataset.ev;
-            toast(`${g.icon} ${btn.dataset.state==='on' ? 'Accendo' : 'Spengo'} ${g.label}…`);
+            const isOn = btn.dataset.state === 'on';
+            toast(`${g.icon} ${isOn ? 'Accendo' : 'Spengo'} ${g.label}…`);
+            // Aggiorna colore subito (ottimistico)
+            card.querySelectorAll('.cam-row-btn').forEach(b => {
+              const bOn = b.dataset.state === 'on';
+              const active = bOn ? isOn : !isOn;
+              if(active){ const bg=bOn?'#1e8e3e':'#c5221f'; b.style.background=bg; b.style.color='#fff'; b.style.borderColor=bg; }
+              else { b.style.background='transparent'; b.style.color='#888'; b.style.borderColor='#555'; }
+            });
             const result = await callAdmin(evName);
             if(result && result.ok === false){
               toast('❌ Errore: ' + (result.error||''));
+              setTimeout(loadAll, 500); // ricarica per ripristinare stato reale
             } else {
               toast(`✅ ${g.label} ${btn.dataset.state.toUpperCase()}`);
             }
-            setTimeout(loadAll, 1200);
           });
         });
         camList.appendChild(card);
@@ -509,5 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadAll(); });
 });
+
 
 
