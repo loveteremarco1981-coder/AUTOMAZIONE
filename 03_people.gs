@@ -1,122 +1,85 @@
-// ============================================================
-// 03_people.gs — PRESENZA SOLO DA 3 SHORTCUT iOS
-// ssid_on  → IN (lock 8h)
-// ssid_off → pending OUT (guard 20min)
-// geofence → pending OUT (guard 20min)
-// force_in / force_out → override manuale
-// NON ESISTE auto-out per timeout — mai, né di giorno né di notte
-// ============================================================
+// 03_people.gs — PRESENZA: SOLO 3 SHORTCUT iOS
+// ssid_on  → IN immediato
+// ssid_off → OUT dopo guard (20min default)
+// geofence → OUT dopo guard
+// Nessun KA, nessun timeout, nessun debounce, nessun grace
 
-// ---------- SSID lock ----------
 function _ssidKey_(nm){ return 'SSID_LOCK_'+String(nm||'').toUpperCase(); }
-function _ssidUntil_(nm){ return Number(getProp_(_ssidKey_(nm),'0'))||0; }
+function _pendingKey_(nm){ return 'PENDING_OUT_'+String(nm||'').toUpperCase(); }
+
+function hasSsidLock_(nm){
+  var until = Number(getProp_(_ssidKey_(nm),'0'))||0;
+  return until > 0 && Date.now() <= until;
+}
 
 function ssidOn_(nm, holdMin){
   var hold = Number(holdMin)||480;
-  var until = Date.now() + hold*60000;
-  setProp_(_ssidKey_(nm), String(until));
-  _clearPendingOut_(nm);
+  setProp_(_ssidKey_(nm), String(Date.now() + hold*60000));
+  setProp_(_pendingKey_(nm), '');
   setPersonIn_(nm, 'SSID_ON');
-  logEvent('SSID_ON', nm, 'hold='+hold+'m');
-  return {ok:true, hold:hold, until:until};
+  return {ok:true, hold:hold};
 }
 
 function ssidOff_(nm){
   var guard = getExitGuardMin_();
-  _setPendingOut_(nm, 'ssid_off', guard);
-  logEvent('SSID_OFF', nm, 'guard='+guard+'m pending');
+  setProp_(_pendingKey_(nm), JSON.stringify({fireAt: Date.now()+guard*60000, src:'ssid_off'}));
+  logEvent('SSID_OFF', nm, 'guard='+guard+'m');
   return {ok:true, guard:guard};
 }
 
-function hasSsidLock_(nm){
-  var until = _ssidUntil_(nm);
-  if(!until) return false;
-  if(Date.now() <= until) return true;
-  setProp_(_ssidKey_(nm), '0');
-  return false;
+function markOut_geofence_(nm){
+  var guard = getExitGuardMin_();
+  setProp_(_pendingKey_(nm), JSON.stringify({fireAt: Date.now()+guard*60000, src:'geofence'}));
+  logEvent('GEO_OUT', nm, 'guard='+guard+'m');
 }
 
-// ---------- Pending OUT ----------
-function _pendingKey_(nm){ return 'PENDING_OUT_'+String(nm||'').toUpperCase(); }
-
-function _setPendingOut_(nm, source, guardMin){
-  var fireAt = Date.now() + (Number(guardMin)||20)*60000;
-  setProp_(_pendingKey_(nm), JSON.stringify({fireAt:fireAt, source:String(source||'')}));
-}
-
-function _clearPendingOut_(nm){
-  setProp_(_pendingKey_(nm), '');
-}
-
-// Sweep ogni 5 min — conferma OUT solo dopo guard
+// Sweep ogni 5min: conferma OUT dopo guard solo se ssid_on non è arrivato
 function pendingOutSweep_(){
   try{
-    var ppl = _getAllPeopleRaw_();
-    var now = Date.now();
-    var changed = false;
-    ppl.forEach(function(p){
+    var now = Date.now(), changed = false;
+    _getAllPeopleRaw_().forEach(function(p){
       var nm = p.name.toLowerCase();
       var raw = getProp_(_pendingKey_(nm),'');
       if(!raw) return;
-      var pending;
-      try{ pending = JSON.parse(raw); }catch(_){ return; }
-      if(!pending || !pending.fireAt) return;
-      // Se nel frattempo è arrivato ssid_on → annulla
+      var pend; try{ pend=JSON.parse(raw); }catch(_){ return; }
+      if(!pend || !pend.fireAt) return;
       if(hasSsidLock_(nm)){
-        _clearPendingOut_(nm);
-        logEvent('OUT_ABORT', nm, 'ssid_on ricevuto durante guard');
-        return;
+        setProp_(_pendingKey_(nm),'');
+        logEvent('OUT_ABORT', nm, 'ssid_on durante guard'); return;
       }
-      if(now >= pending.fireAt){
-        _clearPendingOut_(nm);
-        setPersonOut_(nm, 'USCITA');
-        setProp_(_ssidKey_(nm), '0');
-        logEvent('OUT_CONFIRMED', nm, 'dopo guard '+pending.source);
+      if(now >= pend.fireAt){
+        setProp_(_pendingKey_(nm),'');
+        setProp_(_ssidKey_(nm),'0');
+        setPersonOut_(nm,'USCITA');
+        logEvent('OUT_OK', nm, pend.src||'');
         changed = true;
       }
     });
-    if(changed){ try{ evaluateStateNow(); }catch(_){} }
+    if(changed) evaluateStateNow();
   }catch(e){ logEvent('SWEEP_ERR',String(e),''); }
 }
 
-// ---------- Segnali presenza ----------
-function markInNow_(nm, source){
-  _clearPendingOut_(nm);
-  setPersonIn_(nm, source||'IN');
-  logEvent('ARRIVO', nm, source||'');
+function forceIn_(nm){
+  var n=String(nm||'').toLowerCase();
+  setProp_(_ssidKey_(n), String(Date.now()+480*60000));
+  setProp_(_pendingKey_(n),'');
+  setPersonIn_(n,'FORCE_IN');
+  logEvent('FORCE_IN',n,'');
+  return {ok:true,name:n};
 }
 
-function markOutNow_(nm, force){
-  // Di giorno blocca sempre tranne force=true
-  if(!force && !isNight()){
-    logEvent('OUT_BLOCKED', nm, 'giorno senza force');
-    return {ok:false, blocked:true};
-  }
-  setPersonOut_(nm, 'USCITA');
-  setProp_(_ssidKey_(nm), '0');
-  _clearPendingOut_(nm);
+function forceOut_(nm){
+  var n=String(nm||'').toLowerCase();
+  setProp_(_ssidKey_(n),'0');
+  setProp_(_pendingKey_(n),'');
+  setPersonOut_(n,'FORCE_OUT');
+  logEvent('FORCE_OUT',n,'');
   return {ok:true};
 }
 
-function markOut_geofence_(nm){
-  if(hasSsidLock_(nm)){
-    _setPendingOut_(nm, 'geofence', getExitGuardMin_());
-    logEvent('OUT_PENDING','geofence+ssid','guard='+getExitGuardMin_()+'m '+nm);
-  } else {
-    _setPendingOut_(nm, 'geofence', getExitGuardMin_());
-    logEvent('OUT_PENDING','geofence','guard='+getExitGuardMin_()+'m '+nm);
-  }
-}
-
-// ---------- AUTO-OUT DISABILITATO ----------
-// Non esiste più auto-out per timeout — stub vuoto
-function autoOutByLifeTimeout_(){ /* DISABILITATO */ }
-function morningKeepAlive_(){ /* DISABILITATO */ }
-
-// ---------- Helpers foglio Persone ----------
-function setPersonIn_(nm, evt){
+function setPersonIn_(nm,evt){
   try{
-    var P=sh('Persone'), last=P.getLastRow(); if(last<2)return;
+    var P=sh('Persone'),last=P.getLastRow(); if(last<2)return;
     var rows=P.getRange(2,1,last-1,1).getValues();
     for(var i=0;i<rows.length;i++){
       if(String(rows[i][0]||'').trim().toLowerCase()===String(nm).toLowerCase()){
@@ -131,9 +94,9 @@ function setPersonIn_(nm, evt){
   }catch(e){ logEvent('SET_IN_ERR',String(e),nm); }
 }
 
-function setPersonOut_(nm, evt){
+function setPersonOut_(nm,evt){
   try{
-    var P=sh('Persone'), last=P.getLastRow(); if(last<2)return;
+    var P=sh('Persone'),last=P.getLastRow(); if(last<2)return;
     var rows=P.getRange(2,1,last-1,1).getValues();
     for(var i=0;i<rows.length;i++){
       if(String(rows[i][0]||'').trim().toLowerCase()===String(nm).toLowerCase()){
@@ -147,67 +110,41 @@ function setPersonOut_(nm, evt){
 
 function _getAllPeopleRaw_(){
   try{
-    var P=sh('Persone'), last=P.getLastRow();
-    if(last<2) return [];
+    var P=sh('Persone'),last=P.getLastRow();
+    if(last<2)return[];
     var rows=P.getRange(2,1,last-1,7).getValues();
-    return rows.filter(function(r){ return String(r[0]||'').trim(); }).map(function(r){
-      var lifeVal=r[2], lifeMs=null;
-      if(lifeVal instanceof Date) lifeMs=lifeVal.getTime();
-      else if(lifeVal){ var d=new Date(lifeVal); if(!isNaN(d)) lifeMs=d.getTime(); }
-      return {
-        name:      String(r[0]||'').trim(),
-        online:    String(r[5]||'').toUpperCase()==='IN',
-        lastEvent: String(r[3]||''),
-        lifeMs:    lifeMs,
-        ka:        Number(r[6])||0
-      };
+    return rows.filter(function(r){return String(r[0]||'').trim();}).map(function(r){
+      var lm=null;
+      if(r[2] instanceof Date)lm=r[2].getTime();
+      else if(r[2]){var d=new Date(r[2]);if(!isNaN(d))lm=d.getTime();}
+      return{name:String(r[0]||'').trim(),online:String(r[5]||'').toUpperCase()==='IN',lastEvent:String(r[3]||''),lifeMs:lm};
     });
-  }catch(e){ logEvent('PPL_ERR',String(e),''); return []; }
+  }catch(e){logEvent('PPL_ERR',String(e),'');return[];}
 }
 
-// ---------- Presenza: IN se colonna F = IN ----------
 function everyoneOutNow_(){
-  try{ return !_getAllPeopleRaw_().some(function(p){ return p.online; }); }
-  catch(_){ return false; }
+  try{return!_getAllPeopleRaw_().some(function(p){return p.online;});}catch(_){return false;}
 }
 function everyoneOutWithGrace_(){ return everyoneOutNow_(); }
 
-// ---------- Force in/out ----------
-function forceIn_(nm){
-  var name = String(nm||'').toLowerCase();
-  ssidOn_(name, 480);
-  logEvent('FORCE_IN', name, 'ssid_lock 8h');
-  return {ok:true, name:name};
-}
-function forceOut_(nm){
-  var name = String(nm||'').toLowerCase();
-  setPersonOut_(name, 'FORCE_OUT');
-  setProp_(_ssidKey_(name), '0');
-  _clearPendingOut_(name);
-  logEvent('FORCE_OUT', name, '');
-  return {ok:true};
-}
-
-// ---------- Purge trigger KA legacy ----------
+// STUB — rimasti per compatibilità con chiamate sparse
+function autoOutByLifeTimeout_(){}
+function morningKeepAlive_(){}
+function lifePingNow_(nm){return{ok:false,err:'disabled'};}
+function disableKAIfOut_(){}
 function purgeKATriggers_(){
   try{
     ScriptApp.getProjectTriggers().forEach(function(t){
-      var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+      var fn=t.getHandlerFunction?t.getHandlerFunction():'';
       if(/ka|keepalive|morning_ka|kaoff|katrg/i.test(fn)){
         ScriptApp.deleteTrigger(t);
-        logEvent('KA_PURGE', fn, 'rimosso');
+        logEvent('KA_PURGE',fn,'rimosso');
       }
     });
-  }catch(e){ logEvent('KA_PURGE_ERR',String(e),''); }
+  }catch(e){logEvent('KA_PURGE_ERR',String(e),'');}
 }
-
-// ---------- lifePingNow_ (stub — non usato ma richiamato da endpoint legacy) ----------
-function lifePingNow_(nm){ return {ok:false, err:'life_ping_disabled'}; }
-
-// ---------- Alias ----------
-function disableKAIfOut_(){ }
-function _ensurePendingSweep_(){}
-function getPeople_(){ return {people: _getAllPeopleRaw_()}; }
-function getCooldown_(nm){ return Number(getProp_('COOLDOWN_'+String(nm).toUpperCase(),'0'))||0; }
-function setCooldown_(nm,until){ setProp_('COOLDOWN_'+String(nm).toUpperCase(),String(until)); }
-function clearCooldown_(nm){ setProp_('COOLDOWN_'+String(nm).toUpperCase(),'0'); }
+function applyPresenceDebounce_(raw){return{reported:!!raw};}
+function getPeople_(){return{people:_getAllPeopleRaw_()};}
+function getCooldown_(nm){return Number(getProp_('CD_'+String(nm).toUpperCase(),'0'))||0;}
+function setCooldown_(nm,u){setProp_('CD_'+String(nm).toUpperCase(),String(u));}
+function clearCooldown_(nm){setProp_('CD_'+String(nm).toUpperCase(),'0');}
