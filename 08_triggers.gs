@@ -17,11 +17,6 @@ function ensureTriggers(){
     ScriptApp.newTrigger('evaluateStateNow').timeBased().everyMinutes(5).create();
   },'evaluateStateNow 5m');
 
-  // pendingOutSweep ogni 5min
-  add(function(){
-    ScriptApp.newTrigger('pendingOutSweep_').timeBased().everyMinutes(5).create();
-  },'pendingOutSweep 5m');
-
   // scheduleSunEventsForToday ogni giorno all'1:00
   add(function(){
     ScriptApp.newTrigger('scheduleSunEventsForToday').timeBased().atHour(1).everyDays(1).create();
@@ -42,7 +37,7 @@ function ensureTriggers(){
     ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(0).nearMinute(5).everyDays(1).create();
   },'shutters @00:05');
 
-  logEvent('ENSURE_DONE','6 trigger attivi','no KA no timeout');
+  logEvent('ENSURE_DONE','5 trigger attivi','no KA no timeout');
 }
 
 function _LAUNCH_RESET_AND_ENSURE_(){
