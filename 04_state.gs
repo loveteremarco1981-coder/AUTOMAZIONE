@@ -1,93 +1,76 @@
 // ============================================================
-// 04_state.gs — macchina a stati + azioni IFTTT
-// Regole tapparelle:
-//   SECURITY (uscita reale):      abbassa_tutto
-//   COMFY (casa occupata):        NON toccare tapparelle
-//   Tramonto casa vuota:          abbassa_tutto
-//   Tramonto casa occupata:       niente (aspetta 23:00 feriali / 00:00 festivi)
-//   23:00 feriali:                abbassa_tutto se casa occupata
-//   00:00 festivi/weekend:        abbassa_tutto se casa occupata
+// 04_state.gs — macchina a stati
+// Presenza = solo colonna F del foglio Persone
+// IN = F=IN, OUT = F=OUT — nessun debounce, nessun timeout
 // ============================================================
 
 function setState_(val){ s('Config','B1',val); }
 
-// ---------- Azioni camere ----------
-function camsOnBoth_(why){ _iftttSafe_('ezviz_interne_on'); _iftttSafe_('ezviz_esterne_on'); logEvent('CAMS_ON_BOTH',why||'',''); }
-function camsAllOff_(why){ _iftttSafe_('ezviz_interne_off'); _iftttSafe_('ezviz_esterne_off'); logEvent('CAMS_OFF_BOTH',why||'',''); }
-function camsExtOn_(why){  _iftttSafe_('ezviz_esterne_on'); logEvent('CAMS_EXT_ON',why||'',''); }
+// ---------- Camere ----------
+function camsOnBoth_(why){
+  _iftttSafe_('ezviz_interne_on');
+  _iftttSafe_('ezviz_esterne_on');
+  logEvent('CAMS_ON_BOTH',why||'','');
+}
+function camsAllOff_(why){
+  _iftttSafe_('ezviz_interne_off');
+  _iftttSafe_('ezviz_esterne_off');
+  logEvent('CAMS_OFF_BOTH',why||'','');
+}
+function camsExtOn_(why){
+  _iftttSafe_('ezviz_esterne_on');
+  logEvent('CAMS_EXT_ON',why||'','');
+}
 
-// ---------- Azioni per stato ----------
+// ---------- Apply stati ----------
 function applySecurityNight(){
   camsOnBoth_('SECURITY_NIGHT');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
   try{ _iftttSafe_('spegni_clima'); }catch(_){}
   try{ actLowerAll_('SECURITY_NIGHT'); }catch(_){}
-  logEvent('SECURITY_NIGHT','cams_on+termostati_off+clima_off+abbassa','');
+  logEvent('APPLY','SECURITY_NIGHT','cams+clima_off+abbassa');
 }
-
-function allOutByAutoTimeout_(){
-  try{
-    var ppl = _getAllPeopleRaw_();
-    var outPpl = ppl.filter(function(p){ return !p.online; });
-    if(!outPpl.length) return false;
-    var anyAutoOut = outPpl.some(function(p){
-      return String(p.lastEvent||'') === 'AUTO_OUT';
-    });
-    if(anyAutoOut){
-      logEvent('SHUTTER_HOLD','presenza incerta - non abbasso tapparelle','');
-      return true;
-    }
-    return false;
-  }catch(_){ return false; }
-}
-
 
 function applySecurityDay(){
   camsOnBoth_('SECURITY_DAY');
   try{ _iftttSafe_('off_termostato'); }catch(_){}
   try{ _iftttSafe_('spegni_clima'); }catch(_){}
-
-  if(!allOutByAutoTimeout_()){
-    try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
-    logEvent('SECURITY_DAY','cams_on+termostati_off+clima_off+abbassa','uscita_reale');
-
-    // Piante 2min dopo chiusura (solo di giorno)
-    try{
-      if(!isNight() && getPianteEnabled_()){
-        ScriptApp.getProjectTriggers().forEach(function(t){
-          var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
-          if(['startPianteDelayed_','startPianteAtAlbaOnce_','verifyHouseEmptyThenClose'].indexOf(fn) >= 0)
-            ScriptApp.deleteTrigger(t);
-        });
-        var when = new Date(Date.now() + 2*60000);
-        ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(when).create();
-        logEvent('PIANTE_DELAYED','programmato tra 2min', when.toISOString());
-      }
-    }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
-  } else {
-    logEvent('SECURITY_DAY','cams_on+termostati_off+clima_off','timeout_only_no_abbassa');
-  }
+  try{ actLowerAll_('SECURITY_DAY'); }catch(_){}
+  logEvent('APPLY','SECURITY_DAY','cams+clima_off+abbassa');
+  // Piante 2min dopo uscita reale (solo di giorno)
+  try{
+    if(!isNight() && getPianteEnabled_()){
+      ScriptApp.getProjectTriggers().forEach(function(t){
+        var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
+        if(fn==='startPianteDelayed_') ScriptApp.deleteTrigger(t);
+      });
+      ScriptApp.newTrigger('startPianteDelayed_').timeBased().at(new Date(Date.now()+2*60000)).create();
+      logEvent('PIANTE_DELAYED','tra 2min','');
+    }
+  }catch(e){ logEvent('PIANTE_DELAYED_ERR',String(e),''); }
 }
 
 function applyComfyDay(){
   camsAllOff_('COMFY_DAY');
   try{ _iftttSafe_('termostato_auto'); }catch(_){}
-  logEvent('COMFY_DAY','cams_off+termostati_auto','');
+  logEvent('APPLY','COMFY_DAY','cams_off+termostato_auto');
 }
 
 function applyComfyNight(){
   camsAllOff_('COMFY_NIGHT');
   camsExtOn_('COMFY_NIGHT');
   try{ _iftttSafe_('termostato_auto'); }catch(_){}
-  logEvent('COMFY_NIGHT','cam_esterne_on+termostati_auto','');
+  logEvent('APPLY','COMFY_NIGHT','cam_est_on+termostato_auto');
 }
 
 // ---------- Tapparelle ----------
 function actRaiseAll_(reason){
   try{
-    var st=getStatoCorrente_();
-    if(st.indexOf('SECURITY_')===0){ logEvent('RAISE_BLOCK','SECURITY',reason||''); return; }
-    _iftttSafe_('alza_tutto'); logEvent('RAISE_ALL','ok',reason||'');
+    if(getStatoCorrente_().indexOf('SECURITY_')===0){
+      logEvent('RAISE_BLOCK','SECURITY',reason||''); return;
+    }
+    _iftttSafe_('alza_tutto');
+    logEvent('RAISE_ALL','ok',reason||'');
   }catch(e){ logEvent('RAISE_ERR',String(e),reason||''); }
 }
 function actLowerAll_(reason){
@@ -111,141 +94,82 @@ function onSunset(){
     evaluateStateNow();
     if(isVacanza_()){
       actLowerAll_('tramonto_vacanza');
-      logEvent('TRAMONTO','abbassa — vacanza','');
-    } else if(everyoneOutWithGrace_()){
+      logEvent('TRAMONTO','abbassa vacanza','');
+    } else if(everyoneOutNow_()){
       actLowerAll_('tramonto_casa_vuota');
-      logEvent('TRAMONTO','abbassa — casa vuota','');
+      logEvent('TRAMONTO','abbassa casa vuota','');
     } else {
-      // Casa occupata: NON abbassare, aspetta 23:00/00:00
-      logEvent('TRAMONTO','casa occupata — aspetta 23:00/00:00','');
+      logEvent('TRAMONTO','casa occupata - aspetta 23:00/00:00','');
     }
-  }catch(e){ logEvent('ERROR_SUNSET',String(e),''); }
+  }catch(e){ logEvent('ERR_SUNSET',String(e),''); }
 }
 
-// ---------- Chiusura notturna (feriali 23:00 / festivi 00:00) ----------
-function closeLateNight_(){
+// ---------- Chiusura notturna 23:00 feriali / 00:05 festivi ----------
+function closeShuttersAt23IfPeopleHome_(){
   try{
     var now = new Date();
-    var h   = now.getHours();
+    var h = now.getHours();
     var feriale = isFeriale_(now);
-    var isRightHour = feriale ? (h === 23) : (h === 0);
+    var isRightHour = feriale ? (h===23) : (h===0);
     if(!isRightHour) return;
     if(isOverride_() || isVacanza_()) return;
     if(!everyoneOutNow_()){
-      actLowerAll_(feriale ? 'chiusura_23:00_feriale' : 'chiusura_00:00_festivo');
-      logEvent('CLOSE_LATE', feriale ? '23:00 feriale' : '00:00 festivo', 'casa occupata');
+      actLowerAll_(feriale?'23:00_feriale':'00:00_festivo');
+      logEvent('CLOSE_LATE', feriale?'23:00':'00:05', 'casa occupata');
     } else {
-      logEvent('CLOSE_LATE_SKIP','casa vuota','già abbassate al tramonto');
+      logEvent('CLOSE_LATE_SKIP','casa vuota','');
     }
   }catch(e){ logEvent('ERR_CLOSE_LATE',String(e),''); }
 }
 
-// ---------- evaluateStateNow ----------
+// ---------- evaluateStateNow — LOGICA SEMPLICE ----------
+// Presenza = legge direttamente colonna F foglio Persone
+// Nessun debounce, nessun timeout, nessun KA
 function evaluateStateNow(){
   try{
+    // Purga sempre trigger KA legacy
     try{ purgeKATriggers_(); }catch(_){}
 
     if(isOverride_()){
-      if(String(v('Stato','C1'))!=='OVR'){ logEvent('OVERRIDE','ON',''); s('Stato','C1','OVR'); }
-      s('Stato','B5',new Date()); s('Stato','B6',isNight()?'NOTTE':'GIORNO'); return;
-    } else {
-      if(String(v('Stato','C1'))==='OVR') s('Stato','C1','');
+      logEvent('OVERRIDE','attivo - skip eval','');
+      s('Stato','B5', new Date());
+      s('Stato','B6', isNight()?'NOTTE':'GIORNO');
+      return;
     }
-
-    try{ autoOutByLifeTimeout_(); }catch(_){}
 
     var stato  = getStatoCorrente_();
     var vac    = isVacanza_();
     var notte  = isNight();
-    var giorno = !notte;
 
+    // Presenza = qualcuno IN nel foglio Persone (colonna F)
     var ppl = _getAllPeopleRaw_();
-    var raw = ppl.some(function(p){ return p.online; });
-    s('Config','B5', raw);
+    var eff = ppl.some(function(p){ return p.online; });
 
-    var deb     = applyPresenceDebounce_(raw);
-    var eff     = deb.reported;
-    var prevEff = !!(v('Config','B8'));
-    var alba    = v('Stato','B3');
+    s('Config','B5', eff);
+    s('Config','B6', eff);
 
-    // Morning hold
-    if(giorno && (alba instanceof Date)){
-      if(_minutesAgo_(alba) <= getMorningHoldMin_() && prevEff && raw) eff = true;
-    }
-
-    if(everyoneOutWithGrace_()){ eff=false; prevEff=false; }
-
-    var effReal = updatePresenceEffective_();
-    if(!effReal) eff = false;
-
-    var desired = stato, scheduleGrace = false;
+    var desired;
     if(vac){
       desired = notte ? 'SECURITY_NIGHT' : 'SECURITY_DAY';
     } else if(notte){
       desired = eff ? 'COMFY_NIGHT' : 'SECURITY_NIGHT';
     } else {
-      if(eff) desired = 'COMFY_DAY';
-      else {
-        if(prevEff){ desired=stato; scheduleGrace=true; }
-        else { s('Stato','B11','—'); desired='SECURITY_DAY'; }
-      }
-    }
-
-    // Patch arrivo: alza solo se ALZA_CON=ARRIVO
-    var fromSec  = (stato==='SECURITY_DAY'||stato==='SECURITY_NIGHT');
-    var toComfy  = (desired==='COMFY_DAY'||desired==='COMFY_NIGHT');
-    if(fromSec && toComfy && !prevEff){
-      var alzaCon = getAlzaCon_();
-      if(alzaCon==='MAI'||alzaCon==='PIANTE'){
-        logEvent('OPEN_BLOCK','ALZA_CON='+alzaCon,'');
-      } else {
-        if(!notte && !isQuietHours_(new Date())){
-          try{ actRaiseAll_('Arrivo'); }catch(_){}
-          logEvent('ARRIVO','alza','');
-        } else {
-          logEvent('OPEN_BLOCK','notte/quiet','');
-        }
-      }
+      desired = eff ? 'COMFY_DAY' : 'SECURITY_DAY';
     }
 
     if(desired !== stato){
+      logEvent('STATE_CHANGE', stato+'->'+desired, eff?'casa_occupata':'casa_vuota');
       setState_(desired);
-      logEvent('STATE_CHANGE','->'+desired,'');
-      try{
-        if(desired==='SECURITY_NIGHT') applySecurityNight();
-        if(desired==='SECURITY_DAY')   applySecurityDay();
-        if(desired==='COMFY_DAY')      applyComfyDay();
-        if(desired==='COMFY_NIGHT')    applyComfyNight();
-      }catch(_){}
+      if(desired==='SECURITY_NIGHT') applySecurityNight();
+      if(desired==='SECURITY_DAY')   applySecurityDay();
+      if(desired==='COMFY_DAY')      applyComfyDay();
+      if(desired==='COMFY_NIGHT')    applyComfyNight();
     }
 
-    if(scheduleGrace){
-      var EG = getEmptyGraceMin_();
-      s('Stato','B11', new Date(Date.now()+EG*60000));
-      try{
-        ScriptApp.getProjectTriggers().forEach(function(t){
-          if((t.getHandlerFunction?t.getHandlerFunction():'') === 'verifyHouseEmptyThenClose')
-            ScriptApp.deleteTrigger(t);
-        });
-        ScriptApp.newTrigger('verifyHouseEmptyThenClose').timeBased().after(EG*60000).create();
-      } catch(e){ logEvent('GRACE_ERR',String(e),''); }
-    }
+    s('Stato','B5', new Date());
+    s('Stato','B6', notte?'NOTTE':'GIORNO');
 
-    if(!vac && !eff && prevEff && !scheduleGrace){
-      if(everyoneOutNow_()){
-        try{ _iftttSafe_('off_termostato'); }catch(_){}
-        try{ _iftttSafe_('spegni_clima'); }catch(_){}
-        logEvent('VUOTA','termostati_off+clima_off','');
-      }
-    }
-
-    s('Config','B6', eff);
-    s('Config','B8', eff);
-    s('Stato','B5',  new Date());
-    s('Stato','B6',  notte ? 'NOTTE' : 'GIORNO');
-
-  }catch(e){ logEvent('ERROR_EVAL',String(e),''); }
-  try{ disableKAIfOut_(); }catch(_){} 
+  }catch(e){ logEvent('ERR_EVAL',String(e),''); }
 }
 
 function verifyHouseEmptyThenClose(){
@@ -253,44 +177,21 @@ function verifyHouseEmptyThenClose(){
     var anyIn = _getAllPeopleRaw_().some(function(p){ return p.online; });
     if(!anyIn){
       setState_('SECURITY_DAY');
-      logEvent('GRACE_CLOSE','Casa vuota','');
       applySecurityDay();
+      logEvent('GRACE_CLOSE','casa vuota confermata','');
     } else {
-      logEvent('GRACE_ABORT','Casa NON vuota','');
+      logEvent('GRACE_ABORT','casa NON vuota','');
     }
   }catch(e){ logEvent('GRACE_ERR',String(e),''); }
 }
 
-// ---------- Helpers presenza ----------
 function updatePresenceEffective_(){
   try{
-    var ppl = _getAllPeopleRaw_();
-    var eff = ppl.some(function(p){ return p.online; });
+    var eff = _getAllPeopleRaw_().some(function(p){ return p.online; });
     s('Config','B6', eff); return eff;
   }catch(e){ logEvent('ERR_PRES_EFF',String(e),''); return false; }
 }
 
-function applyPresenceDebounce_(raw){
-  try{
-    var now=Date.now(), prevStr=getProp_('presenceReported',null);
-    var prev=(prevStr==='true'), hasPrev=(prevStr!==null);
-    var lastChange=Number(getProp_('presenceLastChangeMs',String(now)));
-    if(!isFinite(lastChange)||lastChange>now) lastChange=now;
-    if(!hasPrev&&raw){
-      setProp_('presenceReported','true'); setProp_('presenceLastChangeMs',String(now));
-      s('Config','B6',true); return {reported:true};
-    }
-    if(hasPrev&&raw===prev){ s('Config','B6',prev); return {reported:prev}; }
-    var mins=raw?getDebounceInMin_():getDebounceOutMin_();
-    if((now-lastChange)>=mins*60000){
-      setProp_('presenceReported',String(raw)); setProp_('presenceLastChangeMs',String(now));
-      s('Config','B6',raw); return {reported:raw};
-    }
-    s('Config','B6',prev); return {reported:prev};
-  }catch(e){
-    logEvent('DEBOUNCE_ERR',String(e),'');
-    s('Config','B6',!!raw); return {reported:!!raw};
-  }
-}
-
-function closeShuttersAt23IfPeopleHome_(){ closeLateNight_(); }
+// Stub rimossi ma referenziati altrove
+function applyPresenceDebounce_(raw){ return {reported:!!raw}; }
+function allOutByAutoTimeout_(){ return false; }
