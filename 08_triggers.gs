@@ -1,74 +1,58 @@
-// ============================================================
-// 08_triggers.gs — bootstrap trigger
-// ============================================================
+// 08_triggers.gs — trigger fissi
+// Nessun morningKeepAlive, nessun KA, nessun timeout
 
 function ensureTriggers(){
-  try{
-    var oneShots = ['startPianteAtAlbaOnce_','startPianteDelayed_','verifyHouseEmptyThenClose'];
-    ScriptApp.getProjectTriggers().forEach(function(t){
-      var fn = t.getHandlerFunction ? t.getHandlerFunction() : '';
-      if(oneShots.indexOf(fn) >= 0 ||
-         /^(ka|KA|keepalive|checkKA|kaTimer)/i.test(fn) ||
-         fn.indexOf('keepalive') >= 0){
-        ScriptApp.deleteTrigger(t);
-      }
-    });
-  }catch(_){}
-
-  var toDelete=['evaluateStateNow','pendingOutSweep_','scheduleSunEventsForToday',
-                'pruneOldLogs_','closeShuttersAt23IfPeopleHome_','closeLateNight_',
-                'morningKeepAlive_','eveningKeepAlive_',
-                'nightWindowRunner_','onDaily0100','onDaily2300'];
-  toDelete.forEach(function(h){
-    ScriptApp.getProjectTriggers().forEach(function(t){
-      try{ if(t.getHandlerFunction&&t.getHandlerFunction()===h)ScriptApp.deleteTrigger(t); }catch(_){}
-    });
+  // Elimina tutto
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    try{ScriptApp.deleteTrigger(t);}catch(_){}
   });
 
-  // evaluateStateNow ogni 5 min
-  try{
-    ScriptApp.newTrigger('evaluateStateNow').timeBased().everyMinutes(5).create();
-    logEvent('TRIGGER_ON','evaluateStateNow','every 5m');
-  }catch(e){ logEvent('ENSURE_ERR','evaluateStateNow',String(e)); }
+  function add(fn,desc){
+    try{return fn();logEvent('TRG_ADD',desc,'');}
+    catch(e){logEvent('TRG_ERR',desc,String(e));}
+  }
 
-  // pendingOutSweep_ ogni 5 min
-  try{
+  // evaluateStateNow ogni 5min
+  add(function(){
+    ScriptApp.newTrigger('evaluateStateNow').timeBased().everyMinutes(5).create();
+  },'evaluateStateNow 5m');
+
+  // pendingOutSweep ogni 5min
+  add(function(){
     ScriptApp.newTrigger('pendingOutSweep_').timeBased().everyMinutes(5).create();
-    logEvent('TRIGGER_ON','pendingOutSweep_','every 5m');
-  }catch(e){ logEvent('ENSURE_ERR','pendingOutSweep_',String(e)); }
+  },'pendingOutSweep 5m');
 
   // scheduleSunEventsForToday ogni giorno all'1:00
-  try{
+  add(function(){
     ScriptApp.newTrigger('scheduleSunEventsForToday').timeBased().atHour(1).everyDays(1).create();
-    logEvent('TRIGGER_ON','scheduleSunEventsForToday','daily @1:00');
-  }catch(e){ logEvent('ENSURE_ERR','scheduleSunEventsForToday',String(e)); }
+  },'sunEvents @1:00');
 
-  // pruneOldLogs_ ogni giorno alle 3:30
-  try{
+  // pruneOldLogs alle 3:30
+  add(function(){
     ScriptApp.newTrigger('pruneOldLogs_').timeBased().atHour(3).nearMinute(30).everyDays(1).create();
-    logEvent('TRIGGER_ON','pruneOldLogs_','daily @3:30');
-  }catch(e){ logEvent('ENSURE_ERR','pruneOldLogs_',String(e)); }
+  },'pruneLogs @3:30');
 
-  // closeShuttersAt23 ogni giorno alle 23:00
-  try{
+  // Tapparelle 23:00 (feriali)
+  add(function(){
     ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(23).nearMinute(0).everyDays(1).create();
-    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_','daily @23:00');
-  }catch(e){ logEvent('ENSURE_ERR','closeShuttersAt23IfPeopleHome_',String(e)); }
+  },'shutters @23:00');
 
-  // Trigger mezzanotte (festivi/weekend) — closeLateNight_ controlla da sola se è festivo
-  try{
+  // Tapparelle 00:05 (festivi/weekend)
+  add(function(){
     ScriptApp.newTrigger('closeShuttersAt23IfPeopleHome_').timeBased().atHour(0).nearMinute(5).everyDays(1).create();
-    logEvent('TRIGGER_ON','closeShuttersAt23IfPeopleHome_@00:05','daily @00:05 festivi');
-  }catch(e){ logEvent('ENSURE_ERR','closeShutters@00:05',String(e)); }
+  },'shutters @00:05');
 
-  logEvent('ENSURE_DONE','core triggers','no morningKeepAlive - solo 3 shortcut');
+  logEvent('ENSURE_DONE','6 trigger attivi','no KA no timeout');
 }
 
 function _LAUNCH_RESET_AND_ENSURE_(){
   try{
-    ScriptApp.getProjectTriggers().forEach(function(t){ try{ ScriptApp.deleteTrigger(t); }catch(_){} });
+    ScriptApp.getProjectTriggers().forEach(function(t){try{ScriptApp.deleteTrigger(t);}catch(_){}});
     ensureTriggers();
     evaluateStateNow();
-    SpreadsheetApp.getUi().alert('Reset + Ensure + Eval → OK');
-  }catch(e){ logEvent('ENSURE_ERR',String(e),''); SpreadsheetApp.getUi().alert('ERR: '+e); }
+    try{SpreadsheetApp.getActiveSpreadsheet().toast('✅ Reset + Ensure + Eval OK','Sistema',5);}catch(_){}
+  }catch(e){
+    logEvent('ENSURE_ERR',String(e),'');
+    try{SpreadsheetApp.getActiveSpreadsheet().toast('❌ ERR: '+e,'Sistema',8);}catch(_){}
+  }
 }
