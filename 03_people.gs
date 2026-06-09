@@ -1,60 +1,76 @@
-// 03_people.gs — PRESENZA: SOLO 3 SHORTCUT iOS
-// ssid_on  → IN immediato, cancella qualsiasi OUT pendente
-// ssid_off → OUT dopo guard (Config B12, default 20min) via sweep
-// geofence mark_out → OUT dopo guard via sweep
-// geofence mark_in  → IN immediato (alias ssid_on senza lock)
-// Nessun KA, nessun timeout, nessun debounce, nessun grace
+// 03_people.gs — PRESENZA: SOLO 4 SHORTCUT iOS
+// 1. wifi_on  (ssid_on):  iPhone connesso al WiFi → IN immediato
+// 2. wifi_off (ssid_off): iPhone disconnesso dal WiFi → pending OUT (guard 20min)
+// 3. geo_out  (mark_out): Geofence uscita → rinforza OUT pending
+// 4. geo_in   (mark_in):  Geofence rientro → IN immediato (prima del WiFi)
+//
+// Protezione flapping: dopo ssid_off, ssid_on ignorato per EXIT_COOLDOWN_MIN (default 5min)
+// Questo evita che l'ultimo ping WiFi del router annulli l'uscita
 
-// ---- SSID lock ----
-function _ssidKey_(nm){ return 'SSID_LOCK_'+String(nm||'').toUpperCase(); }
-function _pendingKey_(nm){ return 'PENDING_OUT_'+String(nm||'').toUpperCase(); }
+function _ssidKey_(nm)    { return 'SSID_LOCK_'+String(nm||'').toUpperCase(); }
+function _pendingKey_(nm) { return 'PENDING_OUT_'+String(nm||'').toUpperCase(); }
+function _cooldownKey_(nm){ return 'OUT_COOLDOWN_'+String(nm||'').toUpperCase(); }
 
 function hasSsidLock_(nm){
   var until = Number(getProp_(_ssidKey_(nm),'0'))||0;
   return until > 0 && Date.now() <= until;
 }
 
-// ssid_on → IN immediato, lock 8h, cancella pending
+function _inCooldown_(nm){
+  var until = Number(getProp_(_cooldownKey_(nm),'0'))||0;
+  return until > 0 && Date.now() < until;
+}
+
+// 1. WIFI ON → IN, ma solo se non in cooldown uscita
 function ssidOn_(nm, holdMin){
   var n = String(nm||'').toLowerCase();
   var hold = Number(holdMin)||480;
+
+  if(_inCooldown_(n)){
+    var until = new Date(Number(getProp_(_cooldownKey_(n),'0')));
+    logEvent('SSID_ON_IGNORED', n, 'cooldown uscita attivo fino '+Utilities.formatDate(until,Session.getScriptTimeZone(),'HH:mm'));
+    return {ok:true, ignored:true, reason:'cooldown'};
+  }
+
   setProp_(_ssidKey_(n), String(Date.now() + hold*60000));
   setProp_(_pendingKey_(n), '');
   setPersonIn_(n, 'SSID_ON');
   return {ok:true, hold:hold};
 }
 
-// ssid_off → imposta pending OUT, sweep lo conferma dopo guard
+// 2. WIFI OFF → pending OUT + cooldown (blocca ssid_on spurio per N min)
 function ssidOff_(nm){
   var n = String(nm||'').toLowerCase();
-  var guard = getExitGuardMin_();
+  var guard    = getExitGuardMin_();       // Config B12, default 20min
+  var cooldown = getExitCooldownMin_();    // Config B26, default 5min
   setProp_(_ssidKey_(n), '0');
   setProp_(_pendingKey_(n), JSON.stringify({fireAt: Date.now()+guard*60000, src:'ssid_off'}));
-  logEvent('SSID_OFF', n, 'guard='+guard+'m');
+  setProp_(_cooldownKey_(n), String(Date.now() + cooldown*60000));
+  logEvent('SSID_OFF', n, 'guard='+guard+'m cooldown='+cooldown+'m');
   return {ok:true, guard:guard};
 }
 
-// geofence OUT → pending se non ha ssid lock
+// 3. GEO OUT → rinforza pending (o crea se non c'era)
 function markOut_geofence_(nm){
   var n = String(nm||'').toLowerCase();
-  if(hasSsidLock_(n)){
-    logEvent('GEO_OUT_IGNORED', n, 'ssid_lock attivo');
-    return;
-  }
   var guard = getExitGuardMin_();
+  // Se ha ssid lock ancora attivo, rimuovilo — geofence è più affidabile
+  setProp_(_ssidKey_(n), '0');
   setProp_(_pendingKey_(n), JSON.stringify({fireAt: Date.now()+guard*60000, src:'geofence'}));
+  setProp_(_cooldownKey_(n), String(Date.now() + getExitCooldownMin_()*60000));
   logEvent('GEO_OUT', n, 'guard='+guard+'m');
 }
 
-// geofence IN → IN immediato (arriva a casa, WiFi ancora non connesso)
+// 4. GEO IN → IN immediato, azzera cooldown
 function markIn_geofence_(nm){
   var n = String(nm||'').toLowerCase();
+  setProp_(_cooldownKey_(n), '0');
   setProp_(_pendingKey_(n), '');
   setPersonIn_(n, 'GEO_IN');
   logEvent('GEO_IN', n, 'geofence arrivo');
 }
 
-// Sweep ogni 5min: conferma OUT se guard scaduto e ssid_on non arrivato
+// Sweep ogni 5min: conferma OUT se guard scaduto
 function pendingOutSweep_(){
   try{
     var now = Date.now(), changed = false;
@@ -64,12 +80,6 @@ function pendingOutSweep_(){
       if(!raw) return;
       var pend; try{ pend=JSON.parse(raw); }catch(_){ return; }
       if(!pend || !pend.fireAt) return;
-      // ssid_on arrivato → annulla
-      if(hasSsidLock_(nm)){
-        setProp_(_pendingKey_(nm),'');
-        logEvent('OUT_ABORT', nm, 'ssid_on durante guard');
-        return;
-      }
       if(now >= pend.fireAt){
         setProp_(_pendingKey_(nm),'');
         setProp_(_ssidKey_(nm),'0');
@@ -82,11 +92,12 @@ function pendingOutSweep_(){
   }catch(e){ logEvent('SWEEP_ERR',String(e),''); }
 }
 
-// Force in/out manuali
+// Force in/out manuali (app/menu)
 function forceIn_(nm){
   var n = String(nm||'').toLowerCase();
   setProp_(_ssidKey_(n), String(Date.now()+480*60000));
   setProp_(_pendingKey_(n), '');
+  setProp_(_cooldownKey_(n), '0');
   setPersonIn_(n, 'FORCE_IN');
   logEvent('FORCE_IN', n, '');
   return {ok:true, name:n};
@@ -95,6 +106,7 @@ function forceOut_(nm){
   var n = String(nm||'').toLowerCase();
   setProp_(_ssidKey_(n), '0');
   setProp_(_pendingKey_(n), '');
+  setProp_(_cooldownKey_(n), '0');
   setPersonOut_(n, 'FORCE_OUT');
   logEvent('FORCE_OUT', n, '');
   return {ok:true};
@@ -152,7 +164,6 @@ function everyoneOutNow_(){
 }
 function everyoneOutWithGrace_(){ return everyoneOutNow_(); }
 
-// Purge trigger KA legacy
 function purgeKATriggers_(){
   try{
     ScriptApp.getProjectTriggers().forEach(function(t){
