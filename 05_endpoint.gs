@@ -141,23 +141,18 @@ function doGet(e){
       return out(r3);
     }
 
+    if(ev==='mark_in'){
+      if(!who) return out({ok:false,err:'missing_name'});
+      markIn_geofence_(who);
+      try{ evaluateStateNow(); }catch(_){}
+      return out({ok:true,name:who,now:new Date().toISOString()});
+    }
+
     if(ev==='mark_out'){
       if(!who) return out({ok:false,err:'missing_name'});
       var src = String(p.source||'').toLowerCase();
-      if(hasSsidLock_(who)){
-        logEvent('OUT_SSID_LOCK',who,src);
-        return out({ok:true,ignored:true,reason:'ssid_lock',now:new Date().toISOString()});
-      }
-      if(src==='geofence'){
-        var g = getExitGuardMin_();
-        _setPendingOut_(who, 'geofence', g);
-        logEvent('OUT_PENDING','geofence','guard='+g+'m '+who);
-        try{ evaluateStateNow(); }catch(_){}
-        return out({ok:true,pending:true,guard:g,now:new Date().toISOString()});
-      }
-      var rr = markOutNow_(who, true);
-      try{ evaluateStateNow(); }catch(_){}
-      return out(rr);
+      markOut_geofence_(who);
+      return out({ok:true,name:who,src:src,now:new Date().toISOString()});
     }
 
     if(ev==='force_in'){
@@ -252,3 +247,4 @@ function doGet(e){
     return out({ok:false,error:String(err)});
   }
 }
+
