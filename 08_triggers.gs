@@ -13,7 +13,13 @@ function ensureTriggers(){
     logEvent('TRG_ADD','evaluateStateNow','every 5m');
   }catch(e){ logEvent('TRG_ERR','evaluateStateNow',String(e)); }
 
-  // 2. scheduleSunEventsForToday ogni giorno all'1:00
+  // 2. pendingOutSweep_ ogni 5min (conferma OUT dopo guard)
+  try{
+    ScriptApp.newTrigger('pendingOutSweep_').timeBased().everyMinutes(5).create();
+    logEvent('TRG_ADD','pendingOutSweep_','every 5m');
+  }catch(e){ logEvent('TRG_ERR','pendingOutSweep_',String(e)); }
+
+  // 3. scheduleSunEventsForToday ogni giorno all'1:00
   try{
     ScriptApp.newTrigger('scheduleSunEventsForToday').timeBased().atHour(1).everyDays(1).create();
     logEvent('TRG_ADD','scheduleSunEventsForToday','daily @1:00');
@@ -37,7 +43,7 @@ function ensureTriggers(){
     logEvent('TRG_ADD','closeShuttersAt23IfPeopleHome_','daily @00:05');
   }catch(e){ logEvent('TRG_ERR','closeShutters@00:05',String(e)); }
 
-  logEvent('ENSURE_DONE','5 trigger attivi','no KA no timeout');
+  logEvent('ENSURE_DONE','6 trigger attivi','no KA no timeout');
 }
 
 function _LAUNCH_RESET_AND_ENSURE_(){
