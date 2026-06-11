@@ -1,6 +1,4 @@
-// ============================================================
 // 09_menu.gs — menu Utility + diagnostica
-// ============================================================
 
 function onOpen(){
   SpreadsheetApp.getUi().createMenu('Utility')
@@ -17,14 +15,7 @@ function onOpen(){
     .addItem('PIANTE - Annulla pianificazioni','pianteCancelPlanned_')
     .addItem('PIANTE - Diagnostica prossimo run','pianteDiagNext_')
     .addSeparator()
-    .addItem('Mostra cooldown…','diag_showCooldownPrompt_')
-    .addItem('Azzera cooldown…','diag_clearCooldownPrompt_')
-    .addItem('Imposta cooldown (+X min)…','diag_setCooldownPrompt_')
-    .addSeparator()
     .addItem('Diagnostica completa','diag_fullSystemTest_')
-    .addSeparator()
-    .addItem('Test mattina — Programma 8:15','scheduleTest_')
-    .addItem('Test mattina — Esegui ora','runMorningTestNow_')
     .addSeparator()
     .addItem('🏠 Setup Cruscotto + Pulizia fogli','setupAll_')
     .addSeparator()
@@ -35,7 +26,7 @@ function onOpen(){
 function _menuForceInPrompt_(){
   var ui=SpreadsheetApp.getUi();
   var r=ui.prompt('FORZA IN','Nome:',ui.ButtonSet.OK_CANCEL);
-  if(r.getSelectedButton()!==ui.Button.OK)return;
+  if(r.getSelectedButton()!==ui.Button.OK) return;
   var who=String(r.getResponseText()||'').trim().toLowerCase();
   try{ var res=forceIn_(who); evaluateStateNow(); ui.alert('FORZA IN ('+who+'): '+(res&&res.ok?'OK':'KO')); }
   catch(e){ ui.alert('ERR: '+e); }
@@ -44,9 +35,9 @@ function _menuForceInPrompt_(){
 function _menuForceOutPrompt_(){
   var ui=SpreadsheetApp.getUi();
   var r=ui.prompt('FORZA OUT','Nome:',ui.ButtonSet.OK_CANCEL);
-  if(r.getSelectedButton()!==ui.Button.OK)return;
+  if(r.getSelectedButton()!==ui.Button.OK) return;
   var who=String(r.getResponseText()||'').trim().toLowerCase();
-  try{ var res=markOutNow_(who,true); evaluateStateNow(); ui.alert('FORZA OUT ('+who+'): '+(res&&res.ok?'OK':'KO')); }
+  try{ var res=forceOut_(who); evaluateStateNow(); ui.alert('FORZA OUT ('+who+'): '+(res&&res.ok?'OK':'KO')); }
   catch(e){ ui.alert('ERR: '+e); }
 }
 
@@ -64,43 +55,13 @@ function diag_listTriggers_(){
   SpreadsheetApp.getUi().alert('Trigger attivi ('+ts.length+'):\n\n'+(ts.length?ts.join('\n'):'(nessuno)'));
 }
 
-function diag_showCooldownPrompt_(){
-  var ui=SpreadsheetApp.getUi();
-  var r=ui.prompt('Mostra cooldown','Nome:',ui.ButtonSet.OK_CANCEL);
-  if(r.getSelectedButton()!==ui.Button.OK)return;
-  var nm=String(r.getResponseText()||'').trim().toLowerCase();
-  var until=getCooldown_(nm);
-  ui.alert('Cooldown '+nm+':\n'+(until?('fino al '+new Date(until).toISOString()):'(nessuno)')+'\\nOra: '+new Date().toISOString());
-}
-function diag_clearCooldownPrompt_(){
-  var ui=SpreadsheetApp.getUi();
-  var r=ui.prompt('Azzera cooldown','Nome:',ui.ButtonSet.OK_CANCEL);
-  if(r.getSelectedButton()!==ui.Button.OK)return;
-  clearCooldown_(String(r.getResponseText()||'').trim().toLowerCase());
-  ui.alert('Cooldown azzerato.');
-}
-function diag_setCooldownPrompt_(){
-  var ui=SpreadsheetApp.getUi();
-  var r1=ui.prompt('Imposta cooldown','Nome:',ui.ButtonSet.OK_CANCEL);
-  if(r1.getSelectedButton()!==ui.Button.OK)return;
-  var nm=String(r1.getResponseText()||'').trim().toLowerCase();
-  var r2=ui.prompt('Imposta cooldown','Minuti:',ui.ButtonSet.OK_CANCEL);
-  if(r2.getSelectedButton()!==ui.Button.OK)return;
-  var mins=Number(r2.getResponseText()||'0');
-  var until=Date.now()+mins*60000;
-  setCooldown_(nm,until);
-  logEvent('COOLDOWN_SET_MANUAL',nm,mins+'m');
-  ui.alert('Cooldown '+nm+': '+new Date(until).toISOString());
-}
-
 function diag_fullSystemTest_(){
   var ui=SpreadsheetApp.getUi();
   try{
     var ppl=getPeople_().people||[];
     var pplStr=ppl.map(function(p){
       return p.name+':'+(p.online?'IN':'OUT')+
-        (hasSsidLock_(p.name.toLowerCase())?' [SSID]':'')+
-        (p.lifeMs?' ping '+Math.round((Date.now()-p.lifeMs)/60000)+'m fa':'');
+        (hasSsidLock_(p.name.toLowerCase())?' [SSID]':'');
     }).join('\n  ');
     var ts=ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction?t.getHandlerFunction():'?'; });
     var alba=v('Stato','B3'), tram=v('Stato','B4');
@@ -114,8 +75,7 @@ function diag_fullSystemTest_(){
       'Override: '+(isOverride_()?'SI ⚠️':'NO')+'\n'+
       'Presenza eff: '+(v('Config','B6')?'SI':'NO')+'\n'+
       'Alba: '+(alba instanceof Date?Utilities.formatDate(alba,tz,'HH:mm'):'—')+
-      '  Tramonto: '+(tram instanceof Date?Utilities.formatDate(tram,tz,'HH:mm'):'—')+'\n'+
-      'Night buffer: '+getNightBufferMin_()+'min\n\n'+
+      '  Tramonto: '+(tram instanceof Date?Utilities.formatDate(tram,tz,'HH:mm'):'—')+'\n\n'+
       'Persone ('+ppl.length+'):\n  '+pplStr+'\n\n'+
       'Trigger attivi ('+ts.length+'):\n  '+ts.join('\n  ');
     ui.alert(msg);
@@ -126,19 +86,17 @@ function diag_fullSystemTest_(){
 function menuShowUtilityLegend_(){
   SpreadsheetApp.getUi().alert(
     "LEGENDA MENU UTILITY\n\n"+
-    "• Purge + Ensure + Eval → Reset completo trigger + eval immediata\n"+
-    "• FORZA IN → ssid_on 8h + clear pending\n"+
-    "• FORZA OUT → uscita manuale force=true\n"+
+    "• Purge + Ensure + Eval → Reset completo trigger (5 fissi) + eval immediata\n"+
+    "• FORZA IN → IN manuale + clear pending\n"+
+    "• FORZA OUT → OUT manuale\n"+
     "• ALZA/ABBASSA ora → Tapparelle immediate\n"+
     "• PIANTE → Avvia/annulla/diagnostica irrigazione\n"+
-    "• Cooldown → Mostra/azzera/imposta cooldown\n"+
     "• Diagnostica completa → Snapshot stato + persone + trigger\n\n"+
-    "PARAMETRI CHIAVE (Config sheet):\n"+
-    "B9  = STRICT_LIFE_MIN\n"+
-    "B12 = EXIT_GUARD_MIN (guard dopo SSID OFF)\n"+
-    "B15 = LIFE_TIMEOUT_MIN\n"+
-    "B26 = EXIT_COOLDOWN_MIN\n"+
-    "B27 = NIGHT_BUFFER_MIN (buffer tramonto→notte, default 90)\n"+
-    "B30 = ALZA_CON (ARRIVO/PIANTE/MAI)"
+    "4 COMANDI iOS:\n"+
+    "  ssid_on  → IN immediato (hold=480min)\n"+
+    "  ssid_off → solo log, NON cambia stato\n"+
+    "  mark_out → OUT immediato (geofence)\n"+
+    "  mark_in  → IN immediato (geofence)\n\n"+
+    "NESSUN auto-out, NESSUN timeout, NESSUN KA"
   );
 }
