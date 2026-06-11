@@ -1,5 +1,6 @@
 // ============================================================
-// setup_cruscotto.gs v3
+// setup_cruscotto.gs v4 — allineato a 4 comandi iOS
+// Rimossi: STRICT_LIFE_MIN, EXIT_GUARD_MIN, LIFE_TIMEOUT_MIN, NIGHT_BUFFER_MIN
 // ============================================================
 
 function setupAll_() {
@@ -35,16 +36,20 @@ function setupCruscotto_() {
     [21,1,'PIANTE'],[22,1,'Prossimo run'],[23,1,'Min intervallo (min)'],
     [24,1,'Alza con'],
     [26,1,'CONFIG CHIAVE'],
-    [27,1,'STRICT_LIFE_MIN'],[27,3,'Ping recente per IN (min)'],
-    [28,1,'EXIT_GUARD_MIN'],[28,3,'Guard uscita (min)'],
-    [29,1,'LIFE_TIMEOUT_MIN'],[29,3,'Timeout auto-OUT (min)'],
-    [30,1,'NIGHT_BUFFER_MIN'],[30,3,'Buffer tramonto→notte (min, default 90)'],
-    [31,1,'LOG_RETENTION_DAYS'],[31,3,'Retention log (giorni)'],
-    [33,1,'LINK RAPIDI'],
-    [34,1,'IFTTT Activity'],[34,2,'https://ifttt.com/activity'],
-    [35,1,'Apps Script'],[35,2,'https://script.google.com'],
-    [36,1,'GitHub'],[36,2,'https://github.com/loveteremarco1981-coder/AUTOMAZIONE'],
-    [37,1,'App Casa'],[37,2,'https://loveteremarco1981-coder.github.io/AUTOMAZIONE/'],
+    [27,1,'PIANTE_MIN_INTERVAL'],[27,3,'Minuti min tra run piante'],
+    [28,1,'PIANTE_ENABLED'],[28,3,'Abilita irrigazione (TRUE/FALSE)'],
+    [29,1,'LOG_RETENTION_DAYS'],[29,3,'Retention log (giorni)'],
+    [30,1,'ALZA_CON'],[30,3,'ARRIVO / PIANTE / MAI'],
+    [32,1,'4 COMANDI iOS'],
+    [33,1,'ssid_on'],[33,3,'Wi-Fi connesso → IN immediato'],
+    [34,1,'ssid_off'],[34,3,'Wi-Fi disconnesso → solo log'],
+    [35,1,'mark_out'],[35,3,'Geofence uscita → OUT immediato'],
+    [36,1,'mark_in'],[36,3,'Geofence entrata → IN immediato'],
+    [38,1,'LINK RAPIDI'],
+    [39,1,'IFTTT Activity'],[39,2,'https://ifttt.com/activity'],
+    [40,1,'Apps Script'],[40,2,'https://script.google.com'],
+    [41,1,'GitHub'],[41,2,'https://github.com/loveteremarco1981-coder/AUTOMAZIONE'],
+    [42,1,'App Casa'],[42,2,'https://loveteremarco1981-coder.github.io/AUTOMAZIONE/'],
   ];
   static_vals.forEach(function(v){ sh.getRange(v[0],v[1]).setValue(v[2]); });
 
@@ -67,21 +72,20 @@ function setupCruscotto_() {
   sh.getRange('B22').setFormula('=IF(Stato!B10<>"";TEXT(Stato!B10;"dd/MM HH:mm");"--")');
   sh.getRange('B23').setFormula('=Config!B19');
   sh.getRange('B24').setFormula('=Config!B30');
-  sh.getRange('B27').setFormula('=Config!B9');
-  sh.getRange('B28').setFormula('=Config!B12');
-  sh.getRange('B29').setFormula('=Config!B15');
-  sh.getRange('B30').setFormula('=Config!B27');
-  sh.getRange('B31').setFormula('=Config!B14');
+  sh.getRange('B27').setFormula('=Config!B19');
+  sh.getRange('B28').setFormula('=Config!B20');
+  sh.getRange('B29').setFormula('=Config!B14');
+  sh.getRange('B30').setFormula('=Config!B30');
 
   sh.getRange('A1').setFontSize(16).setFontWeight('bold').setFontColor('#1a73e8');
   sh.setRowHeight(1, 40);
-  [3,11,15,21,26,33].forEach(function(r){
+  [3,11,15,21,26,32,38].forEach(function(r){
     sh.getRange(r,1,1,3).setBackground('#1a73e8').setFontColor('#ffffff').setFontWeight('bold');
   });
-  [4,5,6,7,8,9,12,13,16,17,18,19,22,23,24,27,28,29,30,31,34,35,36,37].forEach(function(r){
+  [4,5,6,7,8,9,12,13,16,17,18,19,22,23,24,27,28,29,30,33,34,35,36,39,40,41,42].forEach(function(r){
     sh.getRange(r,1,1,3).setBackground(r%2===0?'#f8f9fa':'#ffffff');
   });
-  sh.getRange('A1:A40').setFontWeight('bold');
+  sh.getRange('A1:A42').setFontWeight('bold');
 
   var rules = [];
   rules.push(SpreadsheetApp.newConditionalFormatRule()
@@ -94,7 +98,7 @@ function setupCruscotto_() {
     .whenTextEqualTo('FUORI').setFontColor('#80868b')
     .setRanges([sh.getRange('B16:B19')]).build());
   sh.setConditionalFormatRules(rules);
-  sh.getRange('A1:C37').setBorder(false,false,false,false,true,false,'#e0e0e0',SpreadsheetApp.BorderStyle.SOLID);
+  sh.getRange('A1:C42').setBorder(false,false,false,false,true,false,'#e0e0e0',SpreadsheetApp.BorderStyle.SOLID);
   sh.setFrozenColumns(1);
 }
 
