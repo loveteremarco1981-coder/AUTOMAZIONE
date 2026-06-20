@@ -1,0 +1,62 @@
+function hourlySupervisor(){
+
+  try{
+
+    s('Config','B20', new Date());
+
+    s('Config','B21', 'OK');
+
+    evaluateState();
+
+    handleShutters();
+
+    autoRepair();
+
+    healthAudit();
+
+    updateDashboard();
+
+    updateAnalytics();
+
+    logHealthHistory();
+
+    backupSystem();   // <-- QUI
+
+    generateReport();
+
+    logEvent(
+      'SUPERVISOR',
+      'OK'
+    );
+
+  }catch(e){
+
+    s('Config','B21','ERROR');
+
+    s('Config','B22', String(e));
+
+    logError(
+      'SUPERVISOR',
+      String(e)
+    );
+
+    logEvent(
+      'SUPERVISOR_ERROR',
+      String(e)
+    );
+
+  }
+}
+
+function notifyError(msg){
+
+  var p = PropertiesService.getScriptProperties();
+  var key = p.getProperty('IFTTT_NOTIFY_KEY');
+
+  if(!key) return;
+
+  UrlFetchApp.fetch(
+    'https://maker.ifttt.com/trigger/home_update/with/key/' 
+    + key + '?value1=' + msg
+  );
+}
