@@ -1,0 +1,49 @@
+function updateAnalytics(){
+
+  var shA = sh('Analytics');
+  var shL = sh('Log');
+
+  if(!shA || !shL){
+    return;
+  }
+
+  var data = shL.getDataRange().getValues();
+
+  var ingressi = 0;
+  var uscite = 0;
+  var comfy = 0;
+  var security = 0;
+  var errori = 0;
+
+  for(var i=1;i<data.length;i++){
+
+    var cat = String(data[i][1]);
+    var ev = String(data[i][2]);
+
+    if(cat === 'IN') ingressi++;
+
+    if(cat === 'OUT' || cat === 'OUT_REQ'){
+      uscite++;
+    }
+
+    if(ev.indexOf('COMFY') >= 0){
+      comfy++;
+    }
+
+    if(ev.indexOf('SECURITY') >= 0){
+      security++;
+    }
+
+    if(cat.indexOf('ERROR') >= 0){
+      errori++;
+    }
+
+  }
+
+  shA.getRange('B2').setValue(ingressi);
+  shA.getRange('B3').setValue(uscite);
+  shA.getRange('B4').setValue(comfy);
+  shA.getRange('B5').setValue(security);
+  shA.getRange('B6').setValue(errori);
+
+}
