@@ -1,0 +1,33 @@
+function getUptime(){
+
+  var startVal =
+    v('Config','B24');
+
+  if(!startVal){
+    return 'N/D';
+  }
+
+  var start =
+    new Date(startVal);
+
+  var diff =
+    new Date() - start;
+
+  var days =
+    Math.floor(
+      diff / 86400000
+    );
+
+  var hours =
+    Math.floor(
+      (diff % 86400000)
+      / 3600000
+    );
+
+  return (
+    days +
+    'g ' +
+    hours +
+    'h'
+  );
+}
