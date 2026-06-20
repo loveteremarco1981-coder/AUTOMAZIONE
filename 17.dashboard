@@ -1,0 +1,143 @@
+function updateDashboard(){
+
+  var dash = sh('Dashboard');
+
+  if(!dash){
+    return;
+  }
+
+  try{
+
+    dash
+      .getRange('B18')
+      .setValue(
+        getShuttersState()
+      );
+
+  }catch(e){}
+
+  try{
+
+    var score =
+      Number(v('Config','B23'));
+
+    dash
+      .getRange('B23')
+      .setValue(
+        score + '%'
+      );
+
+    dash
+      .getRange('B20')
+      .setValue(
+        score >= 80
+        ? '🟢 OK'
+        : '🔴 ERROR'
+      );
+
+  }catch(e){}
+
+  try{
+
+    var trg =
+      ScriptApp
+        .getProjectTriggers()
+        .length;
+
+    dash
+      .getRange('B24')
+      .setValue(
+        trg + '/7'
+      );
+
+  }catch(e){}
+
+  try{
+
+    var w =
+      getWeather();
+
+    dash
+      .getRange('B26')
+      .setValue(w.rain);
+
+    dash
+      .getRange('B27')
+      .setValue(w.wind);
+
+    dash
+      .getRange('B28')
+      .setValue(
+
+        Utilities.formatDate(
+          new Date(w.sunrise),
+          Session.getScriptTimeZone(),
+          'HH:mm'
+        )
+
+      );
+
+    dash
+      .getRange('B29')
+      .setValue(
+
+        Utilities.formatDate(
+          new Date(w.sunset),
+          Session.getScriptTimeZone(),
+          'HH:mm'
+        )
+
+      );
+
+  }catch(e){}
+
+  try{
+
+    dash
+      .getRange('B31')
+      .setValue(
+        getUptime()
+      );
+
+  }catch(e){}
+
+  try{
+
+    dash
+      .getRange('B32')
+      .setValue(
+        'OK'
+      );
+
+  }catch(e){}
+
+  try{
+
+    var shB =
+      sh('Backup');
+
+    var last =
+      shB.getLastRow();
+
+    if(last > 1){
+
+      var ts =
+        shB
+          .getRange(last,1)
+          .getValue();
+
+      dash
+        .getRange('B33')
+        .setValue(
+
+          Utilities.formatDate(
+            new Date(ts),
+            Session.getScriptTimeZone(),
+            'dd/MM/yyyy HH:mm'
+          )
+
+        );
+    }
+
+  }catch(e){}
+}
