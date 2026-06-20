@@ -1,0 +1,25 @@
+function markIn(name){
+
+  setPerson(name,'IN');
+
+  s('Config','B10', name);   // LAST PERSON
+
+  cancelSecuritySeq();
+
+  s('Config','B5',1);
+
+  logEvent('IN', name);
+
+  evaluateState();
+}
+
+function markOut(name){
+
+  setPerson(name,'OUT');
+
+  s('Config','B10', name);   // LAST PERSON
+
+  logEvent('OUT_REQ',name);
+
+  startOutPending();
+}
