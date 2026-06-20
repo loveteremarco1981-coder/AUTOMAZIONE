@@ -1,0 +1,205 @@
+function watchdogCheck(){
+
+  var critical = false;
+
+  try{
+
+    if(!v('Config','B3')){
+      critical = true;
+    }
+
+  }catch(e){
+
+    critical = true;
+
+  }
+
+  try{
+
+    if(
+      ScriptApp
+        .getProjectTriggers()
+        .length < 7
+    ){
+
+      ensureTriggers();
+
+      logEvent(
+        'WATCHDOG',
+        'TRIGGERS_RESTORED'
+      );
+    }
+
+  }catch(e){}
+
+  if(critical){
+
+    var props =
+      PropertiesService
+      .getScriptProperties();
+
+    var lastRestore =
+      props.getProperty(
+        'LAST_RESTORE'
+      );
+
+    var now = Date.now();
+
+    if(
+      !lastRestore ||
+      now - Number(lastRestore) >
+      3600000
+    ){
+
+      restoreLastBackup();
+
+      props.setProperty(
+        'LAST_RESTORE',
+        String(now)
+      );
+
+      logEvent(
+        'WATCHDOG',
+        'CRITICAL_RESTORE'
+      );
+
+    }else{
+
+      logEvent(
+        'WATCHDOG',
+        'RESTORE_SKIPPED'
+      );
+
+    }
+
+    return true;
+  }
+
+  logEvent(
+    'WATCHDOG',
+    'CHECK_OK'
+  );
+
+  return true;
+}
+
+function proWatchdog(){
+
+  var rep = [];
+
+  rep.push('WATCHDOG');
+  rep.push('');
+
+  try{
+
+    watchdogCheck();
+
+    rep.push('CHECK OK');
+
+  }catch(e){
+
+    rep.push(
+      'ERROR = ' +
+      String(e)
+    );
+
+  }
+
+  try{
+
+    rep.push(
+      'STATE = ' +
+      v('Config','B3')
+    );
+
+    rep.push(
+      'HOUSE_INSIDE = ' +
+      v('Config','B5')
+    );
+
+    rep.push(
+      'VACATION = ' +
+      v('Config','B7')
+    );
+
+    rep.push(
+      'OVERRIDE = ' +
+      v('Config','B8')
+    );
+
+    rep.push(
+      'SHUTTERS = ' +
+      getShuttersState()
+    );
+
+    rep.push(
+      'TRIGGERS = ' +
+      ScriptApp
+        .getProjectTriggers()
+        .length
+    );
+
+    rep.push(
+      'HEALTH SCORE = ' +
+      v('Config','B23')
+    );
+
+    rep.push(
+      'LAST PERSON = ' +
+      v('Config','B10')
+    );
+
+    rep.push(
+      'LAST HEARTBEAT = ' +
+      v('Config','B20')
+    );
+
+  }catch(e){
+
+    rep.push(
+      'DATA ERROR = ' +
+      String(e)
+    );
+
+  }
+
+  writeWatchdogReport(rep);
+
+  logEvent(
+    'WATCHDOG',
+    'REPORT_CREATED'
+  );
+}
+
+function writeWatchdogReport(rep){
+
+  var shR = sh('Watchdog');
+
+  if(!shR){
+
+    shR =
+      SpreadsheetApp
+        .getActiveSpreadsheet()
+        .insertSheet('Watchdog');
+  }
+
+  shR.clear();
+
+  for(var i=0;i<rep.length;i++){
+
+    shR
+      .getRange(i+1,1)
+      .setValue(rep[i]);
+
+  }
+
+  shR
+    .getRange(rep.length + 2,1)
+    .setValue('WATCHDOG OK');
+}
+
+function watchdogAuto(){
+
+  watchdogCheck();
+
+}
