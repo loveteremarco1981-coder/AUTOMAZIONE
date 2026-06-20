@@ -1,0 +1,15 @@
+function setShuttersState(st){
+  PropertiesService.getScriptProperties().setProperty('S_STATE', st);
+}
+
+function getShuttersState(){
+
+  var st = PropertiesService.getScriptProperties().getProperty('S_STATE');
+
+  if(!st){
+    return 'DOWN';
+  }
+
+  return st;
+}
+
