@@ -3,7 +3,7 @@
 
 const CONFIG = {
   // ── Endpoint Apps Script ──────────────────────────────────
-  API_URL: 'https://script.google.com/macros/s/AKfycbwQ2ON5nhBrwD4yKvcMmoNFZZoW0TnAy5ge1VhyReZlk6rvk6fzjSuC8sv8nMZD80A2/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbzLysvf0upIAIg063iBLJnCoc43LNHAZx-w0HZFh6uPa9oIjZrsmXjgo4ntN2vU258/exechttps://script.google.com/macros/s/AKfycbzLysvf0upIAIg063iBLJnCoc43LNHAZx-w0HZFh6uPa9oIjZrsmXjgo4ntN2vU258/exec',
 
   // ── Polling ───────────────────────────────────────────────
   POLL_INTERVAL_MS: 60000,   // aggiorna ogni 60s
