@@ -1,0 +1,159 @@
+function startSecuritySeq(){
+
+  var p =
+    PropertiesService
+      .getScriptProperties();
+
+  var now =
+    Date.now();
+
+  var w =
+    getWeather();
+
+  var cur =
+    new Date();
+
+  var sunrise =
+    new Date(w.sunrise);
+
+  sunrise.setMinutes(
+    sunrise.getMinutes() + 60
+  );
+
+  var sunset =
+    new Date(w.sunset);
+
+  // solo di giorno
+  if(
+    !(cur >= sunrise &&
+      cur < sunset)
+  ){
+    return;
+  }
+
+  // evita doppi trigger
+  if(
+    p.getProperty(
+      'SECURITY_SEQ_ACTIVE'
+    )
+  ){
+    return;
+  }
+
+  p.setProperty(
+    'SECURITY_SEQ_ACTIVE',
+    '1'
+  );
+
+  var when =
+    new Date(
+      now + 60000
+    );
+
+  ScriptApp.newTrigger(
+    'runSecurityPlants_'
+  )
+  .timeBased()
+  .at(when)
+  .create();
+
+  logEvent(
+    'SEQ',
+    'PIANTE_SCHEDULED'
+  );
+}
+
+function runSecurityPlants_(){
+
+  try{
+
+    ScriptApp
+      .getProjectTriggers()
+      .forEach(function(t){
+
+        if(
+          t.getHandlerFunction &&
+          t.getHandlerFunction() ===
+          'runSecurityPlants_'
+        ){
+          ScriptApp.deleteTrigger(t);
+        }
+
+      });
+
+  }catch(e){}
+
+  var p =
+    PropertiesService
+      .getScriptProperties();
+
+  p.deleteProperty(
+    'SECURITY_SEQ_ACTIVE'
+  );
+
+  var inside =
+    Number(
+      v('Config','B5')
+    ) === 1;
+
+  if(inside){
+
+  logEvent(
+    'SEQ',
+    'CANCELLED_HOME_OCCUPIED'
+  );
+
+  return;
+}
+
+  try{
+
+    sendIFTTT('piante');
+
+    setShuttersState(
+      'PIANTE'
+    );
+
+    logEvent(
+      'SHUTTERS',
+      'SECURITY_PIANTE'
+    );
+
+  }catch(e){
+
+    logError(
+      'SECURITY_SEQ',
+      String(e)
+    );
+  }
+}
+
+function cancelSecuritySeq(){
+
+  var p =
+    PropertiesService
+      .getScriptProperties();
+
+  p.deleteProperty(
+    'SECURITY_SEQ_ACTIVE'
+  );
+
+  ScriptApp
+    .getProjectTriggers()
+    .forEach(function(t){
+
+      if(
+        t.getHandlerFunction &&
+        t.getHandlerFunction() ===
+        'runSecurityPlants_'
+      ){
+        ScriptApp.deleteTrigger(t);
+      }
+
+    });
+
+  logEvent(
+    'SEQ',
+    'CANCELLED'
+  );
+}
