@@ -1,0 +1,93 @@
+function getWeather(){
+
+  var cache =
+    PropertiesService
+      .getScriptProperties();
+
+  var now =
+    new Date().getTime();
+
+  var last =
+    cache.getProperty('W_TS');
+
+  if(
+    last &&
+    now - Number(last) < 3600000
+  ){
+
+    var cached =
+      cache.getProperty('W_DATA');
+
+    if(cached){
+
+      return JSON.parse(cached);
+
+    }
+  }
+
+  var cachedData =
+    cache.getProperty('W_DATA');
+
+  try{
+
+    var url =
+      'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=44.999' +
+      '&longitude=7.640' +
+      '&hourly=precipitation,windspeed_10m' +
+      '&daily=sunrise,sunset' +
+      '&timezone=Europe/Rome';
+
+    var res =
+      UrlFetchApp.fetch(url);
+
+    var data =
+      JSON.parse(
+        res.getContentText()
+      );
+
+    var result = {
+
+      rain:
+        data.hourly.precipitation[0],
+
+      wind:
+        data.hourly.windspeed_10m[0],
+
+      sunrise:
+        data.daily.sunrise[0],
+
+      sunset:
+        data.daily.sunset[0]
+
+    };
+
+    cache.setProperty(
+      'W_DATA',
+      JSON.stringify(result)
+    );
+
+    cache.setProperty(
+      'W_TS',
+      String(now)
+    );
+
+    return result;
+
+  }catch(e){
+
+    if(cachedData){
+
+      logEvent(
+        'WEATHER',
+        'CACHE_FALLBACK'
+      );
+
+      return JSON.parse(
+        cachedData
+      );
+    }
+
+    throw e;
+  }
+}
