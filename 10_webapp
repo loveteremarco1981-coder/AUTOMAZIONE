@@ -1,10 +1,186 @@
-function doGet(e){
+function doGet(e) {
 
-  var ev = e.parameter.event;
-  var name = e.parameter.name;
+  e = e || {};
+  var p = e.parameter || {};
 
-  if(ev==='in') markIn(name);
-  if(ev==='out') markOut(name);
+  try {
 
-  return ContentService.createTextOutput('OK');
+    var ev = p.event || '';
+    var name = p.name || '';
+
+    // ====================================================
+    // COMANDI
+    // ====================================================
+
+    if (ev === 'mark_in' || ev === 'in') {
+      markIn(name);
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    if (ev === 'mark_out' || ev === 'out') {
+      markOut(name);
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ====================================================
+    // MODELLO DASHBOARD
+    // ====================================================
+
+    var model = buildModel_();
+
+    return jsonpResponse_(
+      p.callback,
+      model
+    );
+
+  } catch (err) {
+
+    return jsonpResponse_(
+      p.callback,
+      {
+        ok: false,
+        error: String(err)
+      }
+    );
+  }
+}
+
+function jsonpResponse_(callback, obj) {
+
+  if (callback) {
+
+    return ContentService
+      .createTextOutput(
+        callback +
+        '(' +
+        JSON.stringify(obj) +
+        ');'
+      )
+      .setMimeType(
+        ContentService.MimeType.JAVASCRIPT
+      );
+  }
+
+  return ContentService
+    .createTextOutput(
+      JSON.stringify(obj)
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}
+
+function buildModel_() {
+
+  var people = [];
+
+  try {
+
+    var shPeople =
+      sh('Persone');
+
+    var data =
+      shPeople
+        .getRange(
+          2,
+          1,
+          Math.max(
+            shPeople.getLastRow() - 1,
+            0
+          ),
+          4
+        )
+        .getValues();
+
+    for (var i = 0; i < data.length; i++) {
+
+      if (!data[i][0]) {
+        continue;
+      }
+
+      people.push({
+
+        name: data[i][0],
+
+        onlineSmart:
+          String(data[i][3])
+            .toUpperCase() === 'IN',
+
+        ssidLock: false,
+
+        lastLifeMinAgo: null
+
+      });
+    }
+
+  } catch (e) {}
+
+  var model = {
+
+    state:
+      String(
+        v('Config', 'B3')
+      ),
+
+    vacanza:
+      String(
+        v('Config', 'B7')
+      ).toLowerCase() === 'true',
+
+    override:
+      String(
+        v('Config', 'B8')
+      ).toLowerCase() === 'true',
+
+    notte:
+      String(
+        v('Config', 'B4')
+      ).toLowerCase() === 'true',
+
+    people: people,
+
+    weather: {
+
+      tempC:
+        Number(
+          v('Config', 'B30')
+        ) || null,
+
+      humidity:
+        Number(
+          v('Config', 'B31')
+        ) || null,
+
+      windKmh:
+        Number(
+          v('Config', 'B32')
+        ) || null
+
+    },
+
+    alerts: {
+
+      logErrors: 0
+
+    },
+
+    next: {},
+
+    meta: {
+
+      nowIso:
+        new Date()
+          .toISOString()
+
+    }
+
+  };
+
+  return model;
 }
