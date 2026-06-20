@@ -1,0 +1,206 @@
+function handleShutters(){
+
+  var inside = Number(v('Config','B5')) === 1;
+
+  var vacation =
+    String(v('Config','B7'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  var override =
+    String(v('Config','B8'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  if(override){
+    return;
+  }
+
+  var w = getWeather();
+
+  var now = new Date();
+
+  var sunrise =
+    new Date(w.sunrise);
+
+  sunrise.setMinutes(
+    sunrise.getMinutes() + 60
+  );
+
+  var sunset =
+    new Date(w.sunset);
+
+  var hour =
+    now.getHours();
+
+  var weekend =
+    isFestivo();
+
+  var bad =
+    (w.rain > 2 || w.wind > 40);
+
+  // =====================
+  // VACANZA
+  // =====================
+
+  if(vacation){
+
+    if(bad){
+
+      if(
+        getShuttersState() !==
+        'DOWN'
+      ){
+
+        sendIFTTT(
+          'abbassa_tutto'
+        );
+
+        setShuttersState(
+          'DOWN'
+        );
+      }
+
+      return;
+    }
+
+    if(
+      now >= sunrise &&
+      now < sunset
+    ){
+
+      if(
+        getShuttersState() !==
+        'PIANTE'
+      ){
+
+        sendIFTTT('piante');
+
+        setShuttersState(
+          'PIANTE'
+        );
+      }
+
+      return;
+    }
+
+    if(now >= sunset){
+
+      if(
+        getShuttersState() !==
+        'DOWN'
+      ){
+
+        sendIFTTT(
+          'abbassa_tutto'
+        );
+
+        setShuttersState(
+          'DOWN'
+        );
+      }
+
+      return;
+    }
+
+    return;
+  }
+
+  // =====================
+  // COMFY
+  // =====================
+
+  if(inside){
+
+    if(bad){
+
+      if(
+        getShuttersState() !==
+        'DOWN'
+      ){
+
+        sendIFTTT(
+          'abbassa_tutto'
+        );
+
+        setShuttersState(
+          'DOWN'
+        );
+      }
+
+      return;
+    }
+
+    if(
+      now >= sunrise &&
+      now < sunset
+    ){
+
+      if(
+        getShuttersState() !==
+        'PIANTE'
+      ){
+
+        sendIFTTT('piante');
+
+        setShuttersState(
+          'PIANTE'
+        );
+      }
+
+      return;
+    }
+
+    var closeH =
+      weekend ? 0 : 23;
+
+    // CHIUSURA FORZATA
+    if(hour >= closeH){
+
+      sendIFTTT(
+        'abbassa_tutto'
+      );
+
+      setShuttersState(
+        'DOWN'
+      );
+
+      logEvent(
+        'SHUTTERS',
+        'NIGHT_CLOSE'
+      );
+
+      return;
+    }
+
+    return;
+  }
+
+  // =====================
+  // SECURITY
+  // =====================
+
+  if(!inside){
+
+    if(
+      getShuttersState() !==
+      'DOWN'
+    ){
+
+      sendIFTTT(
+        'abbassa_tutto'
+      );
+
+      setShuttersState(
+        'DOWN'
+      );
+
+      logEvent(
+        'SHUTTERS',
+        'SECURITY_CLOSE'
+      );
+    }
+
+    return;
+  }
+}
