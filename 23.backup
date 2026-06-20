@@ -1,0 +1,210 @@
+function backupSystem(){
+
+  try{
+
+    var state = v('Config','B3');
+
+    if(!state){
+      return;
+    }
+
+    var ss =
+      SpreadsheetApp
+      .getActiveSpreadsheet();
+
+    var shB =
+      ss.getSheetByName(
+        'Backup'
+      );
+
+    if(!shB){
+
+      shB =
+        ss.insertSheet(
+          'Backup'
+        );
+
+      shB.appendRow([
+        'TS',
+        'STATE',
+        'HOUSE_INSIDE',
+        'VACANZA',
+        'OVERRIDE',
+        'TEST_MODE',
+        'HEALTH_SCORE',
+        'SHUTTERS',
+        'PEOPLE'
+      ]);
+    }
+
+    var people = [];
+
+    try{
+
+      var shP =
+        sh('Persone');
+
+      var last =
+        shP.getLastRow();
+
+      if(last > 1){
+
+        var data =
+          shP.getRange(
+            2,
+            1,
+            last - 1,
+            4
+          ).getValues();
+
+        for(
+          var i=0;
+          i<data.length;
+          i++
+        ){
+
+          if(!data[i][0]){
+            continue;
+          }
+
+          people.push(
+            data[i][0] +
+            '=' +
+            data[i][3]
+          );
+        }
+      }
+
+    }catch(e){}
+
+    shB.appendRow([
+
+      new Date(),
+
+      v('Config','B3'),
+
+      v('Config','B5'),
+
+      v('Config','B7'),
+
+      v('Config','B8'),
+
+      v('Config','B12'),
+
+      v('Config','B23'),
+
+      getShuttersState(),
+
+      people.join('|')
+
+    ]);
+
+    while(
+      shB.getLastRow() > 31
+    ){
+
+      shB.deleteRow(2);
+
+    }
+
+  }catch(e){
+
+    logError(
+      'BACKUP',
+      String(e)
+    );
+  }
+}
+
+function restoreLastBackup(){
+
+  var shB = sh('Backup');
+
+  if(!shB){
+    throw 'BACKUP_NOT_FOUND';
+  }
+
+  var last =
+    shB.getLastRow();
+
+  if(last < 2){
+    throw 'BACKUP_EMPTY';
+  }
+
+  var r =
+    shB
+      .getRange(
+        last,
+        1,
+        1,
+        9
+      )
+      .getValues()[0];
+
+  s('Config','B3',r[1]);
+  s('Config','B5',r[2]);
+  s('Config','B7',r[3]);
+  s('Config','B8',r[4]);
+  s('Config','B12',r[5]);
+  s('Config','B23',r[6]);
+
+  try{
+
+    if(r[7]){
+
+      setShuttersState(
+        r[7]
+      );
+    }
+
+  }catch(e){}
+
+  try{
+
+    if(r[8]){
+
+      var people =
+        String(r[8])
+        .split('|');
+
+      for(
+        var i=0;
+        i<people.length;
+        i++
+      ){
+
+        var p =
+          people[i]
+          .split('=');
+
+        if(
+          p.length === 2
+        ){
+
+          setPerson(
+            p[0],
+            p[1]
+          );
+        }
+      }
+    }
+
+  }catch(e){}
+
+  try{
+    healthAudit();
+  }catch(e){}
+
+  try{
+    updateDashboard();
+  }catch(e){}
+
+  try{
+    generateReport();
+  }catch(e){}
+
+  logEvent(
+    'RESTORE',
+    'FULL_BACKUP'
+  );
+}
