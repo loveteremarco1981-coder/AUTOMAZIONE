@@ -1,0 +1,309 @@
+function writeReport(rep, ok){
+
+  var shR = sh('ProTest');
+
+  if(!shR){
+
+    shR =
+      SpreadsheetApp
+        .getActiveSpreadsheet()
+        .insertSheet('ProTest');
+  }
+
+  shR.clear();
+
+  for(var i=0;i<rep.length;i++){
+
+    shR
+      .getRange(i+1,1)
+      .setValue(rep[i]);
+  }
+
+  shR
+    .getRange(rep.length+2,1)
+    .setValue(
+      ok
+      ? 'SYSTEM OK'
+      : 'SYSTEM ERROR'
+    );
+}
+
+function generateReport(){
+
+  var ss =
+    SpreadsheetApp
+      .getActiveSpreadsheet();
+
+  var rep =
+    ss.getSheetByName('Report');
+
+  if(!rep){
+
+    rep = ss.insertSheet('Report');
+
+  }else{
+
+    rep.clear();
+
+  }
+
+  var row = 1;
+
+  function section(title){
+
+    rep
+      .getRange(row,1)
+      .setValue(title);
+
+    row++;
+  }
+
+  function write(label,value){
+
+    rep
+      .getRange(row,1)
+      .setValue(label);
+
+    rep
+      .getRange(row,2)
+      .setValue(value);
+
+    row++;
+  }
+
+  section('CONFIG');
+
+  var state =
+    v('Config','B3');
+
+  var inside =
+    Number(v('Config','B5'));
+
+  var vacation =
+    String(v('Config','B7'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  var override =
+    String(v('Config','B8'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  var testMode =
+    String(v('Config','B12'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  write('STATO',state);
+  write('HOUSE_INSIDE',inside);
+  write('VACANZA',vacation);
+  write('OVERRIDE',override);
+  write('TEST_MODE',testMode);
+
+  row++;
+
+  section('PERSONE');
+
+  var data =
+    sh('Persone')
+      .getRange(2,1,50,4)
+      .getValues();
+
+  for(var i=0;i<data.length;i++){
+
+    if(!data[i][0]) continue;
+
+    write(
+      data[i][0],
+      data[i][3]
+    );
+  }
+
+  row++;
+
+  section('METEO');
+
+  try{
+
+    var w = getWeather();
+
+    write('RAIN',w.rain);
+    write('WIND',w.wind);
+    write('SUNRISE',w.sunrise);
+    write('SUNSET',w.sunset);
+
+  }catch(e){
+
+    write(
+      'METEO ERROR',
+      String(e)
+    );
+  }
+
+  row++;
+
+  section('TAPPARELLE');
+
+  try{
+
+    write(
+      'STATO',
+      getShuttersState()
+    );
+
+  }catch(e){
+
+    write(
+      'STATO',
+      'UNKNOWN'
+    );
+  }
+
+  row++;
+
+  section('LOGICA ATTUALE');
+
+  write(
+    'CASA OCCUPATA',
+    inside === 1
+  );
+
+  write(
+    'VACANZA ATTIVA',
+    vacation
+  );
+
+  write(
+    'OVERRIDE ATTIVO',
+    override
+  );
+
+  row++;
+
+  section('HEALTH');
+
+  write(
+    'HEALTH STATUS',
+    v('Config','B21')
+  );
+
+  write(
+    'HEALTH SCORE',
+    v('Config','B23')
+  );
+
+  write(
+    'LAST HEARTBEAT',
+    v('Config','B20')
+  );
+
+  write(
+    'LAST ERROR',
+    v('Config','B22')
+  );
+
+  write(
+    'LAST PERSON',
+    v('Config','B10')
+  );
+
+  write(
+    'TRIGGERS',
+    ScriptApp
+      .getProjectTriggers()
+      .length
+  );
+
+  row++;
+
+  section('AZIONI PREVISTE');
+
+  if(testMode){
+
+    write(
+      'SISTEMA',
+      'TEST MODE'
+    );
+
+  }else{
+
+    write(
+      'SISTEMA',
+      'OPERATIVO'
+    );
+  }
+
+  if(override){
+
+    write(
+      'SHUTTERS',
+      'BLOCCATE'
+    );
+
+    write(
+      'CLIMA',
+      'BLOCCATO'
+    );
+
+  }else if(inside){
+
+    write(
+      'CLIMA',
+      'AUTO'
+    );
+
+    write(
+      'SHUTTERS',
+      'PIANTE GIORNO / CHIUSURA SERA'
+    );
+
+  }else{
+
+    write(
+      'CLIMA',
+      'OFF'
+    );
+
+    write(
+      'SHUTTERS',
+      'CHIUSO + PIANTE GIORNO'
+    );
+  }
+
+  row++;
+
+  section('ULTIMI 10 EVENTI');
+
+  var logSheet =
+    sh('Log');
+
+  var last =
+    logSheet.getLastRow();
+
+  var start =
+    Math.max(
+      2,
+      last - 9
+    );
+
+  if(last >= 2){
+
+    var logs =
+      logSheet
+        .getRange(
+          start,
+          1,
+          last-start+1,
+          3
+        )
+        .getValues();
+
+    for(var j=0;j<logs.length;j++){
+
+      write(
+        logs[j][1],
+        logs[j][2]
+      );
+    }
+  }
+}
