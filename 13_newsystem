@@ -1,0 +1,182 @@
+function setupNewSystem(){
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+
+  var base = sheets[0];
+
+  // ================= PULIZIA =================
+
+  for(var i = sheets.length - 1; i > 0; i--){
+    ss.deleteSheet(sheets[i]);
+  }
+
+  base.setName('Config');
+  base.clear();
+
+  // ================= CONFIG =================
+
+  base.getRange('A1').setValue('SISTEMA CASA');
+
+  base.getRange('A3').setValue('STATO');
+  base.getRange('B3').setValue('SECURITY_DAY');
+
+  base.getRange('A5').setValue('HOUSE_INSIDE');
+  base.getRange('B5').setValue(0);
+
+  base.getRange('A7').setValue('VACANZA');
+  base.getRange('B7').insertCheckboxes();
+  base.getRange('B7').setValue(false);
+
+  base.getRange('A8').setValue('OVERRIDE');
+  base.getRange('B8').insertCheckboxes();
+  base.getRange('B8').setValue(false);
+
+  base.getRange('A10').setValue('LAST_PERSON');
+  base.getRange('B10').setValue('');
+
+  base.getRange('A12').setValue('TEST_MODE');
+  base.getRange('B12').insertCheckboxes();
+  base.getRange('B12').setValue(true);
+
+  base.getRange('A20').setValue('LAST_HEARTBEAT');
+  base.getRange('B20').setValue('');
+
+  base.getRange('A21').setValue('HEALTH_STATUS');
+  base.getRange('B21').setValue('OK');
+
+  base.getRange('A22').setValue('LAST_ERROR');
+  base.getRange('B22').setValue('');
+
+  base.getRange('A23').setValue('HEALTH_SCORE');
+  base.getRange('B23').setValue(100);
+
+  // ================= STATO =================
+
+  var stato = ss.insertSheet('Stato');
+
+  stato.getRange('A1').setValue('LAST_CHANGE');
+  stato.getRange('B1').setValue(new Date());
+
+  // ================= PERSONE =================
+
+  var persone = ss.insertSheet('Persone');
+
+  persone.getRange('A1').setValue('NOME');
+  persone.getRange('C1').setValue('ULTIMO_EVENTO');
+  persone.getRange('D1').setValue('STATO');
+
+  persone.getRange('A2').setValue('marco');
+  persone.getRange('A3').setValue('silvia');
+  persone.getRange('A4').setValue('viola');
+  persone.getRange('A5').setValue('samuele');
+
+  persone.getRange('D2:D5').setValue('OUT');
+
+  // ================= LOG =================
+
+  var log = ss.insertSheet('Log');
+
+  log.getRange('A1').setValue('TS');
+  log.getRange('B1').setValue('CATEGORIA');
+  log.getRange('C1').setValue('EVENTO');
+
+  log.setFrozenRows(1);
+
+  // ================= REPORT =================
+
+  var report = ss.insertSheet('Report');
+
+  report.getRange('A1').setValue('REPORT AUTOMATICO');
+
+  // ================= ANALYTICS =================
+
+  var analytics = ss.insertSheet('Analytics');
+
+  analytics.getRange('A1').setValue('METRICA');
+  analytics.getRange('B1').setValue('VALORE');
+
+  analytics.getRange('A2').setValue('INGRESSI');
+  analytics.getRange('A3').setValue('USCITE');
+  analytics.getRange('A4').setValue('COMFY');
+  analytics.getRange('A5').setValue('SECURITY');
+  analytics.getRange('A6').setValue('ERRORI');
+
+  // ================= DASHBOARD =================
+
+  var dash = ss.insertSheet('Dashboard');
+
+  dash.getRange('A1').setValue('🏠 DASHBOARD CASA');
+
+  dash.getRange('A3').setValue('STATO');
+  dash.getRange('B3').setFormula('=Config!B3');
+
+  dash.getRange('A4').setValue('HOUSE INSIDE');
+  dash.getRange('B4').setFormula('=Config!B5');
+
+  dash.getRange('A5').setValue('VACANZA');
+  dash.getRange('B5').setFormula('=Config!B7');
+
+  dash.getRange('A6').setValue('OVERRIDE');
+  dash.getRange('B6').setFormula('=Config!B8');
+
+  dash.getRange('A7').setValue('TEST MODE');
+  dash.getRange('B7').setFormula('=Config!B12');
+
+  dash.getRange('A9').setValue('LAST PERSON');
+  dash.getRange('B9').setFormula('=Config!B10');
+
+  dash.getRange('A11').setValue('HEALTH');
+  dash.getRange('B11').setFormula('=Config!B21');
+
+  dash.getRange('A12').setValue('LAST HEARTBEAT');
+  dash.getRange('B12').setFormula('=Config!B20');
+
+  dash.getRange('A13').setValue('LAST ERROR');
+  dash.getRange('B13').setFormula('=Config!B22');
+
+  dash.getRange('A15').setValue('ULTIMO EVENTO');
+
+  dash.getRange('B15').setFormula(
+    '=IFERROR(LOOKUP(2;1/(Log!C:C<>"");Log!C:C);"NESSUN EVENTO")'
+  );
+
+  dash.getRange('A16').setValue('TIMESTAMP');
+
+  dash.getRange('B16').setFormula(
+    '=IFERROR(LOOKUP(2;1/(Log!A:A<>"");Log!A:A);"")'
+  );
+
+  dash.getRange('A18').setValue('TAPPARELLE');
+  dash.getRange('B18').setValue('N/D');
+
+  dash.getRange('A19').setValue('PERSONE IN CASA');
+  dash.getRange('B19').setFormula('=Config!B5');
+
+  dash.getRange('A20').setValue('SISTEMA');
+  dash.getRange('B20').setValue('🟢 OK');
+
+  dash.getRange('A23').setValue('HEALTH SCORE');
+  dash.getRange('B23').setValue('100%');
+
+  dash.getRange('A24').setValue('TRIGGERS');
+  dash.getRange('B24').setValue('7/7');
+
+  dash.getRange('A26').setValue('PIOGGIA');
+  dash.getRange('B26').setValue('');
+
+  dash.getRange('A27').setValue('VENTO');
+  dash.getRange('B27').setValue('');
+
+  dash.getRange('A28').setValue('ALBA');
+  dash.getRange('B28').setValue('');
+
+  dash.getRange('A29').setValue('TRAMONTO');
+  dash.getRange('B29').setValue('');
+
+  dash.autoResizeColumns(1,5);
+
+  SpreadsheetApp.flush();
+
+  Logger.log('✅ Sistema PRO creato correttamente');
+}
