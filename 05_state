@@ -1,0 +1,33 @@
+function evaluateState(){
+
+  var inside = Number(v('Config','B5')) === 1;
+  var current = getState();
+
+  var next = inside
+    ? (isNight() ? 'COMFY_NIGHT' : 'COMFY_DAY')
+    : (isNight() ? 'SECURITY_NIGHT' : 'SECURITY_DAY');
+
+  if(next === current) return;
+
+  s('Config','B3', next);
+
+  logEvent('STATE', current + ' -> ' + next);
+
+  // 💣 PROTEZIONE TEST (FONDAMENTALE)
+  try{
+    applyActions(next);
+  }catch(e){
+    logEvent('ACTIONS_ERROR', String(e));
+  }
+}
+
+function getState(){
+
+  var val = v('Config','B3');
+
+  if(!val){
+    return 'SECURITY_DAY';
+  }
+
+  return val;
+}
