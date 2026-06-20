@@ -1,0 +1,10 @@
+function doGet(e){
+
+  var ev = e.parameter.event;
+  var name = e.parameter.name;
+
+  if(ev==='in') markIn(name);
+  if(ev==='out') markOut(name);
+
+  return ContentService.createTextOutput('OK');
+}
