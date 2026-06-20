@@ -1,24 +1,52 @@
-function logError(src,msg){
+function autoRepair(){
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  try{
 
-  var shE = ss.getSheetByName('Errors');
+    if(!v('Config','B3')){
 
-  if(!shE){
+      s(
+        'Config',
+        'B3',
+        'SECURITY_DAY'
+      );
 
-    shE = ss.insertSheet('Errors');
+      logEvent(
+        'REPAIR',
+        'STATE_RESTORED'
+      );
+    }
 
-    shE.appendRow([
-      'TS',
-      'SOURCE',
-      'MESSAGE'
-    ]);
-  }
+  }catch(e){}
 
-  shE.appendRow([
-    new Date(),
-    src,
-    msg
-  ]);
+  try{
 
+    if(!getShuttersState()){
+
+      setShuttersState('DOWN');
+
+      logEvent(
+        'REPAIR',
+        'SHUTTERS_RESTORED'
+      );
+    }
+
+  }catch(e){}
+
+  try{
+
+    if(
+      ScriptApp
+        .getProjectTriggers()
+        .length < 7
+    ){
+
+      ensureTriggers();
+
+      logEvent(
+        'REPAIR',
+        'TRIGGERS_RESTORED'
+      );
+    }
+
+  }catch(e){}
 }
