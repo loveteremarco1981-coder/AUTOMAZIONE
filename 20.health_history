@@ -1,0 +1,44 @@
+function logHealthHistory(){
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  var shH = ss.getSheetByName('Health');
+
+  if(!shH){
+
+    shH = ss.insertSheet('Health');
+
+    shH.appendRow([
+      'TS',
+      'STATE',
+      'HEALTH',
+      'TRIGGERS',
+      'SHUTTERS',
+      'RAIN',
+      'WIND'
+    ]);
+
+  }
+
+  var w = getWeather();
+
+  shH.appendRow([
+
+    new Date(),
+
+    v('Config','B3'),
+
+    v('Config','B23'),
+
+    ScriptApp
+      .getProjectTriggers()
+      .length,
+
+    getShuttersState(),
+
+    w.rain,
+
+    w.wind
+
+  ]);
+}
