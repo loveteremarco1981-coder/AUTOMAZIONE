@@ -1,0 +1,38 @@
+function startOutPending(){
+
+  var p = PropertiesService.getScriptProperties();
+
+  p.setProperty('OUT_PENDING','1');
+  p.setProperty('OUT_TS', new Date().getTime());
+
+  logEvent('OUT','PENDING');
+}
+
+function checkOutFinal(){
+
+  var p = PropertiesService.getScriptProperties();
+
+  if(!p.getProperty('OUT_PENDING')) return;
+
+  var ts = Number(p.getProperty('OUT_TS'));
+  var now = new Date().getTime();
+
+  // attesa 2 min
+  if(now - ts < 120000) return;
+
+  var inside = isAnyoneInside();
+
+  if(!inside){
+
+    s('Config','B5',0);
+
+    logEvent('OUT','CONFIRMED');
+
+    evaluateState();
+
+  }else{
+    logEvent('OUT','CANCELLED');
+  }
+
+  p.deleteProperty('OUT_PENDING');
+}
