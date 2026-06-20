@@ -1,0 +1,397 @@
+function proTest(){
+
+  var rep = [];
+  var err = 0;
+
+  var oldState    = v('Config','B3');
+  var oldInside   = v('Config','B5');
+  var oldVacation = v('Config','B7');
+  var oldOverride = v('Config','B8');
+  var oldTestMode = v('Config','B12');
+
+  s('Config','B12', true);
+
+  logEvent('TEST','START');
+
+  function ok(x){
+
+    rep.push(x + ' OK');
+
+  }
+
+  function ko(x){
+
+    rep.push(x + ' ERROR');
+
+    err++;
+  }
+
+  var scenarios = [
+
+    [1,false,false,'COMFY'],
+    [0,false,false,'SECURITY'],
+    [1,true,false,'VACANZA_IN'],
+    [0,true,false,'VACANZA_OUT'],
+    [1,false,true,'OVERRIDE_IN'],
+    [0,false,true,'OVERRIDE_OUT']
+
+  ];
+
+  for(var i=0;i<scenarios.length;i++){
+
+    rep.push('');
+    rep.push(
+      '--- ' +
+      scenarios[i][3] +
+      ' ---'
+    );
+
+    try{
+
+      s(
+        'Config',
+        'B5',
+        scenarios[i][0]
+      );
+
+      s(
+        'Config',
+        'B7',
+        scenarios[i][1]
+      );
+
+      s(
+        'Config',
+        'B8',
+        scenarios[i][2]
+      );
+
+      s(
+        'Config',
+        'B3',
+        'SECURITY_DAY'
+      );
+
+      ok('CONFIG');
+
+    }catch(e){
+
+      ko('CONFIG');
+
+    }
+
+    try{
+
+      evaluateState();
+
+      ok('STATE');
+
+    }catch(e){
+
+      ko('STATE');
+
+    }
+
+    try{
+
+      handleShutters();
+
+      ok('SHUTTERS');
+
+    }catch(e){
+
+      ko('SHUTTERS');
+
+    }
+
+    try{
+
+      var w =
+        getWeather();
+
+      if(!w){
+        throw 'METEO';
+      }
+
+      ok('METEO');
+
+    }catch(e){
+
+      ko('METEO');
+
+    }
+  }
+
+  rep.push('');
+  rep.push('--- HEALTH CHECK ---');
+
+  try{
+
+    var weather =
+      getWeather();
+
+    if(
+      weather &&
+      weather.sunrise
+    ){
+
+      ok('WEATHER_API');
+
+    }else{
+
+      ko('WEATHER_API');
+
+    }
+
+  }catch(e){
+
+    ko('WEATHER_API');
+
+  }
+
+  try{
+
+    var p =
+      PropertiesService
+      .getScriptProperties();
+
+    if(
+      p.getProperty('W_DATA') &&
+      p.getProperty('W_TS')
+    ){
+
+      ok('WEATHER_CACHE');
+
+    }else{
+
+      ko('WEATHER_CACHE');
+
+    }
+
+  }catch(e){
+
+    ko('WEATHER_CACHE');
+
+  }
+
+  try{
+
+    if(getShuttersState()){
+
+      ok('SHUTTERS_STATE');
+
+    }else{
+
+      ko('SHUTTERS_STATE');
+
+    }
+
+  }catch(e){
+
+    ko('SHUTTERS_STATE');
+
+  }
+
+  try{
+
+    var triggers =
+      ScriptApp
+      .getProjectTriggers();
+
+    if(
+      triggers.length >= 7
+    ){
+
+      ok('TRIGGERS');
+
+    }else{
+
+      ko('TRIGGERS');
+
+    }
+
+  }catch(e){
+
+    ko('TRIGGERS');
+
+  }
+
+  try{
+
+    sendIFTTT(
+      'HEALTH_TEST'
+    );
+
+    ok('TEST_MODE');
+
+  }catch(e){
+
+    ko('TEST_MODE');
+
+  }
+
+  rep.push('');
+  rep.push('--- DASHBOARD ---');
+
+  try{
+
+    updateDashboard();
+
+    ok('DASHBOARD');
+
+  }catch(e){
+
+    ko('DASHBOARD');
+
+  }
+
+  rep.push('');
+  rep.push('--- ANALYTICS ---');
+
+  try{
+
+    updateAnalytics();
+
+    ok('ANALYTICS');
+
+  }catch(e){
+
+    ko('ANALYTICS');
+
+  }
+
+  rep.push('');
+  rep.push('--- HEALTH AUDIT ---');
+
+  try{
+
+    var score =
+      healthAudit();
+
+    if(score < 50){
+      throw 'LOW_SCORE';
+    }
+
+    ok('HEALTH_AUDIT');
+
+  }catch(e){
+
+    ko('HEALTH_AUDIT');
+
+  }
+
+  rep.push('');
+  rep.push('--- HEALTH HISTORY ---');
+
+  try{
+
+    logHealthHistory();
+
+    ok('HEALTH_HISTORY');
+
+  }catch(e){
+
+    ko('HEALTH_HISTORY');
+
+  }
+
+  rep.push('');
+  rep.push('--- AUTO REPAIR ---');
+
+  try{
+
+    autoRepair();
+
+    ok('AUTO_REPAIR');
+
+  }catch(e){
+
+    ko('AUTO_REPAIR');
+
+  }
+
+  rep.push('');
+  rep.push('--- BACKUP ---');
+
+  try{
+
+    backupSystem();
+
+    ok('BACKUP');
+
+  }catch(e){
+
+    ko('BACKUP');
+
+  }
+
+  rep.push('');
+rep.push('--- WATCHDOG ---');
+
+try{
+
+  watchdogCheck();
+
+  ok('WATCHDOG');
+
+}catch(e){
+
+  rep.push(
+    'WATCHDOG ERROR: ' +
+    String(e)
+  );
+
+  ko('WATCHDOG');
+
+}
+
+  var prop =
+    PropertiesService
+    .getScriptProperties();
+
+  prop.deleteProperty('LAST');
+  prop.deleteProperty('LAST_TS');
+
+  s('Config','B3', oldState);
+  s('Config','B5', oldInside);
+  s('Config','B7', oldVacation);
+  s('Config','B8', oldOverride);
+  s('Config','B12', oldTestMode);
+
+  logEvent('TEST','END');
+
+  writeReport(
+    rep,
+    err === 0
+  );
+}
+
+function systemHealthCheck(){
+
+  return {
+
+    weatherData:
+      !!PropertiesService
+      .getScriptProperties()
+      .getProperty('W_DATA'),
+
+    weatherCache:
+      !!PropertiesService
+      .getScriptProperties()
+      .getProperty('W_TS'),
+
+    shutters:
+      !!getShuttersState(),
+
+    triggers:
+      ScriptApp
+      .getProjectTriggers()
+      .length,
+
+    testMode:
+      String(v('Config','B12'))
+      .toLowerCase()
+      .trim() === 'true'
+
+  };
+}
