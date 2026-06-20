@@ -1,0 +1,72 @@
+function healthAudit(){
+
+  var score = 100;
+
+  try{
+
+    if(
+      !PropertiesService
+        .getScriptProperties()
+        .getProperty('W_DATA')
+    ){
+      score -= 20;
+    }
+
+  }catch(e){
+
+    score -= 20;
+
+  }
+
+  try{
+
+    if(
+      ScriptApp
+        .getProjectTriggers()
+        .length < 7
+    ){
+      score -= 40;
+    }
+
+  }catch(e){
+
+    score -= 40;
+
+  }
+
+  try{
+
+    if(!getShuttersState()){
+      score -= 20;
+    }
+
+  }catch(e){
+
+    score -= 20;
+
+  }
+
+  try{
+
+    if(!v('Config','B3')){
+      score -= 20;
+    }
+
+  }catch(e){
+
+    score -= 20;
+
+  }
+
+  if(score < 0){
+    score = 0;
+  }
+
+  s(
+    'Config',
+    'B23',
+    score
+  );
+
+  return score;
+}
