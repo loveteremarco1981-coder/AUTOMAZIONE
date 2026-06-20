@@ -1,0 +1,43 @@
+function ensureTriggers(){
+
+  var t = ScriptApp.getProjectTriggers();
+
+  for(var i=0;i<t.length;i++){
+    ScriptApp.deleteTrigger(t[i]);
+  }
+
+  ScriptApp.newTrigger('evaluateState')
+    .timeBased()
+    .everyMinutes(5)
+    .create();
+
+  ScriptApp.newTrigger('handleShutters')
+    .timeBased()
+    .everyMinutes(5)
+    .create();
+
+  ScriptApp.newTrigger('checkOutFinal')
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+
+  ScriptApp.newTrigger('hourlySupervisor')
+    .timeBased()
+    .everyHours(1)
+    .create();
+
+  ScriptApp.newTrigger('watchdogAuto')
+    .timeBased()
+    .everyMinutes(30)
+    .create();
+
+  ScriptApp.newTrigger('backupSystem')
+    .timeBased()
+    .everyDays(1)
+    .create();
+
+  logEvent(
+    'SYSTEM',
+    'TRIGGERS_CREATED'
+  );
+}
