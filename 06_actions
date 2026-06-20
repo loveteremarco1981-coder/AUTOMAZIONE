@@ -1,0 +1,30 @@
+function applyActions(state){
+
+  if(state.indexOf('COMFY') !== -1){
+
+    sendIFTTT('ezviz_interne_off');
+    sendIFTTT('ezviz_esterne_off');
+    sendIFTTT('termostato_auto');
+
+    logEvent('ACTIONS','COMFY');
+    return;
+  }
+
+  if(state.indexOf('SECURITY') !== -1){
+
+    sendIFTTT('ezviz_interne_on');
+    sendIFTTT('ezviz_esterne_on');
+    sendIFTTT('off_termostato');
+    sendIFTTT('spegni_clima');
+
+    var st = getShuttersState();
+
+    if(st !== 'DOWN'){
+      sendIFTTT('abbassa_tutto');
+    }
+
+    startSecuritySeq();
+
+    logEvent('ACTIONS','SECURITY');
+  }
+}
