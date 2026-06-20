@@ -1,0 +1,131 @@
+function onOpen(){
+
+  var ui = SpreadsheetApp.getUi();
+
+  ui.createMenu('🏠 CASA')
+
+  // ========= PRESENZA =========
+  .addSubMenu(
+    ui.createMenu('👤 IN')
+      .addItem('Marco','inMarco')
+      .addItem('Silvia','inSilvia')
+      .addItem('Viola','inViola')
+      .addItem('Samuele','inSamuele')
+  )
+
+  .addSubMenu(
+    ui.createMenu('🚪 OUT')
+      .addItem('Marco','outMarco')
+      .addItem('Silvia','outSilvia')
+      .addItem('Viola','outViola')
+      .addItem('Samuele','outSamuele')
+  )
+
+  // ========= TAPPARELLE =========
+  .addSubMenu(
+    ui.createMenu('🪟 TAPPARELLE')
+      .addItem('Apri tutto','cmdOpen')
+      .addItem('Chiudi tutto','cmdClose')
+      .addItem('Piante','cmdPiante')
+  )
+
+  // ========= SISTEMA =========
+  .addSubMenu(
+    ui.createMenu('⚙️ SISTEMA')
+      .addItem('Forza COMFY','forceComfy')
+      .addItem('Forza SECURITY','forceSecurity')
+      .addItem('Reset Presenza','resetPresence')
+      .addSeparator()
+      .addItem('Genera Report','generateReport')
+      .addItem('Controllo Orario','hourlySupervisor')
+      .addItem('Ricrea Trigger','ensureTriggers')
+  )
+
+  // ========= TEST =========
+  .addSubMenu(
+    ui.createMenu('🧪 TEST')
+      .addItem('Test Completo','proTest')
+      .addItem('Watchdog','proWatchdog')
+      .addItem('Stato','evaluateState')
+      .addItem('Logica Tapparelle','handleShutters')
+      .addItem('Sequenza Security','startSecuritySeq')
+      .addItem('Continua Sequenza','continueSecuritySeq')
+      .addItem('Meteo','testWeather')
+      .addItem('Report','generateReport')
+  )
+
+  .addToUi();
+}
+
+
+// ================= PRESENZA =================
+
+function inMarco(){ markIn('marco'); }
+function inSilvia(){ markIn('silvia'); }
+function inViola(){ markIn('viola'); }
+function inSamuele(){ markIn('samuele'); }
+
+function outMarco(){ markOut('marco'); }
+function outSilvia(){ markOut('silvia'); }
+function outViola(){ markOut('viola'); }
+function outSamuele(){ markOut('samuele'); }
+
+
+// ================= TAPPARELLE =================
+
+function cmdOpen(){
+  sendIFTTT('alza_tutto');
+}
+
+function cmdClose(){
+  sendIFTTT('abbassa_tutto');
+}
+
+function cmdPiante(){
+  sendIFTTT('piante');
+}
+
+
+// ================= SISTEMA =================
+
+function forceComfy(){
+
+  s('Config','B5',1);
+  evaluateState();
+
+}
+
+function forceSecurity(){
+
+  s('Config','B5',0);
+  evaluateState();
+
+}
+
+function resetPresence(){
+
+  var shP = sh('Persone');
+
+  for(var i=2;i<=shP.getLastRow();i++){
+    shP.getRange(i,4).setValue('OUT');
+  }
+
+  s('Config','B5',0);
+
+  evaluateState();
+}
+
+
+// ================= TEST METEO =================
+
+function testWeather(){
+
+  var w = getWeather();
+
+  logEvent(
+    'WEATHER',
+    'Rain=' + w.rain +
+    ' Wind=' + w.wind
+  );
+
+}
