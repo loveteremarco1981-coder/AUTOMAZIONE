@@ -1,0 +1,9 @@
+function notifyState(st){
+
+  var key = PropertiesService.getScriptProperties().getProperty('IFTTT_NOTIFY_KEY');
+  if(!key) return;
+
+  UrlFetchApp.fetch(
+    'https://maker.ifttt.com/trigger/home_update/with/key/'+key+'?value1='+st
+  );
+}
