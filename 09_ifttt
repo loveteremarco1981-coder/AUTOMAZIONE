@@ -1,0 +1,67 @@
+function sendIFTTT(ev){
+
+  var testMode =
+    String(v('Config','B12'))
+      .toLowerCase()
+      .trim() === 'true';
+
+  var p = PropertiesService.getScriptProperties();
+  var now = new Date().getTime();
+
+  var last = p.getProperty('LAST');
+  var ts = p.getProperty('LAST_TS');
+
+  // anti duplicati
+  if(last === ev && ts && now - Number(ts) < 120000){
+    logEvent('SKIP', ev);
+    return;
+  }
+
+  p.setProperty('LAST', ev);
+  p.setProperty('LAST_TS', now);
+
+  // ===== TEST MODE =====
+  if(testMode){
+
+    logEvent('SIMULATE_IFTTT', ev);
+
+    if(ev === 'abbassa_tutto') setShuttersState('DOWN');
+    if(ev === 'alza_tutto') setShuttersState('UP');
+    if(ev === 'piante') setShuttersState('PIANTE');
+
+    return;
+  }
+
+  // ===== REALE =====
+
+  var key = p.getProperty('IFTTT_KEY');
+
+  if(!key){
+    logEvent('IFTTT_ERR','NO_KEY');
+    return;
+  }
+
+  var url =
+    'https://maker.ifttt.com/trigger/' +
+    ev +
+    '/with/key/' +
+    key;
+
+  UrlFetchApp.fetch(url);
+
+  logEvent('IFTTT', ev);
+
+  if(ev === 'abbassa_tutto') setShuttersState('DOWN');
+  if(ev === 'alza_tutto') setShuttersState('UP');
+  if(ev === 'piante') setShuttersState('PIANTE');
+}
+
+function testModeCheck(){
+
+  logEvent(
+    'TEST_MODE',
+    String(v('Config','B12'))
+  );
+
+  sendIFTTT('PROVA');
+}
