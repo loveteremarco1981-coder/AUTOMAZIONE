@@ -83,10 +83,27 @@ function getWeather(){
 
     if(cachedData){
 
-      logEvent(
-        'WEATHER',
-        'CACHE_FALLBACK'
-      );
+      var p =
+  PropertiesService
+    .getScriptProperties();
+
+var fallback =
+  p.getProperty(
+    'WEATHER_FALLBACK'
+  );
+
+if (!fallback) {
+
+  logEvent(
+    'WEATHER',
+    'CACHE_FALLBACK_START'
+  );
+
+  p.setProperty(
+    'WEATHER_FALLBACK',
+    '1'
+  );
+}
 
       return JSON.parse(
         cachedData
