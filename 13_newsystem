@@ -50,6 +50,11 @@ function setupNewSystem(){
 
   base.getRange('A23').setValue('HEALTH_SCORE');
   base.getRange('B23').setValue(100);
+  base.getRange('A24')
+  .setValue('SYSTEM_START');
+
+base.getRange('B24')
+  .setValue(new Date());
 
   // ================= STATO =================
 
