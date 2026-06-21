@@ -5,39 +5,65 @@ function sendIFTTT(ev){
       .toLowerCase()
       .trim() === 'true';
 
-  var p = PropertiesService.getScriptProperties();
-  var now = new Date().getTime();
+  var p =
+    PropertiesService
+      .getScriptProperties();
 
-  var last = p.getProperty('LAST');
-  var ts = p.getProperty('LAST_TS');
+  var now =
+    new Date().getTime();
 
-  // anti duplicati
-  if(last === ev && ts && now - Number(ts) < 120000){
+  var last =
+    p.getProperty('LAST');
+
+  var ts =
+    p.getProperty('LAST_TS');
+
+  if(
+    last === ev &&
+    ts &&
+    now - Number(ts) < 600000
+  ){
     logEvent('SKIP', ev);
     return;
   }
 
   p.setProperty('LAST', ev);
-  p.setProperty('LAST_TS', now);
+  p.setProperty('LAST_TS', String(now));
 
-  // ===== TEST MODE =====
   if(testMode){
 
-    logEvent('SIMULATE_IFTTT', ev);
+    logEvent(
+      'SIMULATE_IFTTT',
+      ev
+    );
 
-    if(ev === 'abbassa_tutto') setShuttersState('DOWN');
-    if(ev === 'alza_tutto') setShuttersState('UP');
-    if(ev === 'piante') setShuttersState('PIANTE');
+    if(ev === 'abbassa_tutto'){
+      setShuttersState('DOWN');
+    }
+
+    if(ev === 'alza_tutto'){
+      setShuttersState('UP');
+    }
+
+    if(ev === 'piante'){
+      setShuttersState('PIANTE');
+    }
 
     return;
   }
 
-  // ===== REALE =====
-
-  var key = p.getProperty('IFTTT_KEY');
+  var key =
+    p.getProperty(
+      'IFTTT_KEY'
+    );
 
   if(!key){
-    logEvent('IFTTT_ERR','NO_KEY');
+
+    logEvent(
+      'IFTTT_ERR',
+      'NO_KEY'
+    );
+
     return;
   }
 
@@ -49,11 +75,22 @@ function sendIFTTT(ev){
 
   UrlFetchApp.fetch(url);
 
-  logEvent('IFTTT', ev);
+  logEvent(
+    'IFTTT',
+    ev
+  );
 
-  if(ev === 'abbassa_tutto') setShuttersState('DOWN');
-  if(ev === 'alza_tutto') setShuttersState('UP');
-  if(ev === 'piante') setShuttersState('PIANTE');
+  if(ev === 'abbassa_tutto'){
+    setShuttersState('DOWN');
+  }
+
+  if(ev === 'alza_tutto'){
+    setShuttersState('UP');
+  }
+
+  if(ev === 'piante'){
+    setShuttersState('PIANTE');
+  }
 }
 
 function testModeCheck(){
