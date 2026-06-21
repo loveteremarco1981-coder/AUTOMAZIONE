@@ -337,7 +337,7 @@ if (data[i][2]) {
 
         ssidLock: false,
 
-        lastSeen: lastSeen
+        lastSeen: String(data[i][2])
 
       });
     }
