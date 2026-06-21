@@ -54,3 +54,42 @@ function isAnyoneInside(){
 
   return false;
 }
+
+function forcePersonIn(name){
+
+  setPerson(name,'IN');
+
+  s('Config','B10',name);
+
+  cancelSecuritySeq();
+
+  s('Config','B5',1);
+
+  logEvent(
+    'FORCE_IN',
+    name
+  );
+
+  evaluateState();
+}
+
+function forcePersonOut(name){
+
+  setPerson(name,'OUT');
+
+  var inside =
+    isAnyoneInside();
+
+  s(
+    'Config',
+    'B5',
+    inside ? 1 : 0
+  );
+
+  logEvent(
+    'FORCE_OUT',
+    name
+  );
+
+  evaluateState();
+}
