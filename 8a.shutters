@@ -151,56 +151,69 @@ function handleShutters(){
       return;
     }
 
-    var closeH =
-      weekend ? 0 : 23;
+    var closeH = 23;
 
-    // CHIUSURA FORZATA
-    if(hour >= closeH){
+if(hour >= closeH){
 
-      sendIFTTT(
-        'abbassa_tutto'
-      );
+  if(
+    getShuttersState() !==
+    'DOWN'
+  ){
 
-      setShuttersState(
-        'DOWN'
-      );
+    sendIFTTT(
+      'abbassa_tutto'
+    );
 
-      logEvent(
-        'SHUTTERS',
-        'NIGHT_CLOSE'
-      );
-
-      return;
-    }
-
-    return;
-  }
-
-  // =====================
-  // SECURITY
-  // =====================
-
-  if(!inside){
-
-    if(
-      getShuttersState() !==
+    setShuttersState(
       'DOWN'
-    ){
+    );
 
-      sendIFTTT(
-        'abbassa_tutto'
-      );
+    logEvent(
+      'SHUTTERS',
+      'NIGHT_CLOSE'
+    );
+  }
 
-      setShuttersState(
-        'DOWN'
-      );
-
-      logEvent(
-        'SHUTTERS',
-        'SECURITY_CLOSE'
-      );
-    }
+  return;
+}
 
     return;
   }
+
+// =====================
+// SECURITY
+// =====================
+
+if(!inside){
+
+  var st =
+    getShuttersState();
+
+  // di giorno lascia PIANTE
+  if(
+    st === 'PIANTE' &&
+    now >= sunrise &&
+    now < sunset
+  ){
+    return;
+  }
+
+  if(st !== 'DOWN'){
+
+    sendIFTTT(
+      'abbassa_tutto'
+    );
+
+    setShuttersState(
+      'DOWN'
+    );
+
+    logEvent(
+      'SHUTTERS',
+      'SECURITY_CLOSE'
+    );
+  }
+
+  return;
+}
 }
