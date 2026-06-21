@@ -310,19 +310,27 @@ function buildModel_() {
 
       var lastSeen = '';
 
-      try {
+try {
 
-        if(data[i][2]){
+  if(data[i][2]){
 
-          lastSeen =
-            Utilities.formatDate(
-              new Date(data[i][2]),
-              Session.getScriptTimeZone(),
-              'dd/MM/yyyy HH:mm'
-            );
-        }
+    if(data[i][2] instanceof Date){
 
-      } catch(e){}
+      lastSeen =
+        Utilities.formatDate(
+          data[i][2],
+          Session.getScriptTimeZone(),
+          'dd/MM/yyyy HH:mm'
+        );
+
+    }else{
+
+      lastSeen =
+        String(data[i][2]);
+    }
+  }
+
+} catch(e){}
 
       people.push({
 
