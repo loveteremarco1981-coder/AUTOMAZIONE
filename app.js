@@ -423,8 +423,11 @@ function renderSettings(m) {
   if(info){
     const stato   = String(m.state||'—').replace(/_/g,' ');
     const night   = m.notte?'🌙 Notte':'☀️ Giorno';
-    const alba    = m.meta?.albaIso    ? fmtTime(m.meta.albaIso)    : (m.next?.alba    ? fmtDateTime(m.next.alba)    : '—');
-    const tram    = m.meta?.tramontoIso? fmtTime(m.meta.tramontoIso): (m.next?.tramonto? fmtDateTime(m.next.tramonto): '—');
+    const alba =
+  m.meta?.albaIso || '—';
+
+const tram =
+  m.meta?.tramontoIso || '—';;
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
     const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.ssidLock).map(p=>cap(p.name)).join(', ')||'—';
