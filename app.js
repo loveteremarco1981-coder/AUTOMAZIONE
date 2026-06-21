@@ -353,7 +353,8 @@ function renderPeopleDetail(m) {
     sorted.forEach(p => {
       const st = p.onlineSmart?'in':'out';
       const ini = String(p.name||'?').charAt(0).toUpperCase();
-      const ago = p.lastLifeMinAgo!=null?`${p.lastLifeMinAgo} min fa`:'—';
+      const ago =
+  p.lastSeen || '—';
       const ssidStatus = p.ssidLock ? '📶 Wi-Fi connesso · lock attivo' : '📵 Wi-Fi non rilevato';
       const card = document.createElement('div'); card.className='people-detail-card';
       card.innerHTML=`
