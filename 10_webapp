@@ -279,3 +279,128 @@ function doGet(e) {
     );
   }
 }
+
+function buildModel_() {
+
+  var people = [];
+
+  try {
+
+    var shPeople =
+      sh('Persone');
+
+    var data =
+      shPeople
+        .getRange(
+          2,
+          1,
+          Math.max(
+            shPeople.getLastRow() - 1,
+            0
+          ),
+          4
+        )
+        .getValues();
+
+    for (var i = 0; i < data.length; i++) {
+
+      if (!data[i][0]) {
+        continue;
+      }
+
+      var lastSeen = '';
+
+      try {
+
+        if(data[i][2]){
+
+          lastSeen =
+            Utilities.formatDate(
+              new Date(data[i][2]),
+              Session.getScriptTimeZone(),
+              'dd/MM/yyyy HH:mm'
+            );
+        }
+
+      } catch(e){}
+
+      people.push({
+
+        name: data[i][0],
+
+        onlineSmart:
+          String(data[i][3])
+            .toUpperCase() === 'IN',
+
+        ssidLock: false,
+
+        lastSeen: lastSeen
+
+      });
+    }
+
+  } catch (e) {}
+
+  var model = {
+
+    state:
+      String(
+        v('Config', 'B3')
+      ),
+
+    vacanza:
+      String(
+        v('Config', 'B7')
+      ).toLowerCase() === 'true',
+
+    override:
+      String(
+        v('Config', 'B8')
+      ).toLowerCase() === 'true',
+
+    notte:
+      String(
+        v('Config', 'B4')
+      ).toLowerCase() === 'true',
+
+    people: people,
+
+    weather: {
+
+      tempC:
+        Number(
+          v('Config', 'B30')
+        ) || null,
+
+      humidity:
+        Number(
+          v('Config', 'B31')
+        ) || null,
+
+      windKmh:
+        Number(
+          v('Config', 'B32')
+        ) || null
+
+    },
+
+    alerts: {
+
+      logErrors: 0
+
+    },
+
+    next: {},
+
+    meta: {
+
+      nowIso:
+        new Date()
+          .toISOString()
+
+    }
+
+  };
+
+  return model;
+}
