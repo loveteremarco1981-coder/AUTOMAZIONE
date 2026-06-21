@@ -310,17 +310,21 @@ function buildModel_() {
 
 var lastSeen = '—';
 
-if(
-  data[i][2] &&
-  data[i][2] instanceof Date
-){
+if (data[i][2]) {
 
-  lastSeen =
-    Utilities.formatDate(
-      data[i][2],
-      Session.getScriptTimeZone(),
-      'dd/MM/yyyy HH:mm'
-    );
+  try {
+
+    lastSeen =
+      Utilities.formatDate(
+        new Date(data[i][2]),
+        Session.getScriptTimeZone(),
+        'dd/MM/yyyy HH:mm'
+      );
+
+  } catch(err) {
+
+    lastSeen = String(data[i][2]);
+  }
 }
 
       people.push({
