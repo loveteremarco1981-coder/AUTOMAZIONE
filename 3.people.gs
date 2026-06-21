@@ -25,9 +25,32 @@ function setPerson(name,state){
 }
 
 function isAnyoneInside(){
-  var d = sh('Persone').getRange(2,1,20,4).getValues();
-  for(var i=0;i<d.length;i++){
-    if(String(d[i][3]).toUpperCase()==='IN') return true;
+
+  var shP = sh('Persone');
+
+  var lastRow = shP.getLastRow();
+
+  if(lastRow < 2){
+    return false;
   }
+
+  var d =
+    shP.getRange(
+      2,
+      1,
+      lastRow - 1,
+      4
+    ).getValues();
+
+  for(var i=0;i<d.length;i++){
+
+    if(
+      String(d[i][3])
+      .toUpperCase() === 'IN'
+    ){
+      return true;
+    }
+  }
+
   return false;
 }
