@@ -150,7 +150,8 @@ function renderPeopleChips(m) {
   sorted.forEach(p => {
     const st = p.onlineSmart ? 'in' : 'out';
     const ini = String(p.name||'?').charAt(0).toUpperCase();
-    const ago = p.lastLifeMinAgo!=null ? `${p.lastLifeMinAgo} min fa` : '—';
+    const ago =
+  p.lastSeen || '—';
     const ssidBadge = p.ssidLock ? '<span class="ssid-badge">📶 Wi-Fi</span>' : '';
     const chip = document.createElement('div');
     chip.className = `person-chip ${st}`;
