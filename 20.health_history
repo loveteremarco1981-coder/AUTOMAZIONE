@@ -42,3 +42,46 @@ function logHealthHistory(){
 
   ]);
 }
+
+function calculateHealthScore(){
+
+  var score = 100;
+
+  var shL = sh('Log');
+
+  var lastRow =
+    shL.getLastRow();
+
+  var data =
+    shL.getRange(
+      Math.max(2,lastRow-500),
+      1,
+      Math.min(500,lastRow-1),
+      3
+    ).getValues();
+
+  var errors = 0;
+
+  for(
+    var i=0;
+    i<data.length;
+    i++
+  ){
+
+    if(
+      String(data[i][1])
+      .indexOf('ERROR')
+      >= 0
+    ){
+      errors++;
+    }
+  }
+
+  score -= errors * 2;
+
+  if(score < 0){
+    score = 0;
+  }
+
+  return score;
+}
