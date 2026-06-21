@@ -49,7 +49,7 @@ function onOpen(){
       .addItem('Stato','evaluateState')
       .addItem('Logica Tapparelle','handleShutters')
       .addItem('Sequenza Security','startSecuritySeq')
-      .addItem('Continua Sequenza','continueSecuritySeq')
+//      .addItem('Continua Sequenza','continueSecuritySeq')
       .addItem('Meteo','testWeather')
       .addItem('Report','generateReport')
   )
