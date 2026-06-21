@@ -19,9 +19,7 @@ function getWeather(){
       cache.getProperty('W_DATA');
 
     if(cached){
-
       return JSON.parse(cached);
-
     }
   }
 
@@ -75,6 +73,13 @@ function getWeather(){
     return result;
 
   }catch(e){
+
+    try{
+      logError(
+        'WEATHER_API',
+        String(e)
+      );
+    }catch(ignore){}
 
     if(cachedData){
 
