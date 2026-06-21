@@ -5,34 +5,254 @@ function doGet(e) {
 
   try {
 
-    var ev = p.event || '';
-    var name = p.name || '';
+    var ev =
+      String(
+        p.event || ''
+      ).trim();
 
-    // ====================================================
-    // COMANDI
-    // ====================================================
+    var name =
+      String(
+        p.name || ''
+      ).trim()
+      .toLowerCase();
 
-    if (ev === 'mark_in' || ev === 'in') {
+    // ==========================================
+    // LOGS
+    // ==========================================
+
+    if (p.logs == '1') {
+
+      var logs = [];
+      var shL = sh('Log');
+
+      if (shL && shL.getLastRow() > 1) {
+
+        var data =
+          shL.getRange(
+            2,
+            1,
+            shL.getLastRow() - 1,
+            3
+          ).getValues();
+
+        data.reverse();
+
+        for (
+          var i = 0;
+          i < Math.min(100, data.length);
+          i++
+        ) {
+
+          logs.push({
+
+            ts: data[i][0],
+            code: data[i][1],
+            desc: data[i][2],
+            stato: v('Config', 'B3')
+
+          });
+        }
+      }
+
+      return jsonpResponse_(
+        p.callback,
+        {
+          ok: true,
+          logs: logs
+        }
+      );
+    }
+
+    // ==========================================
+    // PRESENZA STANDARD
+    // ==========================================
+
+    if (
+      ev === 'mark_in' ||
+      ev === 'in'
+    ) {
+
       markIn(name);
+
       return jsonpResponse_(
         p.callback,
         { ok: true }
       );
     }
 
-    if (ev === 'mark_out' || ev === 'out') {
+    if (
+      ev === 'mark_out' ||
+      ev === 'out'
+    ) {
+
       markOut(name);
+
       return jsonpResponse_(
         p.callback,
         { ok: true }
       );
     }
 
-    // ====================================================
-    // MODELLO DASHBOARD
-    // ====================================================
+    // ==========================================
+    // FORZA PRESENZA
+    // ==========================================
 
-    var model = buildModel_();
+    if (ev === 'force_in') {
+
+      forcePersonIn(name);
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    if (ev === 'force_out') {
+
+      forcePersonOut(name);
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ==========================================
+    // TAPPARELLE
+    // ==========================================
+
+    if (ev === 'alza_tutto') {
+
+      sendIFTTT(
+        'alza_tutto'
+      );
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    if (ev === 'abbassa_tutto') {
+
+      sendIFTTT(
+        'abbassa_tutto'
+      );
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    if (ev === 'piante') {
+
+      sendIFTTT(
+        'piante'
+      );
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ==========================================
+    // VACANZA
+    // ==========================================
+
+    if (ev === 'set_vacanza') {
+
+      var valVac =
+        String(p.value)
+        .toLowerCase() === 'true';
+
+      s(
+        'Config',
+        'B7',
+        valVac
+      );
+
+      logEvent(
+        'VACANZA',
+        String(valVac)
+      );
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ==========================================
+    // OVERRIDE
+    // ==========================================
+
+    if (ev === 'set_override') {
+
+      var valOvr =
+        String(p.value)
+        .toLowerCase() === 'true';
+
+      s(
+        'Config',
+        'B8',
+        valOvr
+      );
+
+      logEvent(
+        'OVERRIDE',
+        String(valOvr)
+      );
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ==========================================
+    // UPDATE WEATHER DA GITHUB
+    // ==========================================
+
+    if (ev === 'update_weather') {
+
+      if (p.temp) {
+        s(
+          'Config',
+          'B30',
+          Number(p.temp)
+        );
+      }
+
+      if (p.hum) {
+        s(
+          'Config',
+          'B31',
+          Number(p.hum)
+        );
+      }
+
+      if (p.wind) {
+        s(
+          'Config',
+          'B32',
+          Number(p.wind)
+        );
+      }
+
+      return jsonpResponse_(
+        p.callback,
+        { ok: true }
+      );
+    }
+
+    // ==========================================
+    // MODEL DASHBOARD
+    // ==========================================
+
+    var model =
+      buildModel_();
 
     return jsonpResponse_(
       p.callback,
@@ -40,6 +260,15 @@ function doGet(e) {
     );
 
   } catch (err) {
+
+    try {
+
+      logError(
+        'WEBAPP',
+        String(err)
+      );
+
+    } catch (e) {}
 
     return jsonpResponse_(
       p.callback,
@@ -49,138 +278,4 @@ function doGet(e) {
       }
     );
   }
-}
-
-function jsonpResponse_(callback, obj) {
-
-  if (callback) {
-
-    return ContentService
-      .createTextOutput(
-        callback +
-        '(' +
-        JSON.stringify(obj) +
-        ');'
-      )
-      .setMimeType(
-        ContentService.MimeType.JAVASCRIPT
-      );
-  }
-
-  return ContentService
-    .createTextOutput(
-      JSON.stringify(obj)
-    )
-    .setMimeType(
-      ContentService.MimeType.JSON
-    );
-}
-
-function buildModel_() {
-
-  var people = [];
-
-  try {
-
-    var shPeople =
-      sh('Persone');
-
-    var data =
-      shPeople
-        .getRange(
-          2,
-          1,
-          Math.max(
-            shPeople.getLastRow() - 1,
-            0
-          ),
-          4
-        )
-        .getValues();
-
-    for (var i = 0; i < data.length; i++) {
-
-      if (!data[i][0]) {
-        continue;
-      }
-
-      people.push({
-
-        name: data[i][0],
-
-        onlineSmart:
-          String(data[i][3])
-            .toUpperCase() === 'IN',
-
-        ssidLock: false,
-
-        lastLifeMinAgo: null
-
-      });
-    }
-
-  } catch (e) {}
-
-  var model = {
-
-    state:
-      String(
-        v('Config', 'B3')
-      ),
-
-    vacanza:
-      String(
-        v('Config', 'B7')
-      ).toLowerCase() === 'true',
-
-    override:
-      String(
-        v('Config', 'B8')
-      ).toLowerCase() === 'true',
-
-    notte:
-      String(
-        v('Config', 'B4')
-      ).toLowerCase() === 'true',
-
-    people: people,
-
-    weather: {
-
-      tempC:
-        Number(
-          v('Config', 'B30')
-        ) || null,
-
-      humidity:
-        Number(
-          v('Config', 'B31')
-        ) || null,
-
-      windKmh:
-        Number(
-          v('Config', 'B32')
-        ) || null
-
-    },
-
-    alerts: {
-
-      logErrors: 0
-
-    },
-
-    next: {},
-
-    meta: {
-
-      nowIso:
-        new Date()
-          .toISOString()
-
-    }
-
-  };
-
-  return model;
 }
