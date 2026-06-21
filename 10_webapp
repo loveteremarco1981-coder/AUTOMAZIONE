@@ -404,3 +404,28 @@ function buildModel_() {
 
   return model;
 }
+
+function jsonpResponse_(callback, obj) {
+
+  if (callback) {
+
+    return ContentService
+      .createTextOutput(
+        callback +
+        '(' +
+        JSON.stringify(obj) +
+        ');'
+      )
+      .setMimeType(
+        ContentService.MimeType.JAVASCRIPT
+      );
+  }
+
+  return ContentService
+    .createTextOutput(
+      JSON.stringify(obj)
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}
