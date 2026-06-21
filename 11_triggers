@@ -36,6 +36,11 @@ function ensureTriggers(){
     .everyDays(1)
     .create();
 
+  ScriptApp.newTrigger('updateAnalytics')
+.timeBased()
+.everyMinutes(15)
+.create();
+
   logEvent(
     'SYSTEM',
     'TRIGGERS_CREATED'
