@@ -152,7 +152,10 @@ function renderPeopleChips(m) {
     const ini = String(p.name||'?').charAt(0).toUpperCase();
     const ago =
   p.lastSeen || '—';
-    const ssidBadge = p.ssidLock ? '<span class="ssid-badge">📶 Wi-Fi</span>' : '';
+    const ssidBadge =
+  p.wifiOnline
+    ? '<span class="ssid-badge">📶 Wi‑Fi</span>'
+    : '<span class="ssid-badge">
     const chip = document.createElement('div');
     chip.className = `person-chip ${st}`;
     chip.innerHTML = `
@@ -355,7 +358,10 @@ function renderPeopleDetail(m) {
       const ini = String(p.name||'?').charAt(0).toUpperCase();
       const ago =
   p.lastSeen || '—';
-      const ssidStatus = p.ssidLock ? '📶 Wi-Fi connesso · lock attivo' : '📵 Wi-Fi non rilevato';
+      const ssidStatus =
+  p.wifiOnline
+    ? '📶 Wi‑Fi connesso'
+    : '📵 Wi‑Fi non connesso';
       const card = document.createElement('div'); card.className='people-detail-card';
       card.innerHTML=`
         <div class="pdc-top">
@@ -430,7 +436,7 @@ const tram =
   m.meta?.tramontoIso || '—';;
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
-    const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.ssidLock).map(p=>cap(p.name)).join(', ')||'—';
+    const ssidActive = (Array.isArray(m.people)?m.people:[])..filter(p=>p.wifiOnline).map(p=>cap(p.name)).join(', ')||'—';
     info.innerHTML=[
       ['Stato',      stato],
       ['Ora',        night],
