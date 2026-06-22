@@ -155,7 +155,7 @@ function renderPeopleChips(m) {
     const ssidBadge =
   p.wifiOnline
     ? '<span class="ssid-badge">📶 Wi‑Fi</span>'
-    : '<span class="ssid-badge">
+    : '<span class="ssid-badge">📵 Offline</span>';
     const chip = document.createElement('div');
     chip.className = `person-chip ${st}`;
     chip.innerHTML = `
@@ -436,7 +436,7 @@ const tram =
   m.meta?.tramontoIso || '—';;
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
-    const ssidActive = (Array.isArray(m.people)?m.people:[])..filter(p=>p.wifiOnline).map(p=>cap(p.name)).join(', ')||'—';
+    const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.wifiOnline).map(p=>cap(p.name)).join(', ')||'—';
     info.innerHTML=[
       ['Stato',      stato],
       ['Ora',        night],
