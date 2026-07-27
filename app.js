@@ -66,7 +66,7 @@ async function fetchWeatherClient() {
   if(!w.lat || !w.lon) return null;
 
   const url =
-    `https://api.open-meteo.com/v1/forecast` +
+    https://api.open-meteo.com/v1/forecast +
     `?latitude=${w.lat}` +
     `&longitude=${w.lon}` +
     `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
