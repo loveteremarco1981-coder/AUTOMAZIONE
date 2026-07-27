@@ -61,11 +61,30 @@ function fetchLogs()  { return jsonpFetch(CONFIG.DOGET_URL + '?logs=1'); }
 
 /* ---- Weather ---- */
 async function fetchWeatherClient() {
-  const w = CONFIG.WEATHER||{}; if(!w.lat||!w.lon) return null;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=${encodeURIComponent(w.tz||'Europe/Rome')}`;
-  const r = await fetch(url); if(!r.ok) return null;
-  const js = await r.json(); const c = js.current||{};
-  return { tempC:c.temperature_2m??null, humidity:c.relative_humidity_2m??null, windKmh:c.wind_speed_10m??null, icon:String(c.weather_code??''), provider:'Open-Meteo' };
+  const w = CONFIG.WEATHER||{};
+  if(!w.lat || !w.lon) return null;
+
+  const url =
+    `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${w.lat}` +
+    `&longitude=${w.lon}` +
+    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
+    `&timezone=${encodeURIComponent(w.tz || 'Europe/Rome')}`;
+
+  const r = await fetch(url);
+
+  if(!r.ok) return null;
+
+  const js = await r.json();
+  const c = js.current || {};
+
+  return {
+    tempC: c.temperature_2m ?? null,
+    humidity: c.relative_humidity_2m ?? null,
+    windKmh: c.wind_speed_10m ?? null,
+    icon: String(c.weather_code ?? ''),
+    provider: 'Open-Meteo'
+  };
 }
 
 function weatherEmoji(code) {
