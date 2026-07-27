@@ -70,11 +70,11 @@ async function fetchWeatherClient() {
   }
 
   const url =
-    'https://api.open-meteo.com/v1/forecast' +
-    '?latitude=' + encodeURIComponent(w.lat) +
-    '&longitude=' + encodeURIComponent(w.lon) +
-    '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
-    '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
+  'https://api.open-meteo.com/v1/forecast' +
+  '?latitude=' + encodeURIComponent(w.lat) +
+  '&longitude=' + encodeURIComponent(w.lon) +
+  '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+  '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
 
   const r = await fetch(url);
 
