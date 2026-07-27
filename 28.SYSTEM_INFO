@@ -1,0 +1,17 @@
+// ==========================================
+// SYSTEM INFO
+// ==========================================
+
+function getSystemInfo() {
+
+  return {
+    version: SYSTEM_VERSION,
+    state: getState(),
+    expectedState: getExpectedState_(),
+    healthStatus: String(v('Config','B21') || ''),
+    healthScore: Number(v('Config','B23')) || 0,
+    peopleInside: countPeopleInside(),
+    houseInside: Number(v('Config','B5')) === 1
+  };
+
+}
