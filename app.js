@@ -62,19 +62,25 @@ function fetchLogs()  { return jsonpFetch(CONFIG.DOGET_URL + '?logs=1'); }
 
 /* ---- Weather ---- */
 async function fetchWeatherClient() {
-  const w = CONFIG.WEATHER||{};
-  if(!w.lat || !w.lon) return null;
+
+  const w = CONFIG.WEATHER || {};
+
+  if (!w.lat || !w.lon) {
+    return null;
+  }
 
   const url =
-    https://api.open-meteo.com/v1/forecast +
-    `?latitude=${w.lat}` +
-    `&longitude=${w.lon}` +
-    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m` +
-    `&timezone=${encodeURIComponent(w.tz || 'Europe/Rome')}`;
+    'https://api.open-meteo.com/v1/forecast' +
+    '?latitude=' + encodeURIComponent(w.lat) +
+    '&longitude=' + encodeURIComponent(w.lon) +
+    '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+    '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
 
   const r = await fetch(url);
 
-  if(!r.ok) return null;
+  if (!r.ok) {
+    return null;
+  }
 
   const js = await r.json();
   const c = js.current || {};
@@ -86,6 +92,7 @@ async function fetchWeatherClient() {
     icon: String(c.weather_code ?? ''),
     provider: 'Open-Meteo'
   };
+
 }
 
 function weatherEmoji(code) {
