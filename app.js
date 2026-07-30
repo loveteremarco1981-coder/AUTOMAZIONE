@@ -207,16 +207,31 @@ function renderEvents(m) {
   const nx = m.next || {};
 
   const rows = [
-    ['Alba', nx.alba || null],
-    ['Tramonto', nx.tramonto || null],
-    ['Apertura tapparelle', nx.shuttersOpenTime || null],
-    ['Chiusura tapparelle', nx.shuttersCloseTime || null]
+    [
+      'Alba',
+      nx.alba ? fmtTime(nx.alba) : null
+    ],
+    [
+      'Tramonto',
+      nx.tramonto ? fmtTime(nx.tramonto) : null
+    ],
+    [
+      'Apertura tapparelle',
+      nx.shuttersOpenTime || null
+    ],
+    [
+      'Chiusura tapparelle',
+      nx.shuttersCloseTime || null
+    ]
   ].filter(r => r[1]);
 
   if (!rows.length) {
+
     list.innerHTML =
       '<div class="empty-state">Nessun evento programmato.</div>';
+
     return;
+
   }
 
   rows.forEach(([label,val]) => {
