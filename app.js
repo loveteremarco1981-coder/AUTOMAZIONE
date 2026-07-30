@@ -198,20 +198,43 @@ function renderPeopleChips(m) {
 }
 
 function renderEvents(m) {
-  const list = $('#events-list'); if(!list) return;
+
+  const list = $('#events-list');
+  if (!list) return;
+
   list.innerHTML = '';
-  const nx = m.next||{};
+
+  const nx = m.next || {};
+
   const rows = [
-    ['Piante (alba)',          nx.pianteAlba||null],
-    ['Piante (post chiusura)', nx.piantePostClose||null],
-    ['Chiusura tardiva',       nx.lateClose||null],
-  ].filter(r=>r[1]);
-  if(!rows.length){ list.innerHTML='<div class="empty-state">Nessun evento programmato.</div>'; return; }
+    ['Alba', nx.alba || null],
+    ['Tramonto', nx.tramonto || null],
+    ['Apertura tapparelle', nx.shuttersOpenTime || null],
+    ['Chiusura tapparelle', nx.shuttersCloseTime || null]
+  ].filter(r => r[1]);
+
+  if (!rows.length) {
+    list.innerHTML =
+      '<div class="empty-state">Nessun evento programmato.</div>';
+    return;
+  }
+
   rows.forEach(([label,val]) => {
-    const row=document.createElement('div'); row.className='event-row';
-    row.innerHTML=`<span class="event-label">${label}</span><span class="event-val">${val}</span>`;
+
+    const row =
+      document.createElement('div');
+
+    row.className =
+      'event-row';
+
+    row.innerHTML =
+      `<span class="event-label">${label}</span>
+       <span class="event-val">${val}</span>`;
+
     list.appendChild(row);
+
   });
+
 }
 
 /* ---- Devices ---- */
