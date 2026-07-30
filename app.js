@@ -458,10 +458,14 @@ function renderSettings(m) {
     const stato   = String(m.state||'—').replace(/_/g,' ');
     const night   = m.notte?'🌙 Notte':'☀️ Giorno';
     const alba =
-  m.next?.alba || '—';
+  m.next?.alba
+    ? fmtTime(m.next.alba)
+    : '—';
 
 const tram =
-  m.next?.tramonto || '—';
+  m.next?.tramonto
+    ? fmtTime(m.next.tramonto)
+    : '—';
 
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
