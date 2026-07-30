@@ -75,6 +75,7 @@ async function fetchWeatherClient() {
   '&longitude=' + encodeURIComponent(w.lon) +
   '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
   '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
+  
 
   const r = await fetch(url);
 
@@ -457,10 +458,11 @@ function renderSettings(m) {
     const stato   = String(m.state||'—').replace(/_/g,' ');
     const night   = m.notte?'🌙 Notte':'☀️ Giorno';
     const alba =
-  m.meta?.albaIso || '—';
+  m.next?.alba || '—';
 
 const tram =
-  m.meta?.tramontoIso || '—';;
+  m.next?.tramonto || '—';
+
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
     const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
     const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.wifiOnline).map(p=>cap(p.name)).join(', ')||'—';
