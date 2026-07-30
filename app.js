@@ -12,8 +12,32 @@ const $ = (sel, ctx) => (ctx || document).querySelector(sel);
 const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
 
 function fmtTime(iso) {
-  try { return new Date(iso).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }); }
-  catch(_) { return '—'; }
+
+  try {
+
+    const d =
+      new Date(iso);
+
+    if (
+      isNaN(d.getTime())
+    ) {
+      return '—';
+    }
+
+    return d.toLocaleTimeString(
+      'it-IT',
+      {
+        hour: '2-digit',
+        minute: '2-digit'
+      }
+    );
+
+  } catch (_) {
+
+    return '—';
+
+  }
+
 }
 function fmtDateTime(iso) {
   try { return new Date(iso).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
