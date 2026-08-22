@@ -506,7 +506,7 @@ function renderSettings(m) {
   const list=$('#settings-list');
   if(list){
     list.innerHTML='';
-    [{label:'Vacanza',sub:'Modalità assenza',key:'vacanza',event:'set_vacanza'},{label:'Override',sub:'Sospendi automazioni',key:'override',event:'set_override'}].forEach(r=>{
+    [{label:'Escludi tapparelle',sub:'Blocca solo i movimenti automatici',key:'shuttersExcluded',event:'set_shutters_excluded'},{label:'Vacanza',sub:'Modalità assenza',key:'vacanza',event:'set_vacanza'},{label:'Override',sub:'Sospendi automazioni',key:'override',event:'set_override'}].forEach(r=>{
       const isOn=!!m[r.key];
       const row=document.createElement('div'); row.className='setting-row';
       row.innerHTML=`<div><div class="setting-label">${r.label}</div><div class="setting-sub">${r.sub}</div></div><label class="toggle-wrap"><input type="checkbox" ${isOn?'checked':''}><span class="toggle-slider"></span></label>`;
