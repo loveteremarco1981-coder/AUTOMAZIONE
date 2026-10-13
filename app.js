@@ -466,18 +466,29 @@ function renderEvents(m) {
   const nx = m.next || {};
 
   const rows = [
-    ['Alba',                nx.alba ? fmtTime(nx.alba) : null],
-    ['Tramonto',            nx.tramonto ? fmtTime(nx.tramonto) : null],
-    ['Apertura tapparelle', nx.shuttersOpenTime || null],
-    ['Chiusura tapparelle', nx.shuttersCloseTime || null],
-  ].filter(r => r[1]);
+    ['Alba',              nx.alba ? fmtTime(nx.alba) : null],
+    ['Tramonto',          nx.tramonto ? fmtTime(nx.tramonto) : null],
+    ['Apre tapparelle',   nx.shuttersOpenTime || null],
+    ['Chiude tapparelle', nx.shuttersCloseTime || null],
+  ].filter(r => r[1] && r[1] !== '—');
 
   if (!rows.length) { list.innerHTML = '<div class="empty-state">Nessun evento in programma.</div>'; return; }
 
-  rows.forEach(([label, val]) => {
+  // Ordina per orario e mette in evidenza il prossimo (se tutti gli orari sono leggibili)
+  const toMin = s => { const t = /(\d{1,2}):(\d{2})/.exec(String(s)); return t ? (+t[1]) * 60 + (+t[2]) : null; };
+  const items = rows.map(([label, val]) => ({ label, val, min: toMin(val) }));
+  let nextIdx = -1;
+  if (items.every(i => i.min !== null)) {
+    items.sort((x, y) => x.min - y.min);
+    const d = new Date(), nowMin = d.getHours() * 60 + d.getMinutes();
+    nextIdx = items.findIndex(i => i.min > nowMin);
+    if (nextIdx === -1) nextIdx = 0; // tutti già passati: il primo di domani
+  }
+
+  items.forEach((it, i) => {
     const row = document.createElement('div');
-    row.className = 'event-row';
-    row.innerHTML = `<span class="event-label">${esc(label)}</span><span class="event-val">${esc(val)}</span>`;
+    row.className = 'event-row' + (i === nextIdx ? ' next' : '');
+    row.innerHTML = `<span class="event-label">${esc(it.label)}</span><span class="event-val">${esc(it.val)}</span>`;
     list.appendChild(row);
   });
 }

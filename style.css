@@ -1221,6 +1221,68 @@ main { padding-top: 8px; }
 @media (max-width: 379px) { .sb-next { display: none; } }
 @media (min-width: 900px) { .state-banner { max-width: 892px; } }
 
+
+/* ============================================================
+   RIGHE UNICHE — Preferiti e Prossimi eventi su una sola riga
+   ============================================================ */
+.fav-grid {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(78px, 1fr);
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fav-grid::-webkit-scrollbar { display: none; }
+.fav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 10px 6px 9px;
+}
+.fav-glyph { width: 34px; height: 34px; margin: 0 0 4px; }
+.fav-glyph img { width: 17px; height: 17px; }
+.fav-action { display: none; }
+.fav-label { font-size: 12.5px; margin: 0; }
+.fav-status { font-size: 11px; margin: 0; min-height: 14px; }
+.fav-card .skel { min-width: 78px; }
+.skel-fav { height: 92px; }
+
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.events-list .empty-state { grid-column: 1 / -1; padding: 16px; }
+.event-row {
+  flex-direction: column-reverse;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  min-height: 0;
+  padding: 10px 6px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,calc(var(--ga) + .035)), rgba(255,255,255,var(--ga)));
+  border: 1px solid var(--glass-edge);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+}
+.event-row:last-child { border-bottom: 1px solid var(--glass-edge); }
+.event-val   { font-size: 17px; font-weight: 700; }
+.event-label { font-size: 11px; line-height: 1.2; color: var(--muted); }
+.event-row.next {
+  border-color: rgba(120,185,255,.55);
+  background: linear-gradient(180deg, rgba(88,166,255,.26), rgba(88,166,255,.10));
+}
+.event-row.next .event-val { color: var(--accent); }
+
 /* Rispetta chi riduce il movimento */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
