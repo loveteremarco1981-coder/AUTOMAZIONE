@@ -38,7 +38,106 @@ function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 const getShuttersUp = () => { try { return localStorage.getItem('ui_shutters_up') === '1'; } catch (_) { return false; } };
 const setShuttersUp = v => { try { localStorage.setItem('ui_shutters_up', v ? '1' : '0'); } catch (_) {} };
 
-function haptic() { try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {} }
+function haptic() {
+  try {
+    if (navigator.vibrate) { navigator.vibrate(10); return; }
+    const l = document.getElementById('haptic'); // iPhone: il tocco su un interruttore dà un leggero "tic"
+    if (l) l.click();
+  } catch (_) {}
+}
+
+/* ---- Trasparenza del vetro (0 = trasparente, 100 = opaco) ---- */
+function applyGlass(v) {
+  const t = Math.min(100, Math.max(0, Number(v))) / 100;
+  const root = document.documentElement.style;
+  root.setProperty('--ga', (0.05 + t * 0.15).toFixed(3));
+  root.setProperty('--glass-blur', Math.round(14 + (1 - t) * 14) + 'px');
+}
+
+/* ---- Ultimo comando alle tapparelle (il Bluetooth non restituisce lo stato reale) ---- */
+let _wx = null;
+const getShutterLog = () => { try { return JSON.parse(localStorage.getItem('ui_shutter_last') || '{}'); } catch (_) { return {}; } };
+function markShutters(dir, label) {
+  try {
+    const log = getShutterLog();
+    log[label || 'ALL'] = { dir, ts: Date.now() };
+    localStorage.setItem('ui_shutter_last', JSON.stringify(log));
+  } catch (_) {}
+  updateShutterSubs();
+  updateHero();
+}
+function lastShutter(label) {
+  const log = getShutterLog();
+  const a = log.ALL, b = label ? log[label] : null;
+  if (a && b) return a.ts >= b.ts ? a : b;
+  return a || b || null;
+}
+function shutterText(rec) {
+  if (!rec) return 'Nessun comando recente';
+  return `Ultimo comando: ${rec.dir === 'up' ? 'aperte' : 'chiuse'}, ${fmtTime(new Date(rec.ts).toISOString())}`;
+}
+function updateShutterSubs() {
+  $$('.shutter-sub[data-label]').forEach(el => { el.textContent = shutterText(lastShutter(el.dataset.label)); });
+}
+
+/* ---- Scene (modificabili: basta definire CONFIG.SCENES in config.js) ---- */
+const DEFAULT_SCENES = [
+  { id: 'buongiorno', label: 'Buongiorno', sub: 'Alza e clima auto', icon: 'sun',
+    steps: [{ event: 'alza_tutto', params: { manual: 'TRUE' } }, { event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
+  { id: 'esco', label: 'Esco', sub: 'Chiudi, clima off, cam', icon: 'door',
+    steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'off_termostato' }, { event: 'ezviz_interne_on' }] },
+  { id: 'rientro', label: 'Rientro', sub: 'Clima auto, cam off', icon: 'home',
+    steps: [{ event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
+  { id: 'notte', label: 'Notte', sub: 'Chiudi e cam esterne', icon: 'moon',
+    steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'ezviz_esterne_on' }, { event: 'ezviz_interne_off' }] },
+];
+
+async function runScene(scene) {
+  haptic();
+  toast(`${scene.label}…`);
+  let failed = false;
+  for (const s of scene.steps) {
+    const r = await callAdmin(s.event, s.params);
+    if (!r || r.ok === false) failed = true;
+    if (s.event === 'alza_tutto')    { setShuttersUp(true);  markShutters('up'); }
+    if (s.event === 'abbassa_tutto') { setShuttersUp(false); markShutters('down'); }
+  }
+  toast(failed ? `${scene.label}: alcuni comandi non sono andati a buon fine` : `${scene.label}: fatto`, failed ? 'err' : 'ok', 3000);
+  reloadSoon(800);
+}
+
+function renderScenes() {
+  const host = $('#scene-row'); if (!host || host.dataset.built) return;
+  host.innerHTML = '';
+  (CONFIG.SCENES || DEFAULT_SCENES).forEach(sc => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'scene-btn';
+    b.innerHTML = `<span class="scene-ico">${svg(sc.icon || 'play')}</span>
+      <span class="scene-txt"><span class="scene-name">${esc(sc.label)}</span><span class="scene-sub">${esc(sc.sub || '')}</span></span>`;
+    b.addEventListener('click', () => busy(b, () => runScene(sc)));
+    host.appendChild(b);
+  });
+  host.dataset.built = '1';
+}
+
+/* ---- Frase di benvenuto ---- */
+function updateHero() {
+  const t = $('#hero-title'), s = $('#hero-sub'); if (!t || !s) return;
+  const h = new Date().getHours();
+  t.textContent = h < 5 ? 'Buonanotte' : h < 12 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : h < 23 ? 'Buonasera' : 'Buonanotte';
+  if (!MODEL) return;
+
+  const names = (Array.isArray(MODEL.people) ? MODEL.people : []).filter(p => p.onlineSmart).map(p => cap(p.name));
+  const who = !names.length ? 'Non c’è nessuno in casa'
+            : names.length === 1 ? `In casa c’è ${names[0]}`
+            : `In casa: ${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
+  const parts = [who];
+  if (_wx && _wx.tempC != null) parts.push(`fuori ci sono ${Math.round(_wx.tempC)}°`);
+  const rec = lastShutter(null);
+  if (rec) parts.push(`tapparelle ${rec.dir === 'up' ? 'aperte' : 'chiuse'} dalle ${fmtTime(new Date(rec.ts).toISOString())}`);
+  s.textContent = parts.join(', ') + '.';
+}
 
 /* ============================================================
    ICONE (SVG inline, stesso stile su ogni dispositivo)
@@ -60,6 +159,9 @@ const ICONS = {
   x:        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   chevron:  '<path d="m9 18 6-6-6-6"/>',
   phone:    '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  moon:     '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  door:     '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+  home:     '<path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/>',
   sun:      '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   cloudsun: '<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
   fog:      '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 17H7"/><path d="M17 21H9"/>',
@@ -226,6 +328,7 @@ function renderCards(m) {
 
 function renderWeather(w) {
   if (!w) return;
+  _wx = w;
   const tv = $('#temp-val'); if (tv && w.tempC != null)    tv.textContent = Math.round(w.tempC);
   const hv = $('#hum-val');  if (hv && w.humidity != null) hv.textContent = Math.round(w.humidity);
   const wv = $('#wind-val'); if (wv && w.windKmh != null)  wv.textContent = Math.round(w.windKmh);
@@ -233,6 +336,7 @@ function renderWeather(w) {
   const pt = $('#weather-pill-temp');
   if (pi) pi.innerHTML = weatherIcon(w.icon);
   if (pt) pt.textContent = w.tempC != null ? Math.round(w.tempC) + '°' : '—';
+  updateHero();
 }
 
 function favGlyph(id) {
@@ -272,7 +376,8 @@ function renderFavorites(m) {
       if (f.id === 'tapparelle') {
         const next = !isOn; setShuttersUp(next);
         toast(next ? 'Alzo le tapparelle…' : 'Abbasso le tapparelle…');
-        await callAdmin(next ? (f.upEvent || 'alza_tutto') : (f.downEvent || 'abbassa_tutto'), { manual: 'TRUE' });
+        const r = await callAdmin(next ? (f.upEvent || 'alza_tutto') : (f.downEvent || 'abbassa_tutto'), { manual: 'TRUE' });
+        if (r && r.ok !== false) markShutters(next ? 'up' : 'down');
         reloadSoon(800);
       } else if (f.id === 'vacanza') {
         const next = !isOn; toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata');
@@ -393,7 +498,10 @@ function renderDevices(m) {
       card.className = 'shutter-card';
       card.innerHTML = `
         <span class="dev-icon">${iconFromEmoji(sh.icon || '🪟', 'shutter')}</span>
-        <span class="shutter-label">${esc(sh.label)}</span>
+        <span class="shutter-text">
+          <span class="shutter-label">${esc(sh.label)}</span>
+          <span class="shutter-sub" data-label="${esc(sh.label)}"></span>
+        </span>
         <div class="shutter-btns">
           <button class="sh-btn" type="button" data-ev="${esc(sh.upEvent)}"   title="Alza"     aria-label="Alza ${esc(sh.label)}">${svg('up')}</button>
           <button class="sh-btn" type="button" data-ev="${esc(sh.downEvent)}" title="Abbassa" aria-label="Abbassa ${esc(sh.label)}">${svg('down')}</button>
@@ -402,14 +510,22 @@ function renderDevices(m) {
         b.addEventListener('click', () => busy(b, async () => {
           haptic();
           const up = b.dataset.ev.startsWith('alza');
+          const icon = card.querySelector('.dev-icon');
+          icon.classList.add('moving');
           toast(`${up ? 'Alzo' : 'Abbasso'} ${sh.label}…`);
-          await callAdmin(b.dataset.ev, { manual: 'TRUE' });
+          const r = await callAdmin(b.dataset.ev, { manual: 'TRUE' });
+          setTimeout(() => icon.classList.remove('moving'), 1800);
+          if (r && r.ok !== false) {
+            markShutters(up ? 'up' : 'down', /tutt/i.test(sh.label) ? 'ALL' : sh.label);
+            if (/tutt/i.test(sh.label)) setShuttersUp(up);
+          }
         }));
       });
       shutterList.appendChild(card);
     });
     shutterList.dataset.built = '1';
   }
+  updateShutterSubs();
 
   /* Termostati (costruiti una sola volta) */
   const thermoList = $('#thermostat-list');
@@ -551,8 +667,8 @@ function renderPeopleDetail(m) {
   if (qa) {
     qa.innerHTML = '';
     [
-      { icon: 'up',      label: 'Alza tutto',      fn: async () => { toast('Alzo le tapparelle…');   setShuttersUp(true);  await callAdmin('alza_tutto', { manual: 'TRUE' }); } },
-      { icon: 'down',    label: 'Abbassa tutto',   fn: async () => { toast('Abbasso le tapparelle…'); setShuttersUp(false); await callAdmin('abbassa_tutto'); } },
+      { icon: 'up',      label: 'Alza tutto',      fn: async () => { toast('Alzo le tapparelle…');   setShuttersUp(true);  const r = await callAdmin('alza_tutto', { manual: 'TRUE' }); if (r && r.ok !== false) markShutters('up'); } },
+      { icon: 'down',    label: 'Abbassa tutto',   fn: async () => { toast('Abbasso le tapparelle…'); setShuttersUp(false); const r = await callAdmin('abbassa_tutto'); if (r && r.ok !== false) markShutters('down'); } },
       { icon: 'leaf',    label: 'Annaffia piante', fn: async () => { toast('Avvio irrigazione…'); await callAdmin('piante'); } },
       { icon: 'plane',   label: 'Vacanza',         fn: async () => { const next = !MODEL?.vacanza;  toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata'); await callAdmin('set_vacanza',  { value: String(next) }); reloadSoon(500); } },
       { icon: 'shield',  label: 'Override',        fn: async () => { const next = !MODEL?.override; toast(next ? 'Override attivo' : 'Override disattivato'); await callAdmin('set_override', { value: String(next) }); reloadSoon(500); } },
@@ -666,10 +782,11 @@ async function loadAll(manual) {
     window._lastModel = m;
     setOnline(true);
 
-    renderBanner(m); renderCards(m); renderFavorites(m);
+    renderBanner(m); renderCards(m); renderScenes(); renderFavorites(m);
     renderPeopleChips(m); renderEvents(m); renderDevices(m);
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
+    updateHero();
 
     if (document.body.classList.contains('first-paint')) {
       setTimeout(() => document.body.classList.remove('first-paint'), 700);
@@ -748,6 +865,16 @@ document.addEventListener('DOMContentLoaded', () => {
   $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.target)));
   $('#btn-refresh')?.addEventListener('click', () => { haptic(); loadAll(true); });
   $('#btn-log')?.addEventListener('click', () => activateTab('log'));
+
+  // Cursore trasparenza: salva la scelta su questo dispositivo
+  const gr = $('#glass-range');
+  let gv = 35;
+  try { const s = localStorage.getItem('ui_glass'); if (s !== null) gv = Number(s); } catch (_) {}
+  applyGlass(gv);
+  if (gr) {
+    gr.value = String(gv);
+    gr.addEventListener('input', () => { applyGlass(gr.value); try { localStorage.setItem('ui_glass', gr.value); } catch (_) {} });
+  }
 
   // Segnaposto mentre arrivano i primi dati
   skeleton($('#fav-grid'), 4, 'skel-fav');
