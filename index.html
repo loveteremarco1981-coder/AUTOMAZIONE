@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-  <link rel="stylesheet" href="style.css?v=202610131200">
+  <link rel="stylesheet" href="style.css?v=202610132100">
 </head>
 
 <body class="first-paint">
@@ -67,6 +67,15 @@
   <main>
     <!-- HOME -->
     <div class="view active" id="view-home">
+      <section class="hero" aria-live="polite">
+        <h1 class="hero-title" id="hero-title">Ciao</h1>
+        <p class="hero-sub" id="hero-sub">Carico i dati della casa…</p>
+      </section>
+
+      <div class="section-header"><h2 class="section-title">Scene</h2></div>
+      <div class="scene-row" id="scene-row"></div>
+
+      <div class="section-header"><h2 class="section-title">In questo momento</h2></div>
       <div class="st-grid">
         <div class="st-card card-glow" id="card-presence">
           <div class="st-ico st-ico-people">
@@ -153,6 +162,17 @@
       <div class="section-header"><h2 class="section-title">Sistema</h2></div>
       <div class="settings-list" id="settings-list"></div>
 
+      <div class="section-header"><h2 class="section-title">Aspetto</h2></div>
+      <div class="appearance-card">
+        <div class="setting-label">Trasparenza del vetro</div>
+        <div class="setting-sub">Dal vetro trasparente a quello più opaco e leggibile</div>
+        <div class="slider-row">
+          <span>Trasparente</span>
+          <input type="range" id="glass-range" min="0" max="100" value="35" aria-label="Trasparenza del vetro">
+          <span>Opaco</span>
+        </div>
+      </div>
+
       <div class="section-header"><h2 class="section-title">Info</h2></div>
       <div class="info-card" id="info-card"></div>
     </div>
@@ -211,11 +231,14 @@
     </button>
   </nav>
 
+  <!-- Vibrazione su iPhone (iOS 17.4+): un interruttore invisibile -->
+  <label id="haptic" class="haptic-switch" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
+
   <!-- TOAST -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202610131200"></script>
-  <script src="app.js?v=202610131200"></script>
+  <script src="config.js?v=202610132100"></script>
+  <script src="app.js?v=202610132100"></script>
 </body>
 </html>
