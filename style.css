@@ -1161,6 +1161,66 @@ main { padding-top: 8px; }
   .hero-title { font-size: 34px; }
 }
 
+
+/* ============================================================
+   STATO IMPIANTO — scheda con icona, titolo, dettaglio e prossimo evento
+   ============================================================ */
+.state-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 28px);
+  max-width: 532px;
+  margin: 6px auto 0;
+  padding: 8px 10px 8px 8px;
+  border-radius: 18px;
+  border: 1px solid var(--tone-edge, var(--glass-edge));
+  background: linear-gradient(100deg, var(--tone-dim, rgba(255,255,255,.08)), rgba(255,255,255,.04) 70%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), 0 8px 22px rgba(0,0,0,.25);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s var(--ease);
+}
+.state-banner:active { transform: scale(.985); }
+
+.sb-comfy-day      { --tone: var(--green);  --tone-dim: rgba(63,185,80,.20);   --tone-edge: rgba(63,185,80,.40); }
+.sb-comfy-night    { --tone: var(--accent); --tone-dim: rgba(88,166,255,.20);  --tone-edge: rgba(88,166,255,.40); }
+.sb-security-day   { --tone: var(--red);    --tone-dim: rgba(248,81,73,.20);   --tone-edge: rgba(248,81,73,.40); }
+.sb-security-night { --tone: var(--purple); --tone-dim: rgba(188,140,255,.22); --tone-edge: rgba(188,140,255,.42); }
+.state-banner.sb-comfy-day, .state-banner.sb-comfy-night,
+.state-banner.sb-security-day, .state-banner.sb-security-night { color: var(--fg); }
+
+.sb-ico {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  background: var(--tone-dim);
+  color: var(--tone);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+.sb-ico .ico { width: 18px; height: 18px; }
+.sb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.sb-title { font-size: 15px; font-weight: 700; }
+.sb-sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.sb-next {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.sb-chev { color: var(--muted2); display: grid; place-items: center; flex-shrink: 0; }
+.sb-chev .ico { width: 16px; height: 16px; }
+@media (max-width: 379px) { .sb-next { display: none; } }
+@media (min-width: 900px) { .state-banner { max-width: 892px; } }
+
 /* Rispetta chi riduce il movimento */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

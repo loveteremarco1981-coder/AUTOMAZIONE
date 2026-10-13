@@ -316,8 +316,33 @@ function renderBanner(m) {
   const el = $('#state-banner'); if (!el) return;
   const st = String(m.state || '').toUpperCase();
   const map = { COMFY_DAY: 'sb-comfy-day', COMFY_NIGHT: 'sb-comfy-night', SECURITY_DAY: 'sb-security-day', SECURITY_NIGHT: 'sb-security-night' };
+  const icon = { COMFY_DAY: 'sun', COMFY_NIGHT: 'moon', SECURITY_DAY: 'shield', SECURITY_NIGHT: 'shield' }[st] || 'home';
   el.className = 'state-banner ' + (map[st] || 'sb-security-day');
-  el.innerHTML = `<span class="banner-dot"></span>${esc(cap(st.toLowerCase().replace(/_/g, ' ')))}`;
+
+  const isSecurity = st.startsWith('SECURITY');
+  const isNight = st.endsWith('NIGHT');
+  const title = isSecurity ? 'Sicurezza' : (map[st] ? 'Comfort' : cap(st.toLowerCase().replace(/_/g, ' ')) || '—');
+  // Stessa logica con cui l'app mostra lo stato delle telecamere nei Dispositivi
+  const estOn = isSecurity || st === 'COMFY_NIGHT';
+  const cams = isSecurity ? 'cam interne ed esterne attive' : estOn ? 'cam esterne attive' : 'cam spente';
+  const sub = map[st] ? `${isNight ? 'Notte' : 'Giorno'} · ${cams}` : '';
+
+  // Prossimo evento solare (alba o tramonto) ancora da venire
+  const nx = m.next || {};
+  const now = Date.now();
+  const upcoming = [['Alba', nx.alba], ['Tramonto', nx.tramonto]]
+    .map(([l, v]) => [l, v ? new Date(v) : null])
+    .filter(([, d]) => d && !isNaN(d.getTime()) && d.getTime() > now)
+    .sort((x, y) => x[1] - y[1])[0];
+
+  el.innerHTML = `
+    <span class="sb-ico">${svg(icon)}</span>
+    <span class="sb-text">
+      <span class="sb-title">${esc(title)}</span>
+      ${sub ? `<span class="sb-sub">${esc(sub)}</span>` : ''}
+    </span>
+    ${upcoming ? `<span class="sb-next">${upcoming[0]} ${fmtTime(upcoming[1].toISOString())}</span>` : ''}
+    <span class="sb-chev">${svg('chevron')}</span>`;
 }
 
 function renderCards(m) {
@@ -866,6 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.target)));
   $('#btn-refresh')?.addEventListener('click', () => { haptic(); loadAll(true); });
   $('#btn-log')?.addEventListener('click', () => activateTab('log'));
+  $('#state-banner')?.addEventListener('click', () => { haptic(); activateTab('devices'); });
 
   // Cursore trasparenza: salva la scelta su questo dispositivo
   const gr = $('#glass-range');
