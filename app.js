@@ -82,13 +82,13 @@ function updateShutterSubs() {
 
 /* ---- Scene (modificabili: basta definire CONFIG.SCENES in config.js) ---- */
 const DEFAULT_SCENES = [
-  { id: 'buongiorno', label: 'Buongiorno', sub: 'Alza e clima auto', icon: 'sun',
+  { id: 'buongiorno', label: 'Buongiorno', sub: 'Alza e clima auto', icon: 'sun', tone: 'amber',
     steps: [{ event: 'alza_tutto', params: { manual: 'TRUE' } }, { event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
-  { id: 'esco', label: 'Esco', sub: 'Chiudi, clima off, cam', icon: 'door',
+  { id: 'esco', label: 'Esco', sub: 'Chiudi, clima off, cam', icon: 'door', tone: 'blue',
     steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'off_termostato' }, { event: 'ezviz_interne_on' }] },
-  { id: 'rientro', label: 'Rientro', sub: 'Clima auto, cam off', icon: 'home',
+  { id: 'rientro', label: 'Rientro', sub: 'Clima auto, cam off', icon: 'home', tone: 'green',
     steps: [{ event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
-  { id: 'notte', label: 'Notte', sub: 'Chiudi e cam esterne', icon: 'moon',
+  { id: 'notte', label: 'Notte', sub: 'Chiudi e cam esterne', icon: 'moon', tone: 'purple',
     steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'ezviz_esterne_on' }, { event: 'ezviz_interne_off' }] },
 ];
 
@@ -113,6 +113,7 @@ function renderScenes() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'scene-btn';
+    if (sc.tone) b.dataset.tone = sc.tone;
     b.innerHTML = `<span class="scene-ico">${svg(sc.icon || 'play')}</span>
       <span class="scene-txt"><span class="scene-name">${esc(sc.label)}</span><span class="scene-sub">${esc(sc.sub || '')}</span></span>`;
     b.addEventListener('click', () => busy(b, () => runScene(sc)));
