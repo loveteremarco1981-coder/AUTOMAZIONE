@@ -1,68 +1,163 @@
 // ============================================================
-// app.js — Automazione Casa v2.2
+// app.js — Automazione Casa v3.0
 // ============================================================
 'use strict';
 
-
 let MODEL = null;
 let _toastTimer = null;
+let _reloadTimer = null;
 let _cbId = 0;
+let _loading = false;
+let _lastWxPush = 0;
 
-const $ = (sel, ctx) => (ctx || document).querySelector(sel);
+const $  = (sel, ctx) => (ctx || document).querySelector(sel);
 const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
 
+/* ============================================================
+   UTILITÀ
+   ============================================================ */
+
+// Evita che nomi o etichette con caratteri speciali rompano il layout
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+
 function fmtTime(iso) {
-
   try {
-
-    const d =
-      new Date(iso);
-
-    if (
-      isNaN(d.getTime())
-    ) {
-      return '—';
-    }
-
-    return d.toLocaleTimeString(
-      'it-IT',
-      {
-        hour: '2-digit',
-        minute: '2-digit'
-      }
-    );
-
-  } catch (_) {
-
-    return '—';
-
-  }
-
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  } catch (_) { return '—'; }
 }
 function fmtDateTime(iso) {
-  try { return new Date(iso).toLocaleString('it-IT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
-  catch(_) { return '—'; }
+  try { return new Date(iso).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+  catch (_) { return '—'; }
 }
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-const getShuttersUp = () => { try { return localStorage.getItem('ui_shutters_up')==='1'; } catch(_){ return false; } };
-const setShuttersUp = v => { try { localStorage.setItem('ui_shutters_up', v?'1':'0'); } catch(_){} };
 
-/* ---- Toast ---- */
-function toast(msg, ms=2200) {
-  const el = $('#toast'); if(!el) return;
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+const getShuttersUp = () => { try { return localStorage.getItem('ui_shutters_up') === '1'; } catch (_) { return false; } };
+const setShuttersUp = v => { try { localStorage.setItem('ui_shutters_up', v ? '1' : '0'); } catch (_) {} };
+
+function haptic() { try { if (navigator.vibrate) navigator.vibrate(10); } catch (_) {} }
+
+/* ============================================================
+   ICONE (SVG inline, stesso stile su ogni dispositivo)
+   ============================================================ */
+const ICONS = {
+  up:       '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>',
+  down:     '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
+  play:     '<polygon points="6 3 20 12 6 21 6 3"/>',
+  power:    '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/>',
+  leaf:     '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  plane:    '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  shield:   '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  refresh:  '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  camera:   '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  video:    '<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  thermo:   '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  shutter:  '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>',
+  check:    '<path d="M20 6 9 17l-5-5"/>',
+  x:        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  chevron:  '<path d="m9 18 6-6-6-6"/>',
+  phone:    '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  sun:      '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  cloudsun: '<path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>',
+  fog:      '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 17H7"/><path d="M17 21H9"/>',
+  rain:     '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>',
+  snow:     '<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/>',
+  storm:    '<path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/>',
+};
+
+function svg(name, cls) {
+  return `<svg class="ico${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 }
 
-/* ---- JSONP ---- */
+// Le icone che arrivano da config.js sono emoji: dove la conosciamo
+// la sostituiamo con l'SVG, altrimenti la lasciamo com'è.
+const EMOJI_TO_ICON = {
+  '⬆': 'up', '⬇': 'down', '▶': 'play', '🌿': 'leaf', '🏝': 'plane',
+  '🛡': 'shield', '🔄': 'refresh', '📷': 'camera', '📹': 'video',
+  '🌡': 'thermo', '🪟': 'shutter',
+};
+function iconFromEmoji(e, fallbackName) {
+  const key = String(e || '').replace(/\uFE0F/g, '');
+  const name = EMOJI_TO_ICON[key] || (!key && fallbackName);
+  return name ? svg(name) : `<span class="emoji">${esc(e)}</span>`;
+}
+
+function weatherIcon(code) {
+  const n = parseInt(code, 10);
+  if (isNaN(n)) return svg('thermo');
+  if (n === 0)  return svg('sun');
+  if (n <= 3)   return svg('cloudsun');
+  if (n <= 48)  return svg('fog');
+  if (n <= 67)  return svg('rain');
+  if (n <= 77)  return svg('snow');
+  if (n <= 82)  return svg('rain');
+  if (n <= 99)  return svg('storm');
+  return svg('thermo');
+}
+
+/* ============================================================
+   FEEDBACK: toast, stato rete, pulsanti "in corso"
+   ============================================================ */
+function toast(msg, type, ms) {
+  const el = $('#toast'); if (!el) return;
+  el.className = 'toast show ' + (type || 'info');
+  el.innerHTML = '<span class="toast-dot"></span><span></span>';
+  el.lastChild.textContent = msg;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2400);
+}
+
+function setOnline(ok) {
+  const b = $('#net-banner'); if (b) b.hidden = !!ok;
+}
+
+// Blocca un elemento mentre l'azione è in corso (niente doppi tocchi)
+async function busy(el, fn) {
+  if (!el || el.classList.contains('is-busy')) return;
+  el.classList.add('is-busy');
+  el.setAttribute('aria-busy', 'true');
+  try { return await fn(); }
+  finally { el.classList.remove('is-busy'); el.removeAttribute('aria-busy'); }
+}
+
+function reloadSoon(ms) {
+  clearTimeout(_reloadTimer);
+  _reloadTimer = setTimeout(() => loadAll(), ms || 500);
+}
+
+function skeleton(host, n, cls) {
+  if (!host) return;
+  host.innerHTML = Array.from({ length: n }, () => `<div class="skel ${cls}"></div>`).join('');
+}
+
+function showLoadError() {
+  ['#people-chips', '#events-list'].forEach(s => { const h = $(s); if (h) h.innerHTML = ''; });
+  const g = $('#fav-grid'); if (!g) return;
+  g.innerHTML = `<div class="empty-state wide">
+    <p>Impossibile caricare i dati. Controlla la connessione e riprova.</p>
+    <button class="small-btn" type="button" id="btn-retry">Riprova</button>
+  </div>`;
+  $('#btn-retry')?.addEventListener('click', () => {
+    skeleton($('#fav-grid'), 4, 'skel-fav');
+    skeleton($('#people-chips'), 2, 'skel-row');
+    skeleton($('#events-list'), 2, 'skel-row');
+    loadAll(true);
+  });
+}
+
+/* ============================================================
+   RETE (JSONP verso Apps Script)
+   ============================================================ */
 function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
     const id = '__cb_' + (++_cbId);
     const sep = url.includes('?') ? '&' : '?';
     const el = document.createElement('script');
     const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
-    function cleanup() { try { delete window[id]; el.remove(); } catch(_){} }
+    function cleanup() { try { delete window[id]; el.remove(); } catch (_) {} }
     window[id] = data => { clearTimeout(timer); cleanup(); resolve(data); };
     el.src = url + sep + 'callback=' + id + '&_=' + Date.now();
     el.onerror = () => { clearTimeout(timer); cleanup(); reject(new Error('load error')); };
@@ -74,555 +169,601 @@ function callAdmin(event, params) {
   return new Promise(resolve => {
     const u = new URL(CONFIG.DOGET_URL);
     u.searchParams.set('event', event);
-    if(params) Object.entries(params).forEach(([k,v]) => u.searchParams.set(k, String(v)));
+    if (params) Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
     jsonpFetch(u.toString())
-      .then(d => { resolve(d); })
-      .catch(() => { toast('❌ Errore connessione'); resolve(null); });
+      .then(d => { setOnline(true); resolve(d); })
+      .catch(() => { setOnline(false); toast('Connessione assente. Riprova tra poco.', 'err'); resolve(null); });
   });
 }
 
 function fetchModel() { return jsonpFetch(CONFIG.DOGET_URL); }
 function fetchLogs()  { return jsonpFetch(CONFIG.DOGET_URL + '?logs=1'); }
 
-/* ---- Weather ---- */
+/* ---- Meteo ---- */
 async function fetchWeatherClient() {
-
   const w = CONFIG.WEATHER || {};
-
-  if (!w.lat || !w.lon) {
-    return null;
-  }
+  if (!w.lat || !w.lon) return null;
 
   const url =
-  'https://api.open-meteo.com/v1/forecast' +
-  '?latitude=' + encodeURIComponent(w.lat) +
-  '&longitude=' + encodeURIComponent(w.lon) +
-  '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
-  '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
-  
+    'https://api.open-meteo.com/v1/forecast' +
+    '?latitude=' + encodeURIComponent(w.lat) +
+    '&longitude=' + encodeURIComponent(w.lon) +
+    '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+    '&timezone=' + encodeURIComponent(w.tz || 'Europe/Rome');
 
   const r = await fetch(url);
-
-  if (!r.ok) {
-    return null;
-  }
+  if (!r.ok) return null;
 
   const js = await r.json();
   const c = js.current || {};
-
   return {
     tempC: c.temperature_2m ?? null,
     humidity: c.relative_humidity_2m ?? null,
     windKmh: c.wind_speed_10m ?? null,
     icon: String(c.weather_code ?? ''),
-    provider: 'Open-Meteo'
+    provider: 'Open-Meteo',
   };
-
 }
 
-function weatherEmoji(code) {
-  const n = parseInt(code);
-  if(n===0) return '☀️'; if(n<=3) return '🌤️'; if(n<=48) return '🌫️';
-  if(n<=67) return '🌧️'; if(n<=77) return '🌨️'; if(n<=82) return '🌦️';
-  if(n<=99) return '⛈️'; return '🌡️';
-}
-
-/* ============================================================ RENDER ============================================================ */
+/* ============================================================
+   RENDER
+   ============================================================ */
 
 function renderBanner(m) {
-  const el = $('#state-banner'); if(!el) return;
-  const st = String(m.state||'').toUpperCase();
-  const map = { COMFY_DAY:'sb-comfy-day', COMFY_NIGHT:'sb-comfy-night', SECURITY_DAY:'sb-security-day', SECURITY_NIGHT:'sb-security-night' };
-  el.className = 'state-banner ' + (map[st]||'sb-security-day');
-  el.innerHTML = `<span class="banner-dot"></span>${st.replace(/_/g,' ')}`;
+  const el = $('#state-banner'); if (!el) return;
+  const st = String(m.state || '').toUpperCase();
+  const map = { COMFY_DAY: 'sb-comfy-day', COMFY_NIGHT: 'sb-comfy-night', SECURITY_DAY: 'sb-security-day', SECURITY_NIGHT: 'sb-security-night' };
+  el.className = 'state-banner ' + (map[st] || 'sb-security-day');
+  el.innerHTML = `<span class="banner-dot"></span>${esc(cap(st.toLowerCase().replace(/_/g, ' ')))}`;
 }
 
 function renderCards(m) {
   const people = Array.isArray(m.people) ? m.people : [];
   const inCount = people.filter(p => p.onlineSmart).length;
-  const el = $('#people-count'); if(el) el.textContent = inCount;
-  const card = $('#card-presence'); if(card) card.classList.toggle('card-glow', inCount>0);
+  const el = $('#people-count'); if (el) el.textContent = inCount;
+  const card = $('#card-presence'); if (card) card.classList.toggle('card-glow', inCount > 0);
 }
 
 function renderWeather(w) {
-  if(!w) return;
-  const tv=$('#temp-val'); if(tv&&w.tempC!=null)    tv.textContent=Math.round(w.tempC);
-  const hv=$('#hum-val');  if(hv&&w.humidity!=null) hv.textContent=Math.round(w.humidity);
-  const wv=$('#wind-val'); if(wv&&w.windKmh!=null)  wv.textContent=Math.round(w.windKmh);
-  const pe=$('#weather-emoji');
-  const pt=$('#weather-pill-temp');
-  if(pe) pe.textContent = w.icon!=null ? weatherEmoji(w.icon) : (w.iconEmoji||'🌡️');
-  if(pt) pt.textContent = w.tempC!=null ? Math.round(w.tempC)+'°' : '—';
+  if (!w) return;
+  const tv = $('#temp-val'); if (tv && w.tempC != null)    tv.textContent = Math.round(w.tempC);
+  const hv = $('#hum-val');  if (hv && w.humidity != null) hv.textContent = Math.round(w.humidity);
+  const wv = $('#wind-val'); if (wv && w.windKmh != null)  wv.textContent = Math.round(w.windKmh);
+  const pi = $('#weather-icon');
+  const pt = $('#weather-pill-temp');
+  if (pi) pi.innerHTML = weatherIcon(w.icon);
+  if (pt) pt.textContent = w.tempC != null ? Math.round(w.tempC) + '°' : '—';
 }
 
 function favGlyph(id) {
-  return ({tapparelle:'icons/st/glyph-shutter.svg',piante:'icons/st/glyph-plant.svg',vacanza:'icons/st/glyph-suit.svg',override:'icons/st/glyph-moon.svg'})[id]||'icons/st/glyph-generic.svg';
+  return ({ tapparelle: 'icons/st/glyph-shutter.svg', piante: 'icons/st/glyph-plant.svg', vacanza: 'icons/st/glyph-suit.svg', override: 'icons/st/glyph-moon.svg' })[id] || 'icons/st/glyph-generic.svg';
 }
 
 function renderFavorites(m) {
-  const grid = $('#fav-grid'); if(!grid) return;
+  const grid = $('#fav-grid'); if (!grid) return;
   grid.innerHTML = '';
-  (CONFIG.FAVORITES||[]).forEach(f => {
+
+  (CONFIG.FAVORITES || []).forEach(f => {
     let isOn = false;
-    if(f.id==='tapparelle') isOn=getShuttersUp();
-    else if(f.id==='vacanza')  isOn=!!m.vacanza;
-    else if(f.id==='override') isOn=!!m.override;
-    else if(f.stateKey)        isOn=!!m[f.stateKey];
-    const statusText = f.id==='tapparelle'?(isOn?'Aperte':'Chiuse'):f.kind==='toggle'?(isOn?'Attivo':'Disattivo'):'';
+    if (f.id === 'tapparelle')      isOn = getShuttersUp();
+    else if (f.id === 'vacanza')    isOn = !!m.vacanza;
+    else if (f.id === 'override')   isOn = !!m.override;
+    else if (f.stateKey)            isOn = !!m[f.stateKey];
+
+    const isToggle = f.id === 'tapparelle' || f.kind === 'toggle';
+    const statusText = f.id === 'tapparelle' ? (isOn ? 'Aperte' : 'Chiuse')
+                     : f.kind === 'toggle'   ? (isOn ? 'Attivo' : 'Disattivo') : '';
+
     const card = document.createElement('article');
-    card.className = 'fav-card'+(isOn?' active':'');
+    card.className = 'fav-card' + (isOn ? ' active' : '');
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    if (isToggle) card.setAttribute('aria-pressed', String(isOn));
+    card.setAttribute('aria-label', f.label || 'Azione');
     card.innerHTML = `
-      <div class="fav-glyph" style="background:${f.color||'#f0f0f0'}"><img src="${favGlyph(f.id)}" alt=""></div>
-      <button class="fav-action" aria-label="azione"><img src="${f.kind==='action'?'icons/st/ui-play.svg':'icons/st/ui-power.svg'}" alt=""></button>
-      <div class="fav-label">${f.label}</div>
-      <div class="fav-sub">${f.subtitle||''}</div>
-      ${statusText?`<div class="fav-status">${statusText}</div>`:''}`;
+      <div class="fav-glyph" style="background:${esc(f.color || '#f0f0f0')}"><img src="${favGlyph(f.id)}" alt=""></div>
+      <span class="fav-action" aria-hidden="true">${svg(f.kind === 'action' ? 'play' : 'power')}</span>
+      <div class="fav-label">${esc(f.label)}</div>
+      <div class="fav-sub">${esc(f.subtitle || '')}</div>
+      ${statusText ? `<div class="fav-status">${statusText}</div>` : ''}`;
+
     const doAction = async () => {
-      if(f.id==='tapparelle'){ const next=!isOn; setShuttersUp(next); toast(next?'⬆️ Alzo…':'⬇️ Abbasso…'); await callAdmin(next?(f.upEvent||'alza_tutto'):(f.downEvent||'abbassa_tutto'),{manual:'TRUE'}); setTimeout(loadAll,800); }
-      else if(f.id==='vacanza'){ const next=!isOn; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }
-      else if(f.id==='override'){ const next=!isOn; toast(next?'🛡️ Override ON':'✅ OFF'); await callAdmin('set_override',{value:String(next)}); setTimeout(loadAll,500); }
-      else if(f.kind==='toggle'&&f.toggleEvent){ const next=!isOn; toast(`${f.label}: ${next?'ON':'OFF'}`); await callAdmin(f.toggleEvent,{value:String(next)}); setTimeout(loadAll,500); }
-      else if(f.kind==='action'&&f.event){ toast(`▶️ ${f.label}…`); await callAdmin(f.event); }
+      haptic();
+      if (f.id === 'tapparelle') {
+        const next = !isOn; setShuttersUp(next);
+        toast(next ? 'Alzo le tapparelle…' : 'Abbasso le tapparelle…');
+        await callAdmin(next ? (f.upEvent || 'alza_tutto') : (f.downEvent || 'abbassa_tutto'), { manual: 'TRUE' });
+        reloadSoon(800);
+      } else if (f.id === 'vacanza') {
+        const next = !isOn; toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata');
+        await callAdmin('set_vacanza', { value: String(next) }); reloadSoon(500);
+      } else if (f.id === 'override') {
+        const next = !isOn; toast(next ? 'Override attivo' : 'Override disattivato');
+        await callAdmin('set_override', { value: String(next) }); reloadSoon(500);
+      } else if (f.kind === 'toggle' && f.toggleEvent) {
+        const next = !isOn; toast(`${f.label}: ${next ? 'attivo' : 'disattivo'}`);
+        await callAdmin(f.toggleEvent, { value: String(next) }); reloadSoon(500);
+      } else if (f.kind === 'action' && f.event) {
+        toast(`${f.label} in corso…`);
+        await callAdmin(f.event);
+      }
     };
-    card.addEventListener('click', e => { if(!e.target.closest('.fav-action')) doAction(); });
-    card.querySelector('.fav-action').addEventListener('click', e => { e.stopPropagation(); doAction(); });
+
+    card.addEventListener('click', () => busy(card, doAction));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); busy(card, doAction); }
+    });
     grid.appendChild(card);
   });
 }
 
 function renderPeopleChips(m) {
-  const host = $('#people-chips'); if(!host) return;
-  host.className = 'people-chips'; host.innerHTML = '';
+  const host = $('#people-chips'); if (!host) return;
+  host.innerHTML = '';
   const people = Array.isArray(m.people) ? m.people : [];
-  if(!people.length){ host.innerHTML='<div class="empty-state">Nessuna persona.</div>'; return; }
-  const sorted = [...people].sort((a,b) => {
-    if(a.onlineSmart!==b.onlineSmart) return a.onlineSmart?-1:1;
-    return String(a.name).localeCompare(String(b.name),'it');
+  if (!people.length) { host.innerHTML = '<div class="empty-state">Nessuna persona configurata.</div>'; return; }
+
+  const sorted = [...people].sort((a, b) => {
+    if (a.onlineSmart !== b.onlineSmart) return a.onlineSmart ? -1 : 1;
+    return String(a.name).localeCompare(String(b.name), 'it');
   });
+
   sorted.forEach(p => {
     const st = p.onlineSmart ? 'in' : 'out';
-    const ini = String(p.name||'?').charAt(0).toUpperCase();
-    const ago =
-  p.lastSeen || '—';
-    const ssidBadge =
-  p.wifiOnline
-    ? '<span class="ssid-badge">📶 Wi‑Fi</span>'
-    : '<span class="ssid-badge">📵 Offline</span>';
+    const ini = String(p.name || '?').charAt(0).toUpperCase();
+    const ago = p.lastSeen || '—';
+    const wifi = p.wifiOnline
+      ? '<span class="ssid-badge on">Wi‑Fi</span>'
+      : '<span class="ssid-badge">Offline</span>';
+
     const chip = document.createElement('div');
     chip.className = `person-chip ${st}`;
     chip.innerHTML = `
-      <div class="person-avatar ${st}">${ini}</div>
+      <div class="person-avatar ${st}">${esc(ini)}</div>
       <div class="person-info">
-        <div class="person-name">${cap(p.name)} ${ssidBadge}</div>
-        <div class="person-meta">${p.onlineSmart?'IN casa':'Fuori'} · ${ago}</div>
+        <div class="person-name">${esc(cap(p.name))} ${wifi}</div>
+        <div class="person-meta">${p.onlineSmart ? 'In casa' : 'Fuori'} · ${esc(ago)}</div>
       </div>
-      <span class="person-badge ${st}">${st.toUpperCase()}</span>`;
+      <span class="person-badge ${st}">${p.onlineSmart ? 'In' : 'Out'}</span>`;
     host.appendChild(chip);
   });
 }
 
 function renderEvents(m) {
-
-  const list = $('#events-list');
-  if (!list) return;
-
+  const list = $('#events-list'); if (!list) return;
   list.innerHTML = '';
-
   const nx = m.next || {};
 
   const rows = [
-    [
-      'Alba',
-      nx.alba ? fmtTime(nx.alba) : null
-    ],
-    [
-      'Tramonto',
-      nx.tramonto ? fmtTime(nx.tramonto) : null
-    ],
-    [
-      'Apertura tapparelle',
-      nx.shuttersOpenTime || null
-    ],
-    [
-      'Chiusura tapparelle',
-      nx.shuttersCloseTime || null
-    ]
+    ['Alba',                nx.alba ? fmtTime(nx.alba) : null],
+    ['Tramonto',            nx.tramonto ? fmtTime(nx.tramonto) : null],
+    ['Apertura tapparelle', nx.shuttersOpenTime || null],
+    ['Chiusura tapparelle', nx.shuttersCloseTime || null],
   ].filter(r => r[1]);
 
-  if (!rows.length) {
+  if (!rows.length) { list.innerHTML = '<div class="empty-state">Nessun evento in programma.</div>'; return; }
 
-    list.innerHTML =
-      '<div class="empty-state">Nessun evento programmato.</div>';
-
-    return;
-
-  }
-
-  rows.forEach(([label,val]) => {
-
-    const row =
-      document.createElement('div');
-
-    row.className =
-      'event-row';
-
-    row.innerHTML =
-      `<span class="event-label">${label}</span>
-       <span class="event-val">${val}</span>`;
-
+  rows.forEach(([label, val]) => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    row.innerHTML = `<span class="event-label">${esc(label)}</span><span class="event-val">${esc(val)}</span>`;
     list.appendChild(row);
-
   });
-
 }
 
-/* ---- Devices ---- */
+/* ---- Dispositivi ---- */
 function renderDevices(m) {
   const DEV = CONFIG.DEVICES || {};
 
-  /* App links */
+  /* App collegate (costruite una sola volta) */
   const appLinks = $('#app-links');
-  if(appLinks) {
+  if (appLinks && !appLinks.dataset.built) {
     appLinks.innerHTML = '';
     (DEV.APPS || []).forEach(app => {
       const card = document.createElement('a');
       card.className = 'app-link-card';
       card.href = '#';
       card.innerHTML = `
-        <div class="app-link-icon" style="background:${app.color||'#f0f0f0'}">${app.icon||'📱'}</div>
+        <div class="app-link-icon" style="background:${esc(app.color || '#f0f0f0')}">${iconFromEmoji(app.icon || '📱', 'phone')}</div>
         <div class="app-link-info">
-          <div class="app-link-name">${app.label}</div>
-          <div class="app-link-sub">${app.subtitle||''}</div>
+          <div class="app-link-name">${esc(app.label)}</div>
+          <div class="app-link-sub">${esc(app.subtitle || '')}</div>
         </div>
-        <span class="app-link-arrow">›</span>`;
+        <span class="app-link-arrow">${svg('chevron')}</span>`;
       card.addEventListener('click', e => {
         e.preventDefault();
         const fallback = app.urlFallback || app.url;
         const t = setTimeout(() => { window.location.href = fallback; }, 2000);
         window.location.href = app.url;
         document.addEventListener('visibilitychange', function cancel() {
-          if(document.hidden){ clearTimeout(t); document.removeEventListener('visibilitychange', cancel); }
+          if (document.hidden) { clearTimeout(t); document.removeEventListener('visibilitychange', cancel); }
         });
       });
       appLinks.appendChild(card);
     });
+    appLinks.dataset.built = '1';
   }
 
-  /* Tapparelle */
+  /* Tapparelle (costruite una sola volta) */
   const shutterList = $('#shutter-list');
-  if(shutterList) {
+  if (shutterList && !shutterList.dataset.built) {
     shutterList.innerHTML = '';
     (DEV.SHUTTERS || []).forEach(sh => {
       const card = document.createElement('div');
       card.className = 'shutter-card';
       card.innerHTML = `
-        <span class="shutter-icon">${sh.icon||'🪟'}</span>
-        <span class="shutter-label">${sh.label}</span>
+        <span class="dev-icon">${iconFromEmoji(sh.icon || '🪟', 'shutter')}</span>
+        <span class="shutter-label">${esc(sh.label)}</span>
         <div class="shutter-btns">
-          <button class="sh-btn" data-ev="${sh.upEvent}"   title="Alza">⬆</button>
-          <button class="sh-btn" data-ev="${sh.downEvent}" title="Abbassa">⬇</button>
+          <button class="sh-btn" type="button" data-ev="${esc(sh.upEvent)}"   title="Alza"     aria-label="Alza ${esc(sh.label)}">${svg('up')}</button>
+          <button class="sh-btn" type="button" data-ev="${esc(sh.downEvent)}" title="Abbassa" aria-label="Abbassa ${esc(sh.label)}">${svg('down')}</button>
         </div>`;
       card.querySelectorAll('.sh-btn').forEach(b => {
-        b.addEventListener('click', async () => {
-          toast(b.dataset.ev.startsWith('alza') ? `⬆️ ${sh.label}…` : `⬇️ ${sh.label}…`);
-          await callAdmin(b.dataset.ev, { manual:'TRUE' });
-        });
+        b.addEventListener('click', () => busy(b, async () => {
+          haptic();
+          const up = b.dataset.ev.startsWith('alza');
+          toast(`${up ? 'Alzo' : 'Abbasso'} ${sh.label}…`);
+          await callAdmin(b.dataset.ev, { manual: 'TRUE' });
+        }));
       });
       shutterList.appendChild(card);
     });
+    shutterList.dataset.built = '1';
   }
 
-  /* Termostati */
+  /* Termostati (costruiti una sola volta) */
   const thermoList = $('#thermostat-list');
-  if(thermoList) {
+  if (thermoList && !thermoList.dataset.built) {
     thermoList.innerHTML = '';
     (DEV.THERMOSTATS || []).forEach(t => {
       const card = document.createElement('div');
       card.className = 'shutter-card';
       card.innerHTML = `
-        <span class="shutter-icon">${t.icon||'🌡️'}</span>
-        <span class="shutter-label">${t.label}</span>
+        <span class="dev-icon">${iconFromEmoji(t.icon || '🌡️', 'thermo')}</span>
+        <span class="shutter-label">${esc(t.label)}</span>
         <div class="shutter-btns">
-          <button class="sh-btn" data-ev="${t.event}" title="${t.label}">▶</button>
+          <button class="sh-btn" type="button" data-ev="${esc(t.event)}" title="Applica" aria-label="Applica ${esc(t.label)}">${svg('play')}</button>
         </div>`;
-      card.querySelector('.sh-btn').addEventListener('click', async () => {
-        toast(`${t.icon} ${t.label}…`);
+      const b = card.querySelector('.sh-btn');
+      b.addEventListener('click', () => busy(b, async () => {
+        haptic();
+        toast(`${t.label} in corso…`);
         await callAdmin(t.event);
-      });
+      }));
       thermoList.appendChild(card);
     });
+    thermoList.dataset.built = '1';
   }
 
-  /* ---- Telecamere ---- */
+  /* Telecamere */
   const camList = $('#camera-list');
-  if(camList) {
-    // Costruisce le righe solo se non esistono ancora
-    if(!camList.dataset.built) {
+  if (camList) {
+    if (!camList.dataset.built) {
       camList.innerHTML = '';
       const groups = [
-        { key:'int', icon:'📷', label:'Cam interne' },
-        { key:'est', icon:'📹', label:'Cam esterne' },
+        { key: 'int', icon: 'camera', label: 'Cam interne' },
+        { key: 'est', icon: 'video',  label: 'Cam esterne' },
       ];
-      groups.forEach(function(g) {
-        const camOn  = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_on');
-        const camOff = (DEV.CAMERAS||[]).find(c => c.id === g.key+'_off');
-        if(!camOn || !camOff) return;
+      groups.forEach(g => {
+        const camOn  = (DEV.CAMERAS || []).find(c => c.id === g.key + '_on');
+        const camOff = (DEV.CAMERAS || []).find(c => c.id === g.key + '_off');
+        if (!camOn || !camOff) return;
+
         const card = document.createElement('div');
         card.className = 'shutter-card';
         card.dataset.camKey = g.key;
-        card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px';
         card.innerHTML = `
-          <span style="font-size:20px">${g.icon}</span>
-          <span style="flex:1;font-size:14px;font-weight:500">${g.label}</span>
-          <div style="display:flex;gap:6px">
-            <button class="cam-row-btn" data-ev="${camOn.event}" data-state="on"
-              style="padding:5px 16px;border-radius:6px;border:2px solid #555;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#888;transition:all .15s">ON</button>
-            <button class="cam-row-btn" data-ev="${camOff.event}" data-state="off"
-              style="padding:5px 16px;border-radius:6px;border:2px solid #555;cursor:pointer;font-weight:700;font-size:13px;background:transparent;color:#888;transition:all .15s">OFF</button>
+          <span class="dev-icon">${svg(g.icon)}</span>
+          <span class="shutter-label">${g.label}</span>
+          <div class="seg" role="group" aria-label="${g.label}">
+            <button class="seg-btn" type="button" data-ev="${esc(camOn.event)}"  data-state="on">ON</button>
+            <button class="seg-btn" type="button" data-ev="${esc(camOff.event)}" data-state="off">OFF</button>
           </div>`;
-        card.querySelectorAll('.cam-row-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const evName = btn.dataset.ev;
+
+        card.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.addEventListener('click', () => busy(btn, async () => {
+            haptic();
             const isOn = btn.dataset.state === 'on';
-            toast(`${g.icon} ${isOn ? 'Accendo' : 'Spengo'} ${g.label}…`);
-            // Aggiorna colore subito (ottimistico)
-            card.querySelectorAll('.cam-row-btn').forEach(b => {
-              const bOn = b.dataset.state === 'on';
-              const active = bOn ? isOn : !isOn;
-              if(active){ const bg=bOn?'#1e8e3e':'#c5221f'; b.style.background=bg; b.style.color='#fff'; b.style.borderColor=bg; }
-              else { b.style.background='transparent'; b.style.color='#888'; b.style.borderColor='#555'; }
-            });
-            const result = await callAdmin(evName);
-            if(result && result.ok === false){
-              toast('❌ Errore: ' + (result.error||''));
-              setTimeout(loadAll, 500); // ricarica per ripristinare stato reale
-            } else {
-              toast(`✅ ${g.label} ${btn.dataset.state.toUpperCase()}`);
+            toast(`${isOn ? 'Accendo' : 'Spengo'} ${g.label.toLowerCase()}…`);
+            setCamButtons(card, isOn); // aggiornamento immediato
+            const result = await callAdmin(btn.dataset.ev);
+            if (result && result.ok === false) {
+              toast('Comando non riuscito' + (result.error ? ': ' + result.error : ''), 'err');
+              reloadSoon(500); // ripristina lo stato reale
+            } else if (result) {
+              toast(`${g.label}: ${isOn ? 'accese' : 'spente'}`, 'ok');
             }
-          });
+          }));
         });
         camList.appendChild(card);
       });
       camList.dataset.built = '1';
     }
-    // Aggiorna colori in base allo stato passato
     updateCamStates(m);
   }
 }
 
-function updateCamStates(m) {
-  const stato   = (m && m.state) ? String(m.state).toUpperCase() : '';
-  const intON   = stato.startsWith('SECURITY');
-  const estON   = stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT';
-  const stateMap = { int: intON, est: estON };
-
-  $$('[data-cam-key]').forEach(card => {
-    const isOn = !!stateMap[card.dataset.camKey];
-    card.querySelectorAll('.cam-row-btn').forEach(btn => {
-      const active = btn.dataset.state === 'on' ? isOn : !isOn;
-      if(active) {
-        const bg = btn.dataset.state === 'on' ? '#1e8e3e' : '#c5221f';
-        btn.style.background = bg;
-        btn.style.color = '#fff';
-        btn.style.borderColor = bg;
-      } else {
-        btn.style.background = 'transparent';
-        btn.style.color = '#888';
-        btn.style.borderColor = '#555';
-      }
-    });
+function setCamButtons(card, isOn) {
+  card.querySelectorAll('.seg-btn').forEach(b => {
+    const active = b.dataset.state === 'on' ? isOn : !isOn;
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-pressed', String(active));
   });
+}
+
+function updateCamStates(m) {
+  const stato = (m && m.state) ? String(m.state).toUpperCase() : '';
+  const stateMap = {
+    int: stato.startsWith('SECURITY'),
+    est: stato.startsWith('SECURITY') || stato === 'COMFY_NIGHT',
+  };
+  $$('[data-cam-key]').forEach(card => setCamButtons(card, !!stateMap[card.dataset.camKey]));
 }
 
 function renderPeopleDetail(m) {
   const list = $('#people-detail');
-  if(list) {
+  if (list) {
     list.innerHTML = '';
-    const people = Array.isArray(m.people)?m.people:[];
-    const sorted = [...people].sort((a,b)=>{
-      if(a.onlineSmart!==b.onlineSmart) return a.onlineSmart?-1:1;
-      return String(a.name).localeCompare(String(b.name),'it');
+    const people = Array.isArray(m.people) ? m.people : [];
+    const sorted = [...people].sort((a, b) => {
+      if (a.onlineSmart !== b.onlineSmart) return a.onlineSmart ? -1 : 1;
+      return String(a.name).localeCompare(String(b.name), 'it');
     });
+
     sorted.forEach(p => {
-      const st = p.onlineSmart?'in':'out';
-      const ini = String(p.name||'?').charAt(0).toUpperCase();
-      const ago =
-  p.lastSeen || '—';
-      const ssidStatus =
-  p.wifiOnline
-    ? '📶 Wi‑Fi connesso'
-    : '📵 Wi‑Fi non connesso';
-      const card = document.createElement('div'); card.className='people-detail-card';
-      card.innerHTML=`
+      const st = p.onlineSmart ? 'in' : 'out';
+      const ini = String(p.name || '?').charAt(0).toUpperCase();
+      const ago = p.lastSeen || '—';
+      const wifi = p.wifiOnline ? 'Wi‑Fi connesso' : 'Wi‑Fi non connesso';
+
+      const card = document.createElement('div');
+      card.className = 'people-detail-card';
+      card.innerHTML = `
         <div class="pdc-top">
-          <div class="pdc-avatar ${st}">${ini}</div>
+          <div class="pdc-avatar ${st}">${esc(ini)}</div>
           <div>
-            <div class="pdc-name">${cap(p.name)}</div>
-            <div class="pdc-state" style="color:${st==='in'?'var(--green)':'var(--muted)'}">
-              ${st==='in'?'● In casa':'○ Fuori'} · ${ago}
-            </div>
-            <div class="pdc-ssid">${ssidStatus}</div>
+            <div class="pdc-name">${esc(cap(p.name))}</div>
+            <div class="pdc-state ${st}">${st === 'in' ? 'In casa' : 'Fuori'} · ${esc(ago)}</div>
+            <div class="pdc-ssid">${wifi}</div>
           </div>
         </div>
         <div class="pdc-actions">
-          <button class="pdc-btn btn-in"  data-name="${p.name}">✅ Forza IN</button>
-          <button class="pdc-btn btn-out" data-name="${p.name}">❌ Forza OUT</button>
+          <button class="pdc-btn btn-in"  type="button">${svg('check')}Forza in casa</button>
+          <button class="pdc-btn btn-out" type="button">${svg('x')}Forza fuori</button>
         </div>`;
-      card.querySelector('.btn-in').addEventListener('click', async()=>{
-        toast('⏳ Imposto IN '+cap(p.name)+'…');
-        const r = await callAdmin('force_in',{name:p.name});
-        toast(r&&r.ok!==false ? '✅ '+cap(p.name)+' → IN CASA' : '⚠️ Riprova tra qualche secondo');
-        setTimeout(loadAll,800);
+
+      const force = (btn, event, okMsg) => busy(btn, async () => {
+        haptic();
+        toast(`Aggiorno ${cap(p.name)}…`);
+        const r = await callAdmin(event, { name: p.name });
+        if (r && r.ok !== false) toast(okMsg, 'ok');
+        else if (r) toast('Operazione non riuscita. Riprova tra qualche secondo.', 'err');
+        reloadSoon(800);
       });
-      card.querySelector('.btn-out').addEventListener('click', async()=>{
-        toast('⏳ Imposto OUT '+cap(p.name)+'…');
-        const r = await callAdmin('force_out',{name:p.name});
-        toast(r&&r.ok!==false ? '✅ '+cap(p.name)+' → FUORI' : '⚠️ Riprova tra qualche secondo');
-        setTimeout(loadAll,800);
-      });
+      const bIn = card.querySelector('.btn-in'), bOut = card.querySelector('.btn-out');
+      bIn.addEventListener('click',  () => force(bIn,  'force_in',  `${cap(p.name)} è in casa`));
+      bOut.addEventListener('click', () => force(bOut, 'force_out', `${cap(p.name)} è fuori`));
       list.appendChild(card);
     });
   }
 
-  const qa=$('#quick-actions');
-  if(qa){
-    qa.innerHTML='';
+  const qa = $('#quick-actions');
+  if (qa) {
+    qa.innerHTML = '';
     [
-      {icon:'⬆️',label:'Alza tutto',     fn:async()=>{ toast('⬆️ Alzo…'); setShuttersUp(true);  await callAdmin('alza_tutto',{manual:'TRUE'}); }},
-      {icon:'⬇️',label:'Abbassa tutto',  fn:async()=>{ toast('⬇️ Abbasso…'); setShuttersUp(false); await callAdmin('abbassa_tutto'); }},
-      {icon:'🌿',label:'Piante ora',     fn:async()=>{ toast('🌿 Irrigazione…'); await callAdmin('piante'); }},
-      {icon:'🏝️',label:'Toggle vacanza', fn:async()=>{ const next=!MODEL?.vacanza; toast(next?'🏝️ Vacanza ON':'🏠 OFF'); await callAdmin('set_vacanza',{value:String(next)}); setTimeout(loadAll,500); }},
-      {icon:'🛡️',label:'Toggle override',fn:async()=>{ const next=!MODEL?.override; toast(next?'🛡️ Override ON':'✅ OFF'); await callAdmin('set_override',{value:String(next)}); setTimeout(loadAll,500); }},
-      {icon:'🔄',label:'Aggiorna',       fn:()=>loadAll()},
-    ].forEach(a=>{
-      const btn=document.createElement('button'); btn.className='qa-btn';
-      btn.innerHTML=`<span class="qa-icon">${a.icon}</span>${a.label}`;
-      btn.addEventListener('click',a.fn); qa.appendChild(btn);
+      { icon: 'up',      label: 'Alza tutto',      fn: async () => { toast('Alzo le tapparelle…');   setShuttersUp(true);  await callAdmin('alza_tutto', { manual: 'TRUE' }); } },
+      { icon: 'down',    label: 'Abbassa tutto',   fn: async () => { toast('Abbasso le tapparelle…'); setShuttersUp(false); await callAdmin('abbassa_tutto'); } },
+      { icon: 'leaf',    label: 'Annaffia piante', fn: async () => { toast('Avvio irrigazione…'); await callAdmin('piante'); } },
+      { icon: 'plane',   label: 'Vacanza',         fn: async () => { const next = !MODEL?.vacanza;  toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata'); await callAdmin('set_vacanza',  { value: String(next) }); reloadSoon(500); } },
+      { icon: 'shield',  label: 'Override',        fn: async () => { const next = !MODEL?.override; toast(next ? 'Override attivo' : 'Override disattivato'); await callAdmin('set_override', { value: String(next) }); reloadSoon(500); } },
+      { icon: 'refresh', label: 'Aggiorna dati',   fn: () => loadAll(true) },
+    ].forEach(a => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'qa-btn';
+      btn.innerHTML = `${svg(a.icon)}<span>${a.label}</span>`;
+      btn.addEventListener('click', () => busy(btn, async () => { haptic(); await a.fn(); }));
+      qa.appendChild(btn);
     });
   }
 }
 
 function renderSettings(m) {
-  const list=$('#settings-list');
-  if(list){
-    list.innerHTML='';
-    [{label:'Escludi tapparelle',sub:'Blocca solo i movimenti automatici',key:'shuttersExcluded',event:'set_shutters_excluded'},{label:'Vacanza',sub:'Modalità assenza',key:'vacanza',event:'set_vacanza'},{label:'Override',sub:'Sospendi automazioni',key:'override',event:'set_override'}].forEach(r=>{
-      const isOn=!!m[r.key];
-      const row=document.createElement('div'); row.className='setting-row';
-      row.innerHTML=`<div><div class="setting-label">${r.label}</div><div class="setting-sub">${r.sub}</div></div><label class="toggle-wrap"><input type="checkbox" ${isOn?'checked':''}><span class="toggle-slider"></span></label>`;
-      row.querySelector('input').addEventListener('change', async e=>{ const next=e.target.checked; toast(`${r.label}: ${next?'ON':'OFF'}`); await callAdmin(r.event,{value:String(next)}); setTimeout(loadAll,500); });
+  const list = $('#settings-list');
+  if (list) {
+    list.innerHTML = '';
+    [
+      { label: 'Escludi tapparelle', sub: 'Blocca solo i movimenti automatici', key: 'shuttersExcluded', event: 'set_shutters_excluded' },
+      { label: 'Vacanza',            sub: 'Modalità assenza',                   key: 'vacanza',          event: 'set_vacanza' },
+      { label: 'Override',           sub: 'Sospendi le automazioni',            key: 'override',         event: 'set_override' },
+    ].forEach(r => {
+      const isOn = !!m[r.key];
+      const row = document.createElement('div');
+      row.className = 'setting-row';
+      row.innerHTML = `
+        <div><div class="setting-label">${r.label}</div><div class="setting-sub">${r.sub}</div></div>
+        <label class="toggle-wrap"><input type="checkbox" aria-label="${r.label}" ${isOn ? 'checked' : ''}><span class="toggle-slider"></span></label>`;
+      const input = row.querySelector('input');
+      input.addEventListener('change', async e => {
+        const next = e.target.checked;
+        toast(`${r.label}: ${next ? 'attivo' : 'disattivo'}`);
+        const res = await callAdmin(r.event, { value: String(next) });
+        if (!res) input.checked = !next; // comando non arrivato: ripristina l'interruttore
+        else reloadSoon(500);
+      });
       list.appendChild(row);
     });
+
+    // Forza il ricaricamento dell'app (utile dopo un aggiornamento dei file)
+    const upd = document.createElement('div');
+    upd.className = 'setting-row';
+    upd.innerHTML = `
+      <div><div class="setting-label">Aggiorna app</div><div class="setting-sub">Scarica l'ultima versione dei file</div></div>
+      <button class="small-btn" type="button">Aggiorna</button>`;
+    upd.querySelector('button').addEventListener('click', forceAppReload);
+    list.appendChild(upd);
   }
 
-  const info=$('#info-card');
-  if(info){
-    const stato   = String(m.state||'—').replace(/_/g,' ');
-    const night   = m.notte?'🌙 Notte':'☀️ Giorno';
-    const alba =
-  m.next?.alba
-    ? fmtTime(m.next.alba)
-    : '—';
-
-const tram =
-  m.next?.tramonto
-    ? fmtTime(m.next.tramonto)
-    : '—';
-
+  const info = $('#info-card');
+  if (info) {
+    const stato   = cap(String(m.state || '—').toLowerCase().replace(/_/g, ' '));
+    const night   = m.notte ? 'Notte' : 'Giorno';
+    const alba    = m.next?.alba ? fmtTime(m.next.alba) : '—';
+    const tram    = m.next?.tramonto ? fmtTime(m.next.tramonto) : '—';
     const updated = m.meta?.nowIso ? fmtDateTime(m.meta.nowIso) : '—';
-    const errors  = (m.alerts&&Number(m.alerts.logErrors))||0;
-    const ssidActive = (Array.isArray(m.people)?m.people:[]).filter(p=>p.wifiOnline).map(p=>cap(p.name)).join(', ')||'—';
-    info.innerHTML=[
+    const errors  = (m.alerts && Number(m.alerts.logErrors)) || 0;
+    const ssidActive = (Array.isArray(m.people) ? m.people : []).filter(p => p.wifiOnline).map(p => cap(p.name)).join(', ') || '—';
+    info.innerHTML = [
       ['Stato',      stato],
-      ['Ora',        night],
+      ['Fase',       night],
       ['Alba',       alba],
       ['Tramonto',   tram],
       ['Aggiornato', updated],
       ['Errori log', String(errors)],
-      ['Wi-Fi lock', ssidActive],
-    ].map(([k,v])=>`<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${v}</span></div>`).join('');
+      ['Wi‑Fi attivo', ssidActive],
+    ].map(([k, v]) => `<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${esc(v)}</span></div>`).join('');
   }
 }
 
 function renderLogs(logs) {
-  const list=$('#log-list'), empty=$('#log-empty'); if(!list) return;
-  list.innerHTML='';
-  if(!logs||!logs.length){ if(empty) empty.hidden=false; return; }
-  if(empty) empty.hidden=true;
-  logs.forEach(x=>{
-    const isErr=/err/i.test(x.code||'');
-    const row=document.createElement('div'); row.className='log-row'+(isErr?' log-err':'');
-    row.innerHTML=`<div class="log-code">${x.code||'—'} <span style="opacity:.5;font-weight:400;font-size:11px">· ${x.stato||''}</span></div><div class="log-meta">${x.ts?fmtDateTime(x.ts):'—'}</div>${(x.desc||x.note)?`<div class="log-desc">${x.desc||''}${x.note?' · '+x.note:''}</div>`:''}`;
+  const list = $('#log-list'), empty = $('#log-empty'); if (!list) return;
+  list.innerHTML = '';
+  if (!logs || !logs.length) { if (empty) { empty.textContent = 'Nessun evento registrato.'; empty.hidden = false; } return; }
+  if (empty) empty.hidden = true;
+  logs.forEach(x => {
+    const isErr = /err/i.test(x.code || '');
+    const row = document.createElement('div');
+    row.className = 'log-row' + (isErr ? ' log-err' : '');
+    row.innerHTML = `
+      <div class="log-code">${esc(x.code || '—')}${x.stato ? `<small>${esc(x.stato)}</small>` : ''}</div>
+      <div class="log-meta">${x.ts ? fmtDateTime(x.ts) : '—'}</div>
+      ${(x.desc || x.note) ? `<div class="log-desc">${esc(x.desc || '')}${x.note ? ' · ' + esc(x.note) : ''}</div>` : ''}`;
     list.appendChild(row);
   });
 }
 
 function updateErrorBadge(m) {
-  const n=(m.alerts&&Number(m.alerts.logErrors))||0;
-  const dot=$('#dot-err'); if(dot) dot.hidden=!n;
-  const badge=$('#badge-log'); if(badge) badge.hidden=!n;
+  const n = (m.alerts && Number(m.alerts.logErrors)) || 0;
+  const dot = $('#dot-err'); if (dot) dot.hidden = !n;
+  const badge = $('#badge-log'); if (badge) badge.hidden = !n;
 }
 
 function updateTs(m) {
-  const el=$('#ts'); if(!el) return;
+  const el = $('#ts'); if (!el) return;
   el.textContent = m.meta?.nowIso ? fmtTime(m.meta.nowIso) : fmtTime(new Date().toISOString());
 }
 
-/* ---- Load ---- */
-async function loadAll() {
-  const btn=$('#btn-refresh'); if(btn) btn.style.opacity='.4';
-  try{
+/* ============================================================
+   CARICAMENTO
+   ============================================================ */
+async function loadAll(manual) {
+  if (_loading) return;
+  _loading = true;
+  const btn = $('#btn-refresh'); if (btn) btn.classList.add('spin');
+  try {
     const m = await fetchModel();
     MODEL = m;
     window._lastModel = m;
+    setOnline(true);
+
     renderBanner(m); renderCards(m); renderFavorites(m);
     renderPeopleChips(m); renderEvents(m); renderDevices(m);
     renderPeopleDetail(m); renderSettings(m);
     updateErrorBadge(m); updateTs(m);
-    const w=m.weather||{};
-    if(w.tempC!=null||w.humidity!=null) renderWeather(w);
+
+    if (document.body.classList.contains('first-paint')) {
+      setTimeout(() => document.body.classList.remove('first-paint'), 700);
+    }
+
+    const w = m.weather || {};
+    if (w.tempC != null || w.humidity != null) renderWeather(w);
+
     fetchWeatherClient().then(ww => {
-      if(!ww) return;
+      if (!ww) return;
       renderWeather(ww);
-      try{
+      // Invia il meteo allo script al massimo ogni 10 minuti
+      if (Date.now() - _lastWxPush < 10 * 60 * 1000) return;
+      _lastWxPush = Date.now();
+      try {
         const u = new URL(CONFIG.DOGET_URL);
-        u.searchParams.set('event','update_weather');
-        if(ww.tempC!=null)    u.searchParams.set('temp',  Math.round(ww.tempC));
-        if(ww.humidity!=null) u.searchParams.set('hum',   Math.round(ww.humidity));
-        if(ww.windKmh!=null)  u.searchParams.set('wind',  Math.round(ww.windKmh));
-        if(ww.icon!=null)     u.searchParams.set('icon',  ww.icon);
-        jsonpFetch(u.toString()).catch(()=>{});
-      }catch(_){}
-    }).catch(()=>{});
-  }catch(e){ console.error('loadAll:',e); toast('⚠️ Errore caricamento'); }
-  finally{ if(btn) btn.style.opacity=''; }
+        u.searchParams.set('event', 'update_weather');
+        if (ww.tempC != null)    u.searchParams.set('temp', Math.round(ww.tempC));
+        if (ww.humidity != null) u.searchParams.set('hum',  Math.round(ww.humidity));
+        if (ww.windKmh != null)  u.searchParams.set('wind', Math.round(ww.windKmh));
+        if (ww.icon != null)     u.searchParams.set('icon', ww.icon);
+        jsonpFetch(u.toString()).catch(() => {});
+      } catch (_) {}
+    }).catch(() => {});
+
+    if (manual === true) toast('Dati aggiornati', 'ok', 1600);
+  } catch (e) {
+    console.error('loadAll:', e);
+    setOnline(false);
+    if (!MODEL) showLoadError();
+    else if (manual === true) toast('Aggiornamento non riuscito', 'err');
+  } finally {
+    _loading = false;
+    if (btn) btn.classList.remove('spin');
+  }
 }
 
 async function loadLogs() {
-  try{ const data=await fetchLogs(); renderLogs((data&&data.logs)||[]); }
-  catch(e){ const el=$('#log-empty'); if(el){el.textContent='Errore caricamento log.';el.hidden=false;} }
+  try { const data = await fetchLogs(); renderLogs((data && data.logs) || []); }
+  catch (e) {
+    const el = $('#log-empty');
+    if (el) { el.textContent = 'Impossibile caricare il log. Riprova più tardi.'; el.hidden = false; }
+  }
 }
 
+function forceAppReload() {
+  const done = () => window.location.reload();
+  try {
+    const jobs = [];
+    if ('serviceWorker' in navigator) {
+      jobs.push(navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister()))));
+    }
+    if (window.caches) {
+      jobs.push(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))));
+    }
+    Promise.all(jobs).then(done, done);
+  } catch (_) { done(); }
+}
+
+/* ============================================================
+   NAVIGAZIONE
+   ============================================================ */
 function activateTab(target) {
-  $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.target===target));
-  $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+target));
-  window.scrollTo({top:0,behavior:'smooth'});
-  if(target==='log') loadLogs();
+  $$('.tab').forEach(b => {
+    const on = b.dataset.target === target;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + target));
+  window.scrollTo({ top: 0 });
+  try { sessionStorage.setItem('ui_tab', target); } catch (_) {}
+  if (target === 'log') loadLogs();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  $$('.tab').forEach(t=>t.addEventListener('click',()=>activateTab(t.dataset.target)));
-  $('#btn-refresh')?.addEventListener('click',()=>{
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); });
-    }
-    window.location.reload(true);
-  });
-  $('#btn-log')?.addEventListener('click',()=>activateTab('log'));
+  $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.target)));
+  $('#btn-refresh')?.addEventListener('click', () => { haptic(); loadAll(true); });
+  $('#btn-log')?.addEventListener('click', () => activateTab('log'));
+
+  // Segnaposto mentre arrivano i primi dati
+  skeleton($('#fav-grid'), 4, 'skel-fav');
+  skeleton($('#people-chips'), 2, 'skel-row');
+  skeleton($('#events-list'), 2, 'skel-row');
+
+  // Riapre l'ultima scheda usata nella sessione
+  try {
+    const last = sessionStorage.getItem('ui_tab');
+    if (last && $('#view-' + last)) activateTab(last);
+  } catch (_) {}
+
+  window.addEventListener('offline', () => setOnline(false));
+  window.addEventListener('online',  () => loadAll());
+
   loadAll();
-  if(CONFIG.AUTO_REFRESH_MS>0) setInterval(loadAll, CONFIG.AUTO_REFRESH_MS);
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadAll(); });
+  if (CONFIG.AUTO_REFRESH_MS > 0) setInterval(() => loadAll(), CONFIG.AUTO_REFRESH_MS);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadAll(); });
 });
-
-
-
