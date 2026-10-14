@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-  <link rel="stylesheet" href="style.css?v=202610132400">
+  <link rel="stylesheet" href="style.css?v=202610132800">
 </head>
 
 <body class="first-paint">
@@ -127,7 +127,7 @@
       <div class="fav-grid" id="fav-grid"></div>
 
       <div class="section-header"><h2 class="section-title">Persone</h2></div>
-      <div class="people-chips" id="people-chips"></div>
+      <div class="family-card" id="people-chips"></div>
 
       <div class="section-header"><h2 class="section-title">Prossimi eventi</h2></div>
       <div class="events-list" id="events-list"></div>
@@ -135,6 +135,7 @@
 
     <!-- DISPOSITIVI -->
     <div class="view" id="view-devices">
+      <section class="hero"><h1 class="hero-title">Dispositivi</h1><p class="hero-sub">Tapparelle, clima e telecamere in un posto solo.</p></section>
       <div class="section-header"><h2 class="section-title">Tapparelle</h2></div>
       <div class="shutter-list" id="shutter-list"></div>
 
@@ -150,6 +151,7 @@
 
     <!-- PERSONE -->
     <div class="view" id="view-people">
+      <section class="hero"><h1 class="hero-title">Persone</h1><p class="hero-sub">Chi è in casa e cosa puoi forzare.</p></section>
       <div class="section-header"><h2 class="section-title">Presenze</h2></div>
       <div id="people-detail" class="people-detail-list"></div>
 
@@ -159,6 +161,7 @@
 
     <!-- IMPOSTAZIONI -->
     <div class="view" id="view-settings">
+      <section class="hero"><h1 class="hero-title">Impostazioni</h1><p class="hero-sub">Poche opzioni, buoni valori.</p></section>
       <div class="section-header"><h2 class="section-title">Sistema</h2></div>
       <div class="settings-list" id="settings-list"></div>
 
@@ -179,6 +182,7 @@
 
     <!-- LOG -->
     <div class="view" id="view-log">
+      <section class="hero"><h1 class="hero-title">Log</h1><p class="hero-sub">Cosa è successo e quando.</p></section>
       <div class="section-header"><h2 class="section-title">Log eventi</h2></div>
       <div id="log-list" class="log-list"></div>
       <div id="log-empty" class="empty-state">Nessun evento registrato.</div>
@@ -187,6 +191,22 @@
 
   <!-- TABBAR -->
   <nav class="tabbar" aria-label="Navigazione principale">
+    <!-- Piastra della barra: rettangolo + "goccia" unite da un filtro, così il bordo si solleva attorno alla perla (menisco) -->
+    <svg class="tab-plate" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="goo" x="-5%" y="-40%" width="110%" height="200%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+          <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/>
+        </filter>
+      </defs>
+      <g filter="url(#goo)" fill="#3a4252">
+        <rect id="plate-rim-r"/><ellipse id="plate-rim-e"/>
+      </g>
+      <g filter="url(#goo)" fill="#10141b">
+        <rect id="plate-fill-r"/><ellipse id="plate-fill-e"/>
+      </g>
+    </svg>
+    <span class="tab-bead" aria-hidden="true"></span>
     <button class="tab active" type="button" data-target="home" aria-label="Home" aria-current="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
@@ -238,7 +258,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202610132400"></script>
-  <script src="app.js?v=202610132400"></script>
+  <script src="config.js?v=202610132800"></script>
+  <script src="app.js?v=202610132800"></script>
 </body>
 </html>
