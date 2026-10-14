@@ -15,7 +15,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-  <link rel="stylesheet" href="style.css?v=202610132900">
+  <link rel="stylesheet" href="style.css?v=202610133100">
 </head>
 
 <body class="first-paint">
@@ -59,6 +59,12 @@
 
   <!-- CONNESSIONE ASSENTE -->
   <div class="net-banner" id="net-banner" role="alert" hidden>Connessione assente. I dati mostrati potrebbero non essere aggiornati.</div>
+
+  <!-- NUOVA VERSIONE -->
+  <div class="update-banner" id="update-banner" hidden>
+    <span>Nuova versione disponibile</span>
+    <button id="btn-update" type="button">Aggiorna</button>
+  </div>
 
   <!-- STATO IMPIANTO -->
   <button class="state-banner" id="state-banner" type="button" aria-live="polite" aria-label="Stato dell'impianto, apri i dispositivi">—</button>
@@ -254,11 +260,25 @@
   <!-- Vibrazione su iPhone (iOS 17.4+): un interruttore invisibile -->
   <label id="haptic" class="haptic-switch" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
 
+  <!-- ACCESSO -->
+  <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <form class="lock-card" id="lock-form" autocomplete="off">
+      <div class="lock-ico">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 id="lock-title">Accesso</h2>
+      <p>Inserisci la chiave di casa. Te la chiedo una sola volta su questo dispositivo.</p>
+      <input id="lock-key" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Chiave" aria-label="Chiave di accesso">
+      <p class="lock-msg" id="lock-msg" role="status"></p>
+      <button class="lock-btn" type="submit">Entra</button>
+    </form>
+  </div>
+
   <!-- TOAST -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202610132900"></script>
-  <script src="app.js?v=202610132900"></script>
+  <script src="config.js?v=202610133100"></script>
+  <script src="app.js?v=202610133100"></script>
 </body>
 </html>

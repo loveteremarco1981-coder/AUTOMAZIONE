@@ -44,6 +44,23 @@ function avClass(name) {
 const getShuttersUp = () => { try { return localStorage.getItem('ui_shutters_up') === '1'; } catch (_) { return false; } };
 const setShuttersUp = v => { try { localStorage.setItem('ui_shutters_up', v ? '1' : '0'); } catch (_) {} };
 
+/* ---- Chiave di accesso (una sola, uguale per tutti; si chiede una volta per dispositivo) ---- */
+const getKey   = () => { try { return localStorage.getItem('ui_key') || ''; } catch (_) { return ''; } };
+const setKey   = v  => { try { localStorage.setItem('ui_key', v); } catch (_) {} };
+const clearKey = () => { try { localStorage.removeItem('ui_key'); } catch (_) {} };
+const isDenied = d  => !!(d && d.error === 'unauthorized');
+
+/* ---- Ultimo stato noto (per aprire subito l'app anche senza rete) ---- */
+function saveModel(m) {
+  try { localStorage.setItem('ui_last_model', JSON.stringify(m)); localStorage.setItem('ui_last_ts', String(Date.now())); } catch (_) {}
+}
+function loadSavedModel() {
+  try { const s = localStorage.getItem('ui_last_model'); return s ? JSON.parse(s) : null; } catch (_) { return null; }
+}
+function lastSavedTs() {
+  try { return Number(localStorage.getItem('ui_last_ts') || 0); } catch (_) { return 0; }
+}
+
 function haptic() {
   try {
     if (navigator.vibrate) { navigator.vibrate(10); return; }
@@ -166,6 +183,7 @@ const ICONS = {
   x:        '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   chevron:  '<path d="m9 18 6-6-6-6"/>',
   phone:    '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  lock:     '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   moon:     '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   door:     '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
   home:     '<path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/>',
@@ -220,7 +238,12 @@ function toast(msg, type, ms) {
 }
 
 function setOnline(ok) {
-  const b = $('#net-banner'); if (b) b.hidden = !!ok;
+  const b = $('#net-banner'); if (!b) return;
+  b.hidden = !!ok;
+  if (!ok) {
+    const ts = lastSavedTs();
+    b.textContent = ts ? `Connessione assente. Dati delle ${fmtTime(new Date(ts).toISOString())}.` : 'Connessione assente.';
+  }
 }
 
 // Blocca un elemento mentre l'azione è in corso (niente doppi tocchi)
@@ -268,7 +291,8 @@ function jsonpFetch(url) {
     const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
     function cleanup() { try { delete window[id]; el.remove(); } catch (_) {} }
     window[id] = data => { clearTimeout(timer); cleanup(); resolve(data); };
-    el.src = url + sep + 'callback=' + id + '&_=' + Date.now();
+    const k = getKey();
+    el.src = url + sep + 'callback=' + id + (k ? '&key=' + encodeURIComponent(k) : '') + '&_=' + Date.now();
     el.onerror = () => { clearTimeout(timer); cleanup(); reject(new Error('load error')); };
     document.head.appendChild(el);
   });
@@ -280,7 +304,10 @@ function callAdmin(event, params) {
     u.searchParams.set('event', event);
     if (params) Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, String(v)));
     jsonpFetch(u.toString())
-      .then(d => { setOnline(true); resolve(d); })
+      .then(d => {
+        if (isDenied(d)) { showLock(); resolve(null); return; }
+        setOnline(true); resolve(d);
+      })
       .catch(() => { setOnline(false); toast('Connessione assente. Riprova tra poco.', 'err'); resolve(null); });
   });
 }
@@ -562,7 +589,7 @@ function renderDevices(m) {
       const card = document.createElement('div');
       card.className = 'shutter-card';
       card.innerHTML = `
-        <span class="dev-icon">${iconFromEmoji(sh.icon || '🪟', 'shutter')}</span>
+        <span class="dev-icon t-blue">${iconFromEmoji(sh.icon || '🪟', 'shutter')}</span>
         <span class="shutter-text">
           <span class="shutter-label">${esc(sh.label)}</span>
           <span class="shutter-sub" data-label="${esc(sh.label)}"></span>
@@ -600,7 +627,7 @@ function renderDevices(m) {
       const card = document.createElement('div');
       card.className = 'shutter-card';
       card.innerHTML = `
-        <span class="dev-icon">${iconFromEmoji(t.icon || '🌡️', 'thermo')}</span>
+        <span class="dev-icon t-orange">${iconFromEmoji(t.icon || '🌡️', 'thermo')}</span>
         <span class="shutter-label">${esc(t.label)}</span>
         <div class="shutter-btns">
           <button class="sh-btn" type="button" data-ev="${esc(t.event)}" title="Applica" aria-label="Applica ${esc(t.label)}">${svg('play')}</button>
@@ -634,8 +661,11 @@ function renderDevices(m) {
         card.className = 'shutter-card';
         card.dataset.camKey = g.key;
         card.innerHTML = `
-          <span class="dev-icon">${svg(g.icon)}</span>
-          <span class="shutter-label">${g.label}</span>
+          <span class="dev-icon t-purple">${svg(g.icon)}</span>
+          <span class="shutter-text">
+            <span class="shutter-label">${g.label}</span>
+            <span class="shutter-sub cam-sub"></span>
+          </span>
           <div class="seg" role="group" aria-label="${g.label}">
             <button class="seg-btn" type="button" data-ev="${esc(camOn.event)}"  data-state="on">ON</button>
             <button class="seg-btn" type="button" data-ev="${esc(camOff.event)}" data-state="off">OFF</button>
@@ -665,6 +695,7 @@ function renderDevices(m) {
 }
 
 function setCamButtons(card, isOn) {
+  const sub = card.querySelector('.cam-sub'); if (sub) sub.textContent = isOn ? 'Attive' : 'Spente';
   card.querySelectorAll('.seg-btn').forEach(b => {
     const active = b.dataset.state === 'on' ? isOn : !isOn;
     b.classList.toggle('is-active', active);
@@ -742,7 +773,8 @@ function renderPeopleDetail(m) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'qa-btn';
-      btn.innerHTML = `${svg(a.icon)}<span>${a.label}</span>`;
+      btn.dataset.tone = ({ up: 'blue', down: 'blue', leaf: 'green', plane: 'amber', shield: 'red', refresh: 'purple' })[a.icon] || 'blue';
+      btn.innerHTML = `<span class="qa-ico">${svg(a.icon)}</span><span>${a.label}</span>`;
       btn.addEventListener('click', () => busy(btn, async () => { haptic(); await a.fn(); }));
       qa.appendChild(btn);
     });
@@ -753,17 +785,21 @@ function renderSettings(m) {
   const list = $('#settings-list');
   if (list) {
     list.innerHTML = '';
+    const rowHtml = (r, control) => `
+      <div class="setting-left">
+        <span class="set-ico" data-tone="${r.tone}">${svg(r.icon)}</span>
+        <div><div class="setting-label">${r.label}</div><div class="setting-sub">${r.sub}</div></div>
+      </div>${control}`;
+
     [
-      { label: 'Escludi tapparelle', sub: 'Blocca solo i movimenti automatici', key: 'shuttersExcluded', event: 'set_shutters_excluded' },
-      { label: 'Vacanza',            sub: 'Modalità assenza',                   key: 'vacanza',          event: 'set_vacanza' },
-      { label: 'Override',           sub: 'Sospendi le automazioni',            key: 'override',         event: 'set_override' },
+      { label: 'Escludi tapparelle', sub: 'Blocca solo i movimenti automatici', key: 'shuttersExcluded', event: 'set_shutters_excluded', icon: 'shutter', tone: 'blue' },
+      { label: 'Vacanza',            sub: 'Modalità assenza',                   key: 'vacanza',          event: 'set_vacanza',           icon: 'plane',   tone: 'amber' },
+      { label: 'Override',           sub: 'Sospendi le automazioni',            key: 'override',         event: 'set_override',          icon: 'shield',  tone: 'red' },
     ].forEach(r => {
       const isOn = !!m[r.key];
       const row = document.createElement('div');
       row.className = 'setting-row';
-      row.innerHTML = `
-        <div><div class="setting-label">${r.label}</div><div class="setting-sub">${r.sub}</div></div>
-        <label class="toggle-wrap"><input type="checkbox" aria-label="${r.label}" ${isOn ? 'checked' : ''}><span class="toggle-slider"></span></label>`;
+      row.innerHTML = rowHtml(r, `<label class="toggle-wrap"><input type="checkbox" aria-label="${r.label}" ${isOn ? 'checked' : ''}><span class="toggle-slider"></span></label>`);
       const input = row.querySelector('input');
       input.addEventListener('change', async e => {
         const next = e.target.checked;
@@ -775,12 +811,19 @@ function renderSettings(m) {
       list.appendChild(row);
     });
 
+    // Chiave di accesso (si cambia solo su questo dispositivo)
+    const keyRow = document.createElement('div');
+    keyRow.className = 'setting-row';
+    keyRow.innerHTML = rowHtml({ label: 'Chiave di accesso', sub: 'Chiesta una sola volta su questo dispositivo', icon: 'lock', tone: 'green' },
+      '<button class="small-btn" type="button">Cambia</button>');
+    keyRow.querySelector('button').addEventListener('click', () => showLock('', true));
+    list.appendChild(keyRow);
+
     // Forza il ricaricamento dell'app (utile dopo un aggiornamento dei file)
     const upd = document.createElement('div');
     upd.className = 'setting-row';
-    upd.innerHTML = `
-      <div><div class="setting-label">Aggiorna app</div><div class="setting-sub">Scarica l'ultima versione dei file</div></div>
-      <button class="small-btn" type="button">Aggiorna</button>`;
+    upd.innerHTML = rowHtml({ label: 'Aggiorna app', sub: "Scarica l'ultima versione dei file", icon: 'refresh', tone: 'purple' },
+      '<button class="small-btn" type="button">Aggiorna</button>');
     upd.querySelector('button').addEventListener('click', forceAppReload);
     list.appendChild(upd);
   }
@@ -811,13 +854,34 @@ function renderLogs(logs) {
   list.innerHTML = '';
   if (!logs || !logs.length) { if (empty) { empty.textContent = 'Nessun evento registrato.'; empty.hidden = false; } return; }
   if (empty) empty.hidden = true;
+
+  const dayLabel = d => {
+    const same = (x, y) => x.toDateString() === y.toDateString();
+    const now = new Date(), ieri = new Date(Date.now() - 864e5);
+    return same(d, now) ? 'Oggi' : same(d, ieri) ? 'Ieri'
+      : d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+
+  let lastDay = '';
   logs.forEach(x => {
+    const d = x.ts ? new Date(x.ts) : null;
+    const valid = d && !isNaN(d.getTime());
+    if (valid) {
+      const key = d.toDateString();
+      if (key !== lastDay) {
+        lastDay = key;
+        const h = document.createElement('div');
+        h.className = 'log-day';
+        h.textContent = dayLabel(d);
+        list.appendChild(h);
+      }
+    }
     const isErr = /err/i.test(x.code || '');
     const row = document.createElement('div');
     row.className = 'log-row' + (isErr ? ' log-err' : '');
     row.innerHTML = `
       <div class="log-code">${esc(x.code || '—')}${x.stato ? `<small>${esc(x.stato)}</small>` : ''}</div>
-      <div class="log-meta">${x.ts ? fmtDateTime(x.ts) : '—'}</div>
+      <div class="log-meta log-time">${valid ? fmtTime(x.ts) : '—'}</div>
       ${(x.desc || x.note) ? `<div class="log-desc">${esc(x.desc || '')}${x.note ? ' · ' + esc(x.note) : ''}</div>` : ''}`;
     list.appendChild(row);
   });
@@ -837,21 +901,29 @@ function updateTs(m) {
 /* ============================================================
    CARICAMENTO
    ============================================================ */
+function renderModel(m) {
+  renderBanner(m); renderCards(m); renderScenes(); renderFavorites(m);
+  renderPeopleChips(m); renderEvents(m); renderDevices(m);
+  renderPeopleDetail(m); renderSettings(m);
+  updateErrorBadge(m); updateTs(m);
+  updateHero();
+}
+
 async function loadAll(manual) {
   if (_loading) return;
+  const lock = $('#lock'); if (lock && !lock.hidden) return;     // finché è chiesta la chiave non ricarico
   _loading = true;
   const btn = $('#btn-refresh'); if (btn) btn.classList.add('spin');
   try {
     const m = await fetchModel();
+    if (isDenied(m)) { showLock(); return; }
     MODEL = m;
     window._lastModel = m;
+    saveModel(m);
     setOnline(true);
+    document.body.classList.remove('stale');
 
-    renderBanner(m); renderCards(m); renderScenes(); renderFavorites(m);
-    renderPeopleChips(m); renderEvents(m); renderDevices(m);
-    renderPeopleDetail(m); renderSettings(m);
-    updateErrorBadge(m); updateTs(m);
-    updateHero();
+    renderModel(m);
 
     if (document.body.classList.contains('first-paint')) {
       setTimeout(() => document.body.classList.remove('first-paint'), 1000);
@@ -890,11 +962,73 @@ async function loadAll(manual) {
 }
 
 async function loadLogs() {
-  try { const data = await fetchLogs(); renderLogs((data && data.logs) || []); }
+  try {
+    const data = await fetchLogs();
+    if (isDenied(data)) { showLock(); return; }
+    renderLogs((data && data.logs) || []);
+  }
   catch (e) {
     const el = $('#log-empty');
     if (el) { el.textContent = 'Impossibile caricare il log. Riprova più tardi.'; el.hidden = false; }
   }
+}
+
+/* ============================================================
+   ACCESSO (chiave condivisa) E AGGIORNAMENTI
+   ============================================================ */
+function showLock(msg, force) {
+  const el = $('#lock'); if (!el) return;
+  if (!el.hidden && !force) return;               // già visibile: non cancello quello che stai scrivendo
+  clearKey();
+  el.hidden = false;
+  const m = $('#lock-msg'); if (m) m.textContent = msg || '';
+  const inp = $('#lock-key');
+  if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 60); }
+}
+
+function initLock() {
+  const form = $('#lock-form'); if (!form) return;
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = ($('#lock-key').value || '').trim();
+    if (!v) return;
+    const msg = $('#lock-msg'); msg.textContent = 'Verifico…';
+    setKey(v);
+    try {
+      const m = await fetchModel();
+      if (isDenied(m)) { clearKey(); msg.textContent = 'Chiave non valida. Riprova.'; $('#lock-key').select(); return; }
+      $('#lock').hidden = true;
+      msg.textContent = '';
+      loadAll(true);
+    } catch (_) {
+      msg.textContent = 'Connessione assente. Riprova.';
+    }
+  });
+}
+
+function initServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return; reloading = true; window.location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    const offer = w => {
+      const b = $('#update-banner'), btn = $('#btn-update');
+      if (!b || !btn || !w) return;
+      b.hidden = false;
+      btn.onclick = () => w.postMessage('SKIP_WAITING');
+    };
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) offer(nw);
+      });
+    });
+    setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+  }).catch(() => {});
 }
 
 function forceAppReload() {
@@ -1055,6 +1189,17 @@ function activateTab(target) {
 document.addEventListener('DOMContentLoaded', () => {
   $$('.tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.target)));
   initTabBead();
+  initLock();
+  initServiceWorker();
+
+  // Altezza della barra superiore: serve a tenere gli avvisi appena sotto di lei
+  const tb = $('#topbar');
+  if (tb) {
+    const setH = () => document.documentElement.style.setProperty('--topbar-h', tb.offsetHeight + 'px');
+    setH();
+    if (window.ResizeObserver) new ResizeObserver(setH).observe(tb);
+    window.addEventListener('resize', setH);
+  }
   $('#btn-refresh')?.addEventListener('click', () => { haptic(); loadAll(true); });
   $('#btn-log')?.addEventListener('click', () => activateTab('log'));
   $('#state-banner')?.addEventListener('click', () => { haptic(); activateTab('devices'); });
@@ -1082,6 +1227,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('offline', () => setOnline(false));
   window.addEventListener('online',  () => loadAll());
+
+  const saved = loadSavedModel();
+  if (saved) {
+    MODEL = saved;
+    document.body.classList.add('stale');
+    try { renderModel(saved); } catch (e) { console.error('saved:', e); }
+  }
 
   loadAll();
   if (CONFIG.AUTO_REFRESH_MS > 0) setInterval(() => loadAll(), CONFIG.AUTO_REFRESH_MS);
