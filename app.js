@@ -388,10 +388,13 @@ function renderFavorites(m) {
 
     const isToggle = f.id === 'tapparelle' || f.kind === 'toggle';
     const statusText = f.id === 'tapparelle' ? (isOn ? 'Aperte' : 'Chiuse')
-                     : f.kind === 'toggle'   ? (isOn ? 'Attivo' : 'Disattivo') : '';
+                     : f.kind === 'toggle'   ? (isOn ? 'Attivo' : 'Disattivo')
+                     : f.kind === 'action'   ? 'Avvia' : '';
 
     const card = document.createElement('article');
     card.className = 'fav-card' + (isOn ? ' active' : '');
+    card.style.setProperty('--fc', f.color || '#58a6ff');
+    card.dataset.kind = f.kind || (f.id === 'tapparelle' ? 'toggle' : 'action');
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     if (isToggle) card.setAttribute('aria-pressed', String(isOn));
@@ -426,9 +429,14 @@ function renderFavorites(m) {
       }
     };
 
-    card.addEventListener('click', () => busy(card, doAction));
+    const trigger = () => {
+      card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse');   // onda di colore al tocco
+      setTimeout(() => card.classList.remove('pulse'), 650);
+      busy(card, doAction);
+    };
+    card.addEventListener('click', trigger);
     card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); busy(card, doAction); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger(); }
     });
     grid.appendChild(card);
   });
@@ -444,8 +452,20 @@ function renderPeopleChips(m) {
     if (a.onlineSmart !== b.onlineSmart) return a.onlineSmart ? -1 : 1;
     return String(a.name).localeCompare(String(b.name), 'it');
   });
+  const inN = sorted.filter(p => p.onlineSmart).length;
 
-  sorted.forEach(p => {
+  const head = document.createElement('div');
+  head.className = 'fam-head';
+  head.innerHTML = `
+    <span class="fam-count"><b>${inN}</b> su ${sorted.length} in casa</span>
+    <span class="fam-pips" aria-hidden="true">${sorted.map(p => `<i class="${p.onlineSmart ? 'on' : ''}"></i>`).join('')}</span>`;
+  host.appendChild(head);
+
+  const row = document.createElement('div');
+  row.className = 'fam-row';
+  host.appendChild(row);
+
+  sorted.forEach((p, idx) => {
     const st = p.onlineSmart ? 'in' : 'out';
     const ini = String(p.name || '?').charAt(0).toUpperCase();
     const t = /(\d{1,2}:\d{2})/.exec(String(p.lastSeen || ''));
@@ -454,6 +474,7 @@ function renderPeopleChips(m) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = `fam-person ${st}`;
+    b.style.setProperty('--i', idx);
     b.setAttribute('aria-label', `${cap(p.name)}, ${p.onlineSmart ? 'in casa' : 'fuori'}, ${wifi}`);
     b.innerHTML = `
       <span class="fam-avatar ${avClass(p.name)}">${esc(ini)}<span class="fam-dot ${p.wifiOnline ? 'on' : ''}"></span></span>
@@ -461,7 +482,7 @@ function renderPeopleChips(m) {
       <span class="fam-state">${p.onlineSmart ? 'In casa' : 'Fuori'}</span>
       ${t ? `<span class="fam-time">dalle ${t[1]}</span>` : ''}`;
     b.addEventListener('click', () => { haptic(); activateTab('people'); });
-    host.appendChild(b);
+    row.appendChild(b);
   });
 }
 
@@ -833,7 +854,7 @@ async function loadAll(manual) {
     updateHero();
 
     if (document.body.classList.contains('first-paint')) {
-      setTimeout(() => document.body.classList.remove('first-paint'), 700);
+      setTimeout(() => document.body.classList.remove('first-paint'), 1000);
     }
 
     const w = m.weather || {};
