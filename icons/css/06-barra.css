@@ -1,0 +1,91 @@
+/* ============================================================
+   BARRA CON "PERLA" LIQUIDA — la scheda attiva è una perla colorata
+   che scivola (e si allunga) da una scheda all'altra, anche trascinandola.
+   Il colore della scheda tinge la luce in basso e le etichette.
+   ============================================================ */
+@property --tone { syntax: '<color>'; inherits: true; initial-value: #58a6ff; }
+:root { --tone: #58a6ff; transition: --tone .5s ease; }
+
+body::after {
+  content: '';
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 40vh;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(60% 75% at 50% 100%, var(--tone), transparent 70%);
+  opacity: .18;
+}
+
+.tabbar { isolation: isolate; touch-action: none; user-select: none; -webkit-user-select: none; min-height: 60px; }
+.tab { z-index: 1; gap: 5px; padding: 8px 2px 6px; }
+
+.tab-bead {
+  position: absolute;
+  left: 0; top: 0;
+  width: 54px; height: 32px;
+  border-radius: 18px;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,0) 58%), var(--tone);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
+  will-change: transform;
+}
+/* alone di luce sotto la perla */
+.tab-bead::after {
+  content: '';
+  position: absolute;
+  inset: 8px -6px -12px;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--tone);
+  filter: blur(14px);
+  opacity: .55;
+}
+
+.tab.active { background: transparent; box-shadow: none; color: var(--tone); font-weight: 600; }
+.tab.active svg { color: #0b0d12; }
+.tab.active::before { display: none; }
+.tabbar.dragging .tab { transition: none; }
+
+@media (prefers-reduced-transparency: reduce) { body::after { opacity: .10; } }
+
+
+/* ============================================================
+   MENISCO — la barra non ha più un contorno proprio: la disegna
+   la piastra SVG (.tab-plate) e si solleva attorno alla perla.
+   ============================================================ */
+.tabbar {
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  min-height: 62px;
+  padding: 4px 6px 4px;
+}
+.tab-plate {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  width: 100%;
+  height: calc(100% + 30px);
+  overflow: visible;
+  z-index: 0;
+  opacity: .93;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,.55));
+}
+
+/* Perla circolare, sempre sopra la piastra */
+.tab-bead { width: 46px; height: 46px; border-radius: 50%; z-index: 1; }
+.tab-bead::after { inset: 10px -2px -8px; }
+
+/* L'icona attiva sale dentro la perla */
+.tab { z-index: 2; }
+.tab svg { transition: transform .45s cubic-bezier(.3,1.4,.5,1), color .2s; }
+.tab.active svg { transform: translateY(-16px); color: #0b0d12; }
+.tab.active { background: transparent; box-shadow: none; }
+.tabbar.dragging .tab svg { transition: none; }
+
+@media (prefers-reduced-motion: reduce) { .tab svg { transition: none; } }
