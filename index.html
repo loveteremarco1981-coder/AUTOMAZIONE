@@ -9,13 +9,38 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d1117">
   <meta name="color-scheme" content="dark">
+  <script>
+    /* Tema scelto: applicato subito, prima del disegno, per evitare lampi di colore */
+    (function () {
+      try {
+        var p = localStorage.getItem("ui_theme") || "auto";
+        var t = p === "light" || p === "dark" ? p : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    })();
+  </script>
 
   <title>Casa · Automazione</title>
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
-  <link rel="stylesheet" href="style.css?v=202610133100">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1170x2532.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1179x2556.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1284x2778.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1290x2796.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1125x2436.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-750x1334.png">
+  <link rel="stylesheet" href="css/01-base.css?v=202610161200">
+  <link rel="stylesheet" href="css/02-vetro.css?v=202610161200">
+  <link rel="stylesheet" href="css/03-compatto.css?v=202610161200">
+  <link rel="stylesheet" href="css/04-home.css?v=202610161200">
+  <link rel="stylesheet" href="css/05-persone.css?v=202610161200">
+  <link rel="stylesheet" href="css/06-barra.css?v=202610161200">
+  <link rel="stylesheet" href="css/07-preferiti.css?v=202610161200">
+  <link rel="stylesheet" href="css/08-schermate.css?v=202610161200">
+  <link rel="stylesheet" href="css/09-funzioni.css?v=202610161200">
+  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202610161200">
 </head>
 
 <body class="first-paint">
@@ -56,6 +81,8 @@
       </button>
     </div>
   </header>
+
+  <div class="ro-badge" id="ro-badge" role="status" hidden>Sola lettura · puoi guardare, non comandare</div>
 
   <!-- CONNESSIONE ASSENTE -->
   <div class="net-banner" id="net-banner" role="alert" hidden>Connessione assente. I dati mostrati potrebbero non essere aggiornati.</div>
@@ -137,6 +164,17 @@
 
       <div class="section-header"><h2 class="section-title">Prossimi eventi</h2></div>
       <div class="events-list" id="events-list"></div>
+
+      <section id="hist-section" hidden>
+        <div class="section-header hist-head">
+          <h2 class="section-title">Andamento</h2>
+          <div class="seg" id="hist-seg" role="group" aria-label="Periodo">
+            <button class="seg-btn is-active" type="button" data-days="1" aria-pressed="true">24 ore</button>
+            <button class="seg-btn" type="button" data-days="7" aria-pressed="false">7 giorni</button>
+          </div>
+        </div>
+        <div id="hist-body"></div>
+      </section>
     </div>
 
     <!-- DISPOSITIVI -->
@@ -189,7 +227,8 @@
     <!-- LOG -->
     <div class="view" id="view-log">
       <section class="hero"><h1 class="hero-title">Log</h1><p class="hero-sub">Cosa è successo e quando.</p></section>
-      <div class="section-header"><h2 class="section-title">Log eventi</h2></div>
+      <div id="log-summary" class="log-summary"></div>
+      <div id="log-chips" class="chips" aria-label="Filtra il log"></div>
       <div id="log-list" class="log-list"></div>
       <div id="log-empty" class="empty-state">Nessun evento registrato.</div>
     </div>
@@ -275,10 +314,42 @@
   </div>
 
   <!-- TOAST -->
+  <!-- ANNULLA -->
+  <div class="undo-bar" id="undo-bar" role="alert" hidden>
+    <div class="undo-text"><span id="undo-label"></span><span class="undo-count">tra <b id="undo-count"></b> s</span></div>
+    <button type="button" id="undo-btn">Annulla</button>
+    <span class="undo-prog" id="undo-prog"></span>
+  </div>
+
+  <!-- PANNELLO A SCOMPARSA -->
+  <div class="sheet-back" id="sheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2 id="sheet-title"></h2>
+        <button class="icon-btn" id="sheet-x" type="button" aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202610133100"></script>
-  <script src="app.js?v=202610133100"></script>
+  <script src="config.js?v=202610161200"></script>
+  <script src="js/core.js?v=202610161200"></script>
+  <script src="js/safety.js?v=202610161200"></script>
+  <script src="js/theme.js?v=202610161200"></script>
+  <script src="js/scenes-edit.js?v=202610161200"></script>
+  <script src="js/schedule.js?v=202610161200"></script>
+  <script src="js/history.js?v=202610161200"></script>
+  <script src="js/notify.js?v=202610161200"></script>
+  <script src="js/settings-extra.js?v=202610161200"></script>
+  <script src="js/render.js?v=202610161200"></script>
+  <script src="js/load.js?v=202610161200"></script>
+  <script src="js/nav.js?v=202610161200"></script>
+  <script src="js/main.js?v=202610161200"></script>
 </body>
 </html>

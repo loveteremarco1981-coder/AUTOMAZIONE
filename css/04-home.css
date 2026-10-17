@@ -1,0 +1,120 @@
+/* ============================================================
+   STATO IMPIANTO — scheda con icona, titolo, dettaglio e prossimo evento
+   ============================================================ */
+.state-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 28px);
+  max-width: 532px;
+  margin: 6px auto 0;
+  padding: 8px 10px 8px 8px;
+  border-radius: 18px;
+  border: 1px solid var(--tone-edge, var(--glass-edge));
+  background: linear-gradient(100deg, var(--tone-dim, rgba(255,255,255,.08)), rgba(255,255,255,.04) 70%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), 0 8px 22px rgba(0,0,0,.25);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s var(--ease);
+}
+.state-banner:active { transform: scale(.985); }
+
+.sb-comfy-day      { --tone: var(--green);  --tone-dim: rgba(63,185,80,.20);   --tone-edge: rgba(63,185,80,.40); }
+.sb-comfy-night    { --tone: var(--accent); --tone-dim: rgba(88,166,255,.20);  --tone-edge: rgba(88,166,255,.40); }
+.sb-security-day   { --tone: var(--red);    --tone-dim: rgba(248,81,73,.20);   --tone-edge: rgba(248,81,73,.40); }
+.sb-security-night { --tone: var(--purple); --tone-dim: rgba(188,140,255,.22); --tone-edge: rgba(188,140,255,.42); }
+.state-banner.sb-comfy-day, .state-banner.sb-comfy-night,
+.state-banner.sb-security-day, .state-banner.sb-security-night { color: var(--fg); }
+
+.sb-ico {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  background: var(--tone-dim);
+  color: var(--tone);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+}
+.sb-ico .ico { width: 18px; height: 18px; }
+.sb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.sb-title { font-size: 15px; font-weight: 700; }
+.sb-sub { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.sb-next {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.sb-chev { color: var(--muted2); display: grid; place-items: center; flex-shrink: 0; }
+.sb-chev .ico { width: 16px; height: 16px; }
+@media (max-width: 379px) { .sb-next { display: none; } }
+@media (min-width: 900px) { .state-banner { max-width: 892px; } }
+
+
+/* ============================================================
+   RIGHE UNICHE — Preferiti e Prossimi eventi su una sola riga
+   ============================================================ */
+.fav-grid {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(78px, 1fr);
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fav-grid::-webkit-scrollbar { display: none; }
+.fav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  padding: 10px 6px 9px;
+}
+.fav-glyph { width: 34px; height: 34px; margin: 0 0 4px; }
+.fav-glyph img { width: 17px; height: 17px; }
+.fav-action { display: none; }
+.fav-label { font-size: 12.5px; margin: 0; }
+.fav-status { font-size: 11px; margin: 0; min-height: 14px; }
+.fav-card .skel { min-width: 78px; }
+.skel-fav { height: 92px; }
+
+.events-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.events-list .empty-state { grid-column: 1 / -1; padding: 16px; }
+.event-row {
+  flex-direction: column-reverse;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  min-height: 0;
+  padding: 10px 6px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,calc(var(--ga) + .035)), rgba(255,255,255,var(--ga)));
+  border: 1px solid var(--glass-edge);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+}
+.event-row:last-child { border-bottom: 1px solid var(--glass-edge); }
+.event-val   { font-size: 17px; font-weight: 700; }
+.event-label { font-size: 11px; line-height: 1.2; color: var(--muted); }
+.event-row.next {
+  border-color: rgba(120,185,255,.55);
+  background: linear-gradient(180deg, rgba(88,166,255,.26), rgba(88,166,255,.10));
+}
+.event-row.next .event-val { color: var(--accent); }
