@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Casa">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="color-scheme" content="dark">
+  <script>
+    /* Tema scelto: applicato subito, prima del disegno, per evitare lampi di colore */
+    (function () {
+      try {
+        var p = localStorage.getItem("ui_theme") || "auto";
+        var t = p === "light" || p === "dark" ? p : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    })();
+  </script>
+
+  <title>Casa · Automazione</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/house-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1170x2532.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1179x2556.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1284x2778.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1290x2796.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1125x2436.png">
+  <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-750x1334.png">
+  <link rel="stylesheet" href="css/01-base.css?v=202610161200">
+  <link rel="stylesheet" href="css/02-vetro.css?v=202610161200">
+  <link rel="stylesheet" href="css/03-compatto.css?v=202610161200">
+  <link rel="stylesheet" href="css/04-home.css?v=202610161200">
+  <link rel="stylesheet" href="css/05-persone.css?v=202610161200">
+  <link rel="stylesheet" href="css/06-barra.css?v=202610161200">
+  <link rel="stylesheet" href="css/07-preferiti.css?v=202610161200">
+  <link rel="stylesheet" href="css/08-schermate.css?v=202610161200">
+  <link rel="stylesheet" href="css/09-funzioni.css?v=202610161200">
+  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202610161200">
+</head>
+
+<body class="first-paint">
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div class="tb-left">
+      <svg class="tb-icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+        <path d="M9 21V12h6v9"/>
+      </svg>
+      <div>
+        <div class="tb-title">Casa</div>
+        <div class="tb-sub" id="ts">—</div>
+      </div>
+    </div>
+
+    <div class="tb-right">
+      <div class="weather-pill" id="weather-pill" aria-label="Meteo attuale">
+        <span id="weather-icon" aria-hidden="true"></span>
+        <span id="weather-pill-temp">—</span>
+      </div>
+
+      <button class="icon-btn" id="btn-refresh" type="button" title="Aggiorna" aria-label="Aggiorna dati">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+
+      <button class="icon-btn" id="btn-log" type="button" title="Log" aria-label="Apri log eventi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span class="notif-dot" id="dot-err" hidden></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="ro-badge" id="ro-badge" role="status" hidden>Sola lettura · puoi guardare, non comandare</div>
+
+  <!-- CONNESSIONE ASSENTE -->
+  <div class="net-banner" id="net-banner" role="alert" hidden>Connessione assente. I dati mostrati potrebbero non essere aggiornati.</div>
+
+  <!-- NUOVA VERSIONE -->
+  <div class="update-banner" id="update-banner" hidden>
+    <span>Nuova versione disponibile</span>
+    <button id="btn-update" type="button">Aggiorna</button>
+  </div>
+
+  <!-- STATO IMPIANTO -->
+  <button class="state-banner" id="state-banner" type="button" aria-live="polite" aria-label="Stato dell'impianto, apri i dispositivi">—</button>
+
+  <!-- MAIN -->
+  <main>
+    <!-- HOME -->
+    <div class="view active" id="view-home">
+      <section class="hero" aria-live="polite">
+        <h1 class="hero-title" id="hero-title">Ciao</h1>
+        <p class="hero-sub" id="hero-sub">Carico i dati della casa…</p>
+      </section>
+
+      <div class="section-header"><h2 class="section-title">Scene</h2></div>
+      <div class="scene-row" id="scene-row"></div>
+
+      <div class="section-header"><h2 class="section-title">In questo momento</h2></div>
+      <div class="st-grid">
+        <div class="st-card card-glow" id="card-presence">
+          <div class="st-ico st-ico-people">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+              <path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <div class="st-label">In casa</div>
+          <div class="st-value" id="people-count">—</div>
+        </div>
+
+        <div class="st-card" id="card-weather">
+          <div class="st-ico st-ico-temp">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>
+            </svg>
+          </div>
+          <div class="st-label">Temperatura</div>
+          <div class="st-value"><span id="temp-val">—</span><span class="unit">°C</span></div>
+        </div>
+
+        <div class="st-card" id="card-humidity">
+          <div class="st-ico st-ico-hum">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/>
+            </svg>
+          </div>
+          <div class="st-label">Umidità</div>
+          <div class="st-value"><span id="hum-val">—</span><span class="unit">%</span></div>
+        </div>
+
+        <div class="st-card" id="card-wind">
+          <div class="st-ico st-ico-wind">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12.8 19.6A2 2 0 1 0 14 16H2"/>
+              <path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/>
+              <path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>
+            </svg>
+          </div>
+          <div class="st-label">Vento</div>
+          <div class="st-value"><span id="wind-val">—</span><span class="unit">km/h</span></div>
+        </div>
+      </div>
+
+      <div class="section-header"><h2 class="section-title">Preferiti</h2></div>
+      <div class="fav-grid" id="fav-grid"></div>
+
+      <div class="section-header"><h2 class="section-title">Persone</h2></div>
+      <div class="family-card" id="people-chips"></div>
+
+      <div class="section-header"><h2 class="section-title">Prossimi eventi</h2></div>
+      <div class="events-list" id="events-list"></div>
+
+      <section id="hist-section" hidden>
+        <div class="section-header hist-head">
+          <h2 class="section-title">Andamento</h2>
+          <div class="seg" id="hist-seg" role="group" aria-label="Periodo">
+            <button class="seg-btn is-active" type="button" data-days="1" aria-pressed="true">24 ore</button>
+            <button class="seg-btn" type="button" data-days="7" aria-pressed="false">7 giorni</button>
+          </div>
+        </div>
+        <div id="hist-body"></div>
+      </section>
+    </div>
+
+    <!-- DISPOSITIVI -->
+    <div class="view" id="view-devices">
+      <section class="hero"><h1 class="hero-title">Dispositivi</h1><p class="hero-sub">Tapparelle, clima e telecamere in un posto solo.</p></section>
+      <div class="section-header"><h2 class="section-title">Tapparelle</h2></div>
+      <div class="shutter-list" id="shutter-list"></div>
+
+      <div class="section-header"><h2 class="section-title">Termostati</h2></div>
+      <div class="shutter-list" id="thermostat-list"></div>
+
+      <div class="section-header"><h2 class="section-title">Telecamere</h2></div>
+      <div class="shutter-list" id="camera-list"></div>
+
+      <div class="section-header"><h2 class="section-title">App collegate</h2></div>
+      <div class="app-links" id="app-links"></div>
+    </div>
+
+    <!-- PERSONE -->
+    <div class="view" id="view-people">
+      <section class="hero"><h1 class="hero-title">Persone</h1><p class="hero-sub">Chi è in casa e cosa puoi forzare.</p></section>
+      <div class="section-header"><h2 class="section-title">Presenze</h2></div>
+      <div id="people-detail" class="people-detail-list"></div>
+
+      <div class="section-header"><h2 class="section-title">Azioni rapide</h2></div>
+      <div class="quick-actions" id="quick-actions"></div>
+    </div>
+
+    <!-- IMPOSTAZIONI -->
+    <div class="view" id="view-settings">
+      <section class="hero"><h1 class="hero-title">Impostazioni</h1><p class="hero-sub">Poche opzioni, buoni valori.</p></section>
+      <div class="section-header"><h2 class="section-title">Sistema</h2></div>
+      <div class="settings-list" id="settings-list"></div>
+
+      <div class="section-header"><h2 class="section-title">Aspetto</h2></div>
+      <div class="appearance-card">
+        <div class="setting-label">Trasparenza del vetro</div>
+        <div class="setting-sub">Dal vetro trasparente a quello più opaco e leggibile</div>
+        <div class="slider-row">
+          <span>Trasparente</span>
+          <input type="range" id="glass-range" min="0" max="100" value="35" aria-label="Trasparenza del vetro">
+          <span>Opaco</span>
+        </div>
+      </div>
+
+      <div class="section-header"><h2 class="section-title">Info</h2></div>
+      <div class="info-card" id="info-card"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="view" id="view-log">
+      <section class="hero"><h1 class="hero-title">Log</h1><p class="hero-sub">Cosa è successo e quando.</p></section>
+      <div id="log-summary" class="log-summary"></div>
+      <div id="log-chips" class="chips" aria-label="Filtra il log"></div>
+      <div id="log-list" class="log-list"></div>
+      <div id="log-empty" class="empty-state">Nessun evento registrato.</div>
+    </div>
+  </main>
+
+  <!-- TABBAR -->
+  <nav class="tabbar" aria-label="Navigazione principale">
+    <!-- Piastra della barra: rettangolo + "goccia" unite da un filtro, così il bordo si solleva attorno alla perla (menisco) -->
+    <svg class="tab-plate" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="goo" x="-5%" y="-40%" width="110%" height="200%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+          <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/>
+        </filter>
+      </defs>
+      <g filter="url(#goo)" fill="#3a4252">
+        <rect id="plate-rim-r"/><ellipse id="plate-rim-e"/>
+      </g>
+      <g filter="url(#goo)" fill="#10141b">
+        <rect id="plate-fill-r"/><ellipse id="plate-fill-e"/>
+      </g>
+    </svg>
+    <span class="tab-bead" aria-hidden="true"></span>
+    <button class="tab active" type="button" data-target="home" aria-label="Home" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      </svg>
+      <span>Home</span>
+    </button>
+
+    <button class="tab" type="button" data-target="devices" aria-label="Dispositivi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span>Dispositivi</span>
+    </button>
+
+    <button class="tab" type="button" data-target="people" aria-label="Persone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+        <path d="M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+      <span>Persone</span>
+    </button>
+
+    <button class="tab" type="button" data-target="settings" aria-label="Impostazioni">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+      <span>Impostazioni</span>
+    </button>
+
+    <button class="tab" type="button" data-target="log" aria-label="Log eventi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <span>Log</span>
+      <span class="tab-badge" id="badge-log" hidden>!</span>
+    </button>
+  </nav>
+
+  <!-- Vibrazione su iPhone (iOS 17.4+): un interruttore invisibile -->
+  <label id="haptic" class="haptic-switch" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
+
+  <!-- ACCESSO -->
+  <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <form class="lock-card" id="lock-form" autocomplete="off">
+      <div class="lock-ico">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 id="lock-title">Accesso</h2>
+      <p>Inserisci la chiave di casa. Te la chiedo una sola volta su questo dispositivo.</p>
+      <input id="lock-key" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Chiave" aria-label="Chiave di accesso">
+      <p class="lock-msg" id="lock-msg" role="status"></p>
+      <button class="lock-btn" type="submit">Entra</button>
+      <button class="lock-cancel" type="button" id="lock-cancel" hidden>Annulla</button>
+    </form>
+  </div>
+
+  <!-- TOAST -->
+  <!-- ANNULLA -->
+  <div class="undo-bar" id="undo-bar" role="alert" hidden>
+    <div class="undo-text"><span id="undo-label"></span><span class="undo-count">tra <b id="undo-count"></b> s</span></div>
+    <button type="button" id="undo-btn">Annulla</button>
+    <span class="undo-prog" id="undo-prog"></span>
+  </div>
+
+  <!-- PANNELLO A SCOMPARSA -->
+  <div class="sheet-back" id="sheet" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-grab"></div>
+      <div class="sheet-head">
+        <h2 id="sheet-title"></h2>
+        <button class="icon-btn" id="sheet-x" type="button" aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- CONFIG -->
+  <script src="config.js?v=202610161200"></script>
+  <script src="js/core.js?v=202610161200"></script>
+  <script src="js/safety.js?v=202610161200"></script>
+  <script src="js/theme.js?v=202610161200"></script>
+  <script src="js/scenes-edit.js?v=202610161200"></script>
+  <script src="js/schedule.js?v=202610161200"></script>
+  <script src="js/history.js?v=202610161200"></script>
+  <script src="js/notify.js?v=202610161200"></script>
+  <script src="js/settings-extra.js?v=202610161200"></script>
+  <script src="js/render.js?v=202610161200"></script>
+  <script src="js/load.js?v=202610161200"></script>
+  <script src="js/nav.js?v=202610161200"></script>
+  <script src="js/main.js?v=202610161200"></script>
+</body>
+</html>

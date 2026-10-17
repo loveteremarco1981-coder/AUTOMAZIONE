@@ -92,10 +92,14 @@ function maybeRefreshLogs() {
 /* ============================================================
    ACCESSO (chiave condivisa) E AGGIORNAMENTI
    ============================================================ */
+let _prevKey = null;   // chiave in uso mentre la stai cambiando (serve per Annulla)
+
 function showLock(msg, force) {
   const el = $('#lock'); if (!el) return;
   if (!el.hidden && !force) return;               // già visibile: non cancello quello che stai scrivendo
-  clearKey();
+  _prevKey = force ? (getKey() || null) : null;   // da Impostazioni → Cambia: si può tornare indietro
+  if (!force) clearKey();
+  const cb = $('#lock-cancel'); if (cb) cb.hidden = !_prevKey;
   el.hidden = false;
   const m = $('#lock-msg'); if (m) m.textContent = msg || '';
   const inp = $('#lock-key');
@@ -112,14 +116,23 @@ function initLock() {
     setKey(v);
     try {
       const m = await fetchModel();
-      if (isDenied(m)) { clearKey(); msg.textContent = 'Chiave non valida. Riprova.'; $('#lock-key').select(); return; }
+      if (isDenied(m)) { if (_prevKey) setKey(_prevKey); else clearKey(); msg.textContent = 'Chiave non valida. Riprova.'; $('#lock-key').select(); return; }
+      _prevKey = null;
       $('#lock').hidden = true;
       msg.textContent = '';
       loadAll(true);
     } catch (_) {
+      if (_prevKey) setKey(_prevKey);
       msg.textContent = 'Connessione assente. Riprova.';
     }
   });
+  const cancel = () => {
+    if (!_prevKey) return;
+    setKey(_prevKey); _prevKey = null;
+    $('#lock').hidden = true; $('#lock-msg').textContent = '';
+  };
+  $('#lock-cancel')?.addEventListener('click', cancel);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#lock').hidden) cancel(); });
 }
 
 function initServiceWorker() {
