@@ -167,3 +167,11 @@ body.sheet-open { overflow: hidden; }
 body.ro .fav-card, body.ro .scene-btn, body.ro .sh-btn, body.ro .seg-btn[data-ev],
 body.ro .pdc-btn, body.ro .qa-btn { opacity: .5; }
 #hist-section { margin-top: 18px; }
+
+/* ---- Accesso: Annulla quando stai solo cambiando la chiave ---- */
+.lock-cancel {
+  width: 100%; margin-top: 8px; padding: 12px; border: none; border-radius: 14px;
+  background: transparent; color: var(--muted); font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.lock-cancel[hidden] { display: none; }
+.lock-cancel:active { background: var(--line); }
