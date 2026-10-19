@@ -4,36 +4,48 @@
    liste raggruppate e titoli grandi. Il cursore "Trasparenza vetro"
    (Impostazioni → Aspetto) cambia --ga e --glass-blur.
    ============================================================ */
+
 :root {
-  --ga: .07;              /* opacità del vetro (0.05 trasparente → 0.20 opaco) */
+  --ga: .07;
   --glass-blur: 22px;
   --glass-edge: rgba(255,255,255,.14);
-  --glass-hi:   rgba(255,255,255,.20);
-  --tabbar-h:   72px;
-  --r-card:     18px;
+  --glass-hi: rgba(255,255,255,.20);
+  --tabbar-h: 72px;
+  --r-card: 18px;
 }
 
 body {
-  font-size: 15px;
   background: #06080d;
 }
+
 /* Sfondo con luci morbide: il vetro ha qualcosa da rifrangere */
+
 body::before {
   content: '';
   position: fixed;
   inset: -15%;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(42% 30% at 18% 8%,  rgba(70,115,255,.34), transparent 70%),
+  background: radial-gradient(42% 30% at 18% 8%,  rgba(70,115,255,.34), transparent 70%),
     radial-gradient(36% 28% at 88% 24%, rgba(168,85,247,.24), transparent 70%),
     radial-gradient(46% 34% at 62% 92%, rgba(20,184,166,.18), transparent 70%);
 }
 
 /* ---- Superfici in vetro (senza blur: costa poco e si vede uguale) ---- */
-.st-card, .fav-card, .person-chip, .shutter-card, .app-link-card,
-.people-detail-card, .qa-btn, .scene-btn, .info-card, .log-row,
-.appearance-card, .settings-list, .events-list {
+
+.st-card,
+.fav-card,
+.person-chip,
+.shutter-card,
+.app-link-card,
+.people-detail-card,
+.qa-btn,
+.scene-btn,
+.info-card,
+.log-row,
+.appearance-card,
+.settings-list,
+.events-list {
   background: linear-gradient(180deg,
       rgba(255,255,255,calc(var(--ga) + .035)),
       rgba(255,255,255,var(--ga)));
@@ -41,33 +53,44 @@ body::before {
   border-radius: var(--r-card);
   box-shadow: inset 0 1px 0 var(--glass-hi), 0 10px 28px rgba(0,0,0,.28);
 }
-.st-card, .fav-card, .scene-btn, .qa-btn { padding: 16px 14px; }
-.fav-card.active {
-  background: linear-gradient(180deg, rgba(88,166,255,.30), rgba(88,166,255,.12));
-  border-color: rgba(120,185,255,.55);
+
+.st-card, .fav-card, .scene-btn, .qa-btn {
+  padding: 16px 14px;
 }
-.card-glow { border-color: rgba(120,185,255,.5); }
-.fav-card:hover, .scene-btn:hover, .qa-btn:hover, .app-link-card:hover { background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08)); }
+
+.card-glow {
+  border-color: rgba(120,185,255,.5);
+}
+
+.fav-card:hover, .scene-btn:hover, .qa-btn:hover, .app-link-card:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08));
+}
 
 /* ---- Liste raggruppate (impostazioni, eventi) ---- */
-.settings-list, .events-list { gap: 0; overflow: hidden; }
+
+.settings-list, .events-list {
+  gap: 0;
+  overflow: hidden;
+}
+
 .setting-row, .event-row {
   background: transparent;
   border: none;
   border-radius: 0;
   box-shadow: none;
   border-bottom: 1px solid rgba(255,255,255,.08);
-  padding: 14px 16px;
-  min-height: 52px;
 }
-.setting-row:last-child, .event-row:last-child { border-bottom: none; }
-.setting-label { font-size: 16px; }
-.event-label   { font-size: 15px; }
-.event-val     { font-size: 16px; }
-.info-card { padding: 4px 16px; }
-.info-key, .info-val { font-size: 15px; }
+
+.setting-row:last-child, .event-row:last-child {
+  border-bottom: none;
+}
+
+.info-card {
+  padding: 4px 16px;
+}
 
 /* ---- Barra superiore ---- */
+
 #topbar {
   background: linear-gradient(180deg, rgba(6,8,13,.80), rgba(6,8,13,.45));
   backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
@@ -75,96 +98,115 @@ body::before {
   border-bottom: none;
   padding-bottom: 12px;
 }
-.tb-title { font-size: 20px; letter-spacing: -.01em; }
-.tb-sub   { font-size: 12px; }
+
+.tb-title {
+  letter-spacing: -.01em;
+}
+
 .icon-btn, .weather-pill {
   background: rgba(255,255,255,.09);
   border: 1px solid var(--glass-edge);
   box-shadow: inset 0 1px 0 var(--glass-hi);
 }
-.icon-btn { width: 42px; height: 42px; margin-left: 2px; }
-.weather-pill { height: 42px; padding: 0 14px; font-size: 14px; }
 
-/* ---- Stato impianto: capsula ---- */
-.state-banner {
-  width: fit-content;
-  max-width: calc(100% - 28px);
-  margin: 6px auto 2px;
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--glass-edge);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
-  font-size: 13px;
+.icon-btn {
+  margin-left: 2px;
 }
 
+/* ---- Stato impianto: capsula ---- */
+
 /* ---- Titoli grandi ---- */
-.hero-title { font-size: 34px; letter-spacing: -.025em; }
-.hero-sub   { font-size: 16px; }
-.section-title { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
-.section-header { margin: 28px 0 12px; }
+
+.hero-title {
+  letter-spacing: -.025em;
+}
+
+.section-title {
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
 
 /* ---- Elementi interni ---- */
-.st-ico, .scene-ico, .dev-icon, .fav-glyph { border-radius: 14px; }
-.st-ico { width: 40px; height: 40px; }
-.st-value { font-size: 22px; }
-.fav-label, .scene-name, .shutter-label, .person-name, .app-link-name { font-size: 15px; }
-.fav-action { background: rgba(255,255,255,.10); border-color: var(--glass-edge); }
+
+.st-ico, .scene-ico, .dev-icon, .fav-glyph {
+  border-radius: 14px;
+}
+
+.fav-label, .scene-name, .shutter-label, .person-name, .app-link-name {
+  font-size: 15px;
+}
+
+.fav-action {
+  background: rgba(255,255,255,.10);
+  border-color: var(--glass-edge);
+}
 
 .sh-btn {
-  width: 44px; height: 44px;
   border-radius: 50%;
   background: rgba(255,255,255,.10);
   border: 1px solid var(--glass-edge);
   box-shadow: inset 0 1px 0 var(--glass-hi);
 }
+
 .small-btn {
   border-radius: 999px;
   background: rgba(255,255,255,.10);
   border-color: var(--glass-edge);
   padding: 9px 16px;
 }
+
 .seg {
   border-radius: 999px;
   background: rgba(0,0,0,.30);
   border-color: var(--glass-edge);
 }
-.seg-btn { border-radius: 999px; }
-.pdc-btn { border-radius: 999px; background: rgba(255,255,255,.10); border-color: var(--glass-edge); padding: 11px; }
+
+.seg-btn {
+  border-radius: 999px;
+}
+
+.pdc-btn {
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border-color: var(--glass-edge);
+}
 
 /* Interruttore stile iOS */
-.toggle-wrap { width: 51px; height: 31px; }
-.toggle-slider { background: rgba(120,120,128,.40); border: none; }
+
+.toggle-slider {
+  background: rgba(120,120,128,.40);
+  border: none;
+}
+
 .toggle-slider::after {
-  top: 2px; left: 2px;
-  width: 27px; height: 27px;
+  top: 2px;
+  left: 2px;
   background: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,.35);
 }
-.toggle-wrap input:checked + .toggle-slider { background: var(--green); border: none; }
-.toggle-wrap input:checked + .toggle-slider::after { transform: translateX(20px); background: #fff; }
+
+.toggle-wrap input:checked + .toggle-slider {
+  background: var(--green);
+  border: none;
+}
+
+.toggle-wrap input:checked + .toggle-slider::after {
+  background: #fff;
+}
 
 /* ---- Barra di navigazione fluttuante ---- */
+
 .tabbar {
-  left: 12px; right: 12px;
-  bottom: calc(8px + var(--safe-bottom));
-  min-height: 64px;
-  padding: 6px;
   gap: 2px;
-  border-radius: 34px;
-  background: rgba(22,26,34, calc(.55 + var(--ga) * 2));
-  border: 1px solid var(--glass-edge);
-  box-shadow: inset 0 1px 0 var(--glass-hi), 0 14px 36px rgba(0,0,0,.55);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
 }
-.tab { border-radius: 28px; padding: 8px 2px 7px; font-size: 11px; }
-.tab::before { display: none; }
-.tab svg { width: 24px; height: 24px; }
-.tab.active {
-  background: rgba(255,255,255,.13);
-  box-shadow: inset 0 1px 0 var(--glass-hi);
+
+.tab::before {
+  display: none;
 }
-.tab-badge { top: 4px; right: calc(50% - 22px); }
+
+.tab-badge {
+  right: calc(50% - 22px);
+}
 
 .toast {
   background: rgba(30,34,42,.88);
@@ -176,48 +218,81 @@ body::before {
 }
 
 /* ---- Aspetto: cursore trasparenza ---- */
-.appearance-card { padding: 14px 16px 12px; }
-.slider-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .slider-row input[type="range"] {
   flex: 1;
-  -webkit-appearance: none; appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
   height: 6px;
   border-radius: 999px;
   background: rgba(255,255,255,.18);
   outline-offset: 6px;
 }
+
 .slider-row input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 28px; height: 28px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
+
 .slider-row input[type="range"]::-moz-range-thumb {
-  width: 28px; height: 28px; border: none;
-  border-radius: 50%; background: #fff;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,.45);
 }
 
 /* Elemento fuori schermo usato per la vibrazione su iPhone */
-.haptic-switch { position: fixed; left: -200px; top: 0; opacity: 0; pointer-events: none; }
+
+.haptic-switch {
+  position: fixed;
+  left: -200px;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* Chi ha attivato "Riduci trasparenza" o "Aumenta contrasto" ottiene vetro più opaco */
+
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  :root { --ga: .20; --glass-blur: 0px; }
-  body::before { opacity: .4; }
+  :root {
+    --ga: .20;
+    --glass-blur: 0px;
+  }
+  body::before {
+    opacity: .4;
+  }
 }
 
 /* ---- Schermi larghi: la barra resta fluttuante e centrata ---- */
+
 @media (min-width: 720px) {
   .tabbar {
-    left: 50%; right: auto;
+    left: 50%;
+    right: auto;
     width: min(560px, calc(100% - 24px));
     border-radius: 34px;
     border: 1px solid var(--glass-edge);
   }
 }
+
 @media (min-width: 900px) {
-  .tabbar { width: min(920px, calc(100% - 24px)); }
-  .hero-title { font-size: 40px; }
+  .tabbar {
+    width: min(920px, calc(100% - 24px));
+  }
 }

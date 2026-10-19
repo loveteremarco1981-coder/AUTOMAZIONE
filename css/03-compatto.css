@@ -1,30 +1,82 @@
 /* ============================================================
    DENSITÀ COMPATTA — meno spazio, più contenuto in vista
    ============================================================ */
-body { font-size: 14px; }
-main { padding-top: 8px; }
+
+body {
+  font-size: 14px;
+}
+
+main {
+  padding-top: 8px;
+}
 
 /* Barra superiore */
-#topbar { padding: calc(6px + var(--safe-top)) 14px 8px; }
-.tb-icon-home { width: 20px; height: 20px; }
-.tb-title { font-size: 17px; }
-.tb-sub { font-size: 11px; }
-.icon-btn { width: 36px; height: 36px; }
-.icon-btn svg { width: 17px; height: 17px; }
-.weather-pill { height: 36px; padding: 0 12px; font-size: 13px; }
+
+#topbar {
+  padding: calc(6px + var(--safe-top)) 14px 8px;
+}
+
+.tb-icon-home {
+  width: 20px;
+  height: 20px;
+}
+
+.tb-title {
+  font-size: 17px;
+}
+
+.tb-sub {
+  font-size: 11px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+}
+
+.icon-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.weather-pill {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
 
 /* Stato impianto */
-.state-banner { margin: 2px auto 0; padding: 4px 12px; font-size: 12px; }
 
 /* Titoli */
-.hero { padding: 8px 2px 0; }
-.hero-title { font-size: 28px; }
-.hero-sub { font-size: 14px; margin-top: 4px; }
-.section-header { margin: 20px 0 8px; }
-.section-title { font-size: 16px; }
+
+.hero {
+  padding: 8px 2px 0;
+}
+
+.hero-title {
+  font-size: 28px;
+}
+
+.hero-sub {
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.section-header {
+  margin: 20px 0 8px;
+}
+
+.section-title {
+  font-size: 16px;
+}
 
 /* Scene: quattro tessere compatte in una riga, ognuna con il suo colore */
-.scene-row { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.scene-row {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
 .scene-btn {
   flex-direction: column;
   align-items: center;
@@ -34,79 +86,284 @@ main { padding-top: 8px; }
   text-align: center;
   border-radius: 16px;
 }
-.scene-ico { width: 38px; height: 38px; border-radius: 12px; }
-.scene-txt { align-items: center; }
-.scene-name { font-size: 12.5px; font-weight: 600; }
-.scene-sub { display: none; }
-.scene-btn[data-tone="amber"]  .scene-ico { background: rgba(245,158,11,.18);  color: #fbbf24; }
-.scene-btn[data-tone="blue"]   .scene-ico { background: rgba(88,166,255,.18);  color: #58a6ff; }
-.scene-btn[data-tone="green"]  .scene-ico { background: rgba(63,185,80,.18);   color: #4ade80; }
-.scene-btn[data-tone="purple"] .scene-ico { background: rgba(188,140,255,.20); color: #c4a1ff; }
+
+.scene-ico {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.scene-txt {
+  align-items: center;
+}
+
+.scene-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.scene-sub {
+  display: none;
+}
+
+.scene-btn[data-tone="amber"] .scene-ico {
+  background: rgba(245,158,11,.18);
+  color: #fbbf24;
+}
+
+.scene-btn[data-tone="blue"] .scene-ico {
+  background: rgba(88,166,255,.18);
+  color: #58a6ff;
+}
+
+.scene-btn[data-tone="green"] .scene-ico {
+  background: rgba(63,185,80,.18);
+  color: #4ade80;
+}
+
+.scene-btn[data-tone="purple"] .scene-ico {
+  background: rgba(188,140,255,.20);
+  color: #c4a1ff;
+}
 
 /* Riepilogo: tessere basse */
-.st-grid { gap: 8px; }
-.st-card { padding: 10px 12px; column-gap: 10px; border-radius: 16px; }
-.st-ico { width: 32px; height: 32px; border-radius: 10px; }
-.st-ico .ico { width: 17px; height: 17px; }
-.st-label { font-size: 11px; }
-.st-value { font-size: 18px; }
-.st-value .unit { font-size: 11px; }
-@media (min-width: 560px) { .st-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.st-grid {
+  gap: 8px;
+}
+
+.st-card {
+  padding: 10px 12px;
+  column-gap: 10px;
+  border-radius: 16px;
+}
+
+.st-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.st-ico .ico {
+  width: 17px;
+  height: 17px;
+}
+
+.st-label {
+  font-size: 11px;
+}
+
+.st-value {
+  font-size: 18px;
+}
+
+.st-value .unit {
+  font-size: 11px;
+}
+
+@media (min-width: 560px) {
+  .st-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 
 /* Preferiti */
-.fav-grid { gap: 8px; }
-.fav-card { padding: 12px 10px 10px; border-radius: 16px; }
-.fav-glyph { width: 30px; height: 30px; margin-bottom: 8px; border-radius: 10px; }
-.fav-glyph img { width: 16px; height: 16px; }
-.fav-label { font-size: 14px; }
-.fav-sub { display: none; }
-.fav-status { margin-top: 2px; font-size: 12px; }
-.fav-action { width: 26px; height: 26px; top: 9px; right: 9px; }
-.fav-action .ico { width: 12px; height: 12px; }
+
+.fav-card {
+  border-radius: 16px;
+}
+
+.fav-glyph {
+  margin-bottom: 8px;
+}
+
+.fav-sub {
+  display: none;
+}
+
+.fav-status {
+  margin-top: 2px;
+}
+
+.fav-action {
+  width: 26px;
+  height: 26px;
+  top: 9px;
+  right: 9px;
+}
+
+.fav-action .ico {
+  width: 12px;
+  height: 12px;
+}
 
 /* Persone */
-.people-chips { gap: 6px; }
-.person-chip { padding: 8px 12px; gap: 10px; border-radius: 16px; }
-.person-avatar { width: 32px; height: 32px; font-size: 14px; }
-.person-name { font-size: 14px; }
-.person-meta { font-size: 12px; }
-.person-badge { font-size: 11px; padding: 2px 9px; }
-.ssid-badge { font-size: 10px; padding: 1px 7px; }
+
+.people-chips {
+  gap: 6px;
+}
+
+.person-chip {
+  padding: 8px 12px;
+  gap: 10px;
+  border-radius: 16px;
+}
+
+.person-avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.person-name {
+  font-size: 14px;
+}
+
+.person-meta {
+  font-size: 12px;
+}
+
+.person-badge {
+  font-size: 11px;
+  padding: 2px 9px;
+}
+
+.ssid-badge {
+  font-size: 10px;
+  padding: 1px 7px;
+}
 
 /* Liste, schede dispositivi, azioni */
-.setting-row, .event-row { padding: 10px 14px; min-height: 46px; }
-.setting-label { font-size: 15px; }
-.event-label { font-size: 14px; }
-.event-val { font-size: 15px; }
-.info-key, .info-val { font-size: 14px; }
-.info-row { padding: 8px 0; }
-.shutter-card { padding: 8px 12px; min-height: 52px; border-radius: 16px; }
-.dev-icon { width: 32px; height: 32px; }
-.sh-btn { width: 38px; height: 38px; }
-.shutter-label, .app-link-name { font-size: 14px; }
-.app-link-card { padding: 10px 12px; border-radius: 16px; }
-.app-link-icon { width: 38px; height: 38px; font-size: 19px; border-radius: 11px; }
-.people-detail-card { padding: 12px 14px; border-radius: 18px; }
-.pdc-avatar { width: 40px; height: 40px; font-size: 16px; }
-.pdc-name { font-size: 15px; }
-.pdc-btn { padding: 9px; font-size: 13px; }
-.qa-btn { padding: 12px 10px; gap: 8px; border-radius: 16px; font-size: 13px; }
-.qa-btn .ico { width: 18px; height: 18px; }
-.log-row { padding: 9px 12px; border-radius: 14px; }
-.toggle-wrap { width: 46px; height: 28px; }
-.toggle-slider::after { width: 24px; height: 24px; }
-.toggle-wrap input:checked + .toggle-slider::after { transform: translateX(18px); }
-.appearance-card { padding: 12px 14px 10px; }
-.seg-btn { min-width: 46px; padding: 6px 12px; font-size: 12px; }
+
+.setting-row, .event-row {
+  padding: 10px 14px;
+  min-height: 46px;
+}
+
+.setting-label {
+  font-size: 15px;
+}
+
+.info-key, .info-val {
+  font-size: 14px;
+}
+
+.info-row {
+  padding: 8px 0;
+}
+
+.shutter-card {
+  padding: 8px 12px;
+  min-height: 52px;
+  border-radius: 16px;
+}
+
+.dev-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.sh-btn {
+  width: 38px;
+  height: 38px;
+}
+
+.shutter-label, .app-link-name {
+  font-size: 14px;
+}
+
+.app-link-card {
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.app-link-icon {
+  width: 38px;
+  height: 38px;
+  font-size: 19px;
+  border-radius: 11px;
+}
+
+.people-detail-card {
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.pdc-name {
+  font-size: 15px;
+}
+
+.pdc-btn {
+  padding: 9px;
+  font-size: 13px;
+}
+
+.qa-btn {
+  padding: 12px 10px;
+  gap: 8px;
+  border-radius: 16px;
+  font-size: 13px;
+}
+
+.qa-btn .ico {
+  width: 18px;
+  height: 18px;
+}
+
+.toggle-wrap {
+  width: 46px;
+  height: 28px;
+}
+
+.toggle-slider::after {
+  width: 24px;
+  height: 24px;
+}
+
+.toggle-wrap input:checked + .toggle-slider::after {
+  transform: translateX(18px);
+}
+
+.appearance-card {
+  padding: 12px 14px 10px;
+}
+
+.seg-btn {
+  min-width: 46px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
 
 /* Barra in basso più sottile */
-.tabbar { left: 14px; right: 14px; min-height: 56px; padding: 4px; border-radius: 28px; bottom: calc(6px + var(--safe-bottom)); }
-.tab { padding: 6px 2px 5px; font-size: 10px; gap: 2px; border-radius: 24px; }
-.tab svg { width: 22px; height: 22px; }
-.tab-badge { top: 3px; }
+
+.tabbar {
+  left: 14px;
+  right: 14px;
+  border-radius: 28px;
+  bottom: calc(6px + var(--safe-bottom));
+}
+
+.tab {
+  font-size: 10px;
+  border-radius: 24px;
+}
+
+.tab svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tab-badge {
+  top: 3px;
+}
 
 /* Le tessere restano 3 per riga sui telefoni più larghi */
+
 @media (min-width: 900px) {
-  .scene-row { grid-template-columns: repeat(4, 1fr); }
-  .hero-title { font-size: 34px; }
+  .scene-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .hero-title {
+    font-size: 34px;
+  }
 }
