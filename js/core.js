@@ -89,15 +89,36 @@ function markShutters(dir, label) {
   updateShutterSubs();
   updateHero();
 }
+// Ultimo comando automatico registrato dallo script (se disponibile)
+function backendShutter() {
+  const sh = MODEL && MODEL.shutters;
+  if (!sh || !sh.since) return null;
+  const ts = Number(sh.since);
+  if (!ts) return null;
+  const dir = sh.state === 'PIANTE' ? 'piante' : 'down';
+  return { dir, ts, auto: true };
+}
 function lastShutter(label) {
   const log = getShutterLog();
   const a = log.ALL, b = label ? log[label] : null;
-  if (a && b) return a.ts >= b.ts ? a : b;
-  return a || b || null;
+  let rec = (a && b) ? (a.ts >= b.ts ? a : b) : (a || b || null);
+  const bk = backendShutter();
+  if (bk && (!rec || bk.ts > rec.ts)) rec = bk;
+  return rec;
 }
+const SHUTTER_WHAT = { up: 'apertura', down: 'chiusura', piante: 'apertura per le piante' };
+function shutterWhen(ts) {
+  const d = new Date(ts), now = new Date();
+  const t = fmtTime(d.toISOString());
+  if (d.toDateString() === now.toDateString()) return `alle ${t}`;
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return `ieri alle ${t}`;
+  return `il ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} alle ${t}`;
+}
+// Il Bluetooth non conferma l'esecuzione: si dice cosa è stato INVIATO, non lo stato reale
 function shutterText(rec) {
   if (!rec) return 'Nessun comando recente';
-  return `Ultimo comando: ${rec.dir === 'up' ? 'aperte' : 'chiuse'}, ${fmtTime(new Date(rec.ts).toISOString())}`;
+  return `${cap(SHUTTER_WHAT[rec.dir] || 'comando')}${rec.auto ? ' automatica' : ''} inviata ${shutterWhen(rec.ts)}`;
 }
 function updateShutterSubs() {
   $$('.shutter-sub[data-label]').forEach(el => { el.textContent = shutterText(lastShutter(el.dataset.label)); });
@@ -115,20 +136,23 @@ const DEFAULT_SCENES = [
     steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'ezviz_esterne_on' }, { event: 'ezviz_interne_off' }] },
 ];
 
-async function runScene(scene) {
+async function runScene(scene, onlySteps) {
   haptic();
   if (isReadOnly()) { toast('Sola lettura: con questa chiave non puoi dare comandi.', 'err', 3200); return; }
-  const go = await undoWindow(`Scena «${scene.label}»`);
-  if (!go) { toast('Annullato', 'info', 1500); return; }
+  if (!onlySteps) {
+    const go = await undoWindow(`Scena «${scene.label}»`);
+    if (!go) { toast('Annullato', 'info', 1500); return; }
+  }
   toast(`${scene.label}…`);
-  let failed = false;
-  for (const s of scene.steps) {
+  const failed = [];
+  for (const s of (onlySteps || scene.steps)) {
     const r = await callAdmin(s.event, s.params, { noUndo: true });
-    if (!r || r.ok === false) { failed = true; continue; }
+    if (!r || r.ok === false) { failed.push(s); continue; }
     if (s.event === 'alza_tutto')    { setShuttersUp(true);  markShutters('up'); }
     if (s.event === 'abbassa_tutto') { setShuttersUp(false); markShutters('down'); }
   }
-  toast(failed ? `${scene.label}: alcuni comandi non sono andati a buon fine` : `${scene.label}: fatto`, failed ? 'err' : 'ok', 3000);
+  if (failed.length) failToast(`${scene.label}: ${failed.length} ${failed.length === 1 ? 'comando non confermato' : 'comandi non confermati'}`, () => runScene(scene, failed));
+  else toast(`${scene.label}: comandi inviati`, 'ok', 3000);
   reloadSoon(800);
 }
 
@@ -163,7 +187,7 @@ function updateHero() {
   const parts = [who];
   if (_wx && _wx.tempC != null) parts.push(`fuori ci sono ${Math.round(_wx.tempC)}°`);
   const rec = lastShutter(null);
-  if (rec) parts.push(`tapparelle ${rec.dir === 'up' ? 'aperte' : 'chiuse'} dalle ${fmtTime(new Date(rec.ts).toISOString())}`);
+  if (rec) parts.push(`ultimo comando alle tapparelle: ${SHUTTER_WHAT[rec.dir] || 'comando'} ${shutterWhen(rec.ts)}`);
   s.textContent = parts.join(', ') + '.';
 }
 
@@ -235,14 +259,22 @@ function weatherIcon(code) {
 /* ============================================================
    FEEDBACK: toast, stato rete, pulsanti "in corso"
    ============================================================ */
-function toast(msg, type, ms) {
+function toast(msg, type, ms, action) {
   const el = $('#toast'); if (!el) return;
-  el.className = 'toast show ' + (type || 'info');
-  el.innerHTML = '<span class="toast-dot"></span><span></span>';
-  el.lastChild.textContent = msg;
+  el.className = 'toast show ' + (type || 'info') + (action ? ' has-act' : '');
+  el.innerHTML = '<span class="toast-dot"></span><span class="toast-msg"></span>';
+  el.querySelector('.toast-msg').textContent = msg;
+  if (action) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'toast-act'; b.textContent = action.label;
+    b.addEventListener('click', () => { el.classList.remove('show'); action.fn(); });
+    el.appendChild(b);
+  }
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2400);
 }
+// Comando non confermato: avviso con "Riprova"
+function failToast(msg, retry) { toast(msg, 'err', 8000, { label: 'Riprova', fn: retry }); }
 
 function setOnline(ok) {
   const b = $('#net-banner'); if (!b) return;

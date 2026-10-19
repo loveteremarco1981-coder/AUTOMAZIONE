@@ -73,7 +73,7 @@ function renderFavorites(m) {
     else if (f.stateKey)            isOn = !!m[f.stateKey];
 
     const isToggle = f.id === 'tapparelle' || f.kind === 'toggle';
-    const statusText = f.id === 'tapparelle' ? (isOn ? 'Aperte' : 'Chiuse')
+    const statusText = f.id === 'tapparelle' ? (lastShutter(null) ? (isOn ? 'Apertura inviata' : 'Chiusura inviata') : 'Nessun comando')
                      : f.kind === 'toggle'   ? (isOn ? 'Attivo' : 'Disattivo')
                      : f.kind === 'action'   ? 'Avvia' : '';
 
@@ -96,9 +96,10 @@ function renderFavorites(m) {
       haptic();
       if (f.id === 'tapparelle') {
         const next = !isOn;
-        toast(next ? 'Alzo le tapparelle…' : 'Abbasso le tapparelle…');
+        toast(next ? 'Invio il comando di apertura…' : 'Invio il comando di chiusura…');
         const r = await callAdmin(next ? (f.upEvent || 'alza_tutto') : (f.downEvent || 'abbassa_tutto'), { manual: 'TRUE' });
         if (r && r.ok !== false) { setShuttersUp(next); markShutters(next ? 'up' : 'down'); }
+        else if (r) failToast('IFTTT non ha confermato il comando.', doAction);
         reloadSoon(800);
       } else if (f.id === 'vacanza') {
         const next = !isOn; toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata');
@@ -338,10 +339,10 @@ function renderDevices(m) {
             setCamButtons(card, isOn); // aggiornamento immediato
             const result = await callAdmin(btn.dataset.ev);
             if (result && result.ok === false) {
-              toast('Comando non riuscito' + (result.error ? ': ' + result.error : ''), 'err');
+              failToast('Comando non confermato' + (result.error ? ': ' + result.error : ''), () => btn.click());
               reloadSoon(500); // ripristina lo stato reale
             } else if (result) {
-              toast(`${g.label}: ${isOn ? 'accese' : 'spente'}`, 'ok');
+              toast(`${g.label}: comando di ${isOn ? 'accensione' : 'spegnimento'} inviato`, 'ok');
             } else {
               updateCamStates(MODEL || {});   // annullato o non riuscito: torna allo stato reale
             }
@@ -424,9 +425,9 @@ function renderPeopleDetail(m) {
   if (qa) {
     qa.innerHTML = '';
     [
-      { icon: 'up',      label: 'Alza tutto',      fn: async () => { toast('Alzo le tapparelle…');   const r = await callAdmin('alza_tutto', { manual: 'TRUE' }); if (r && r.ok !== false) { setShuttersUp(true); markShutters('up'); } } },
-      { icon: 'down',    label: 'Abbassa tutto',   fn: async () => { toast('Abbasso le tapparelle…'); const r = await callAdmin('abbassa_tutto'); if (r && r.ok !== false) { setShuttersUp(false); markShutters('down'); } } },
-      { icon: 'leaf',    label: 'Annaffia piante', fn: async () => { toast('Avvio irrigazione…'); await callAdmin('piante'); } },
+      { icon: 'up',      label: 'Alza tutto',      fn: async function run() { toast('Invio il comando di apertura…');   const r = await callAdmin('alza_tutto', { manual: 'TRUE' }); if (r && r.ok !== false) { setShuttersUp(true); markShutters('up'); } else if (r) failToast('IFTTT non ha confermato il comando.', run); } },
+      { icon: 'down',    label: 'Abbassa tutto',   fn: async function run() { toast('Invio il comando di chiusura…'); const r = await callAdmin('abbassa_tutto'); if (r && r.ok !== false) { setShuttersUp(false); markShutters('down'); } else if (r) failToast('IFTTT non ha confermato il comando.', run); } },
+      { icon: 'leaf',    label: 'Annaffia piante', fn: async function run() { toast('Invio il comando di irrigazione…'); const r = await callAdmin('piante'); if (r && r.ok === false) failToast('IFTTT non ha confermato il comando.', run); } },
       { icon: 'plane',   label: 'Vacanza',         fn: async () => { const next = !MODEL?.vacanza;  toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata'); await callAdmin('set_vacanza',  { value: String(next) }); reloadSoon(500); } },
       { icon: 'shield',  label: 'Override',        fn: async () => { const next = !MODEL?.override; toast(next ? 'Override attivo' : 'Override disattivato'); await callAdmin('set_override', { value: String(next) }); reloadSoon(500); } },
       { icon: 'refresh', label: 'Aggiorna dati',   fn: () => loadAll(true) },
@@ -514,7 +515,7 @@ function renderSettings(m) {
 
 /* ---- Log: righe compatte, filtri per tipo, errori in evidenza ---- */
 const ROUTINE_RE = /^(WATCHDOG|SUPERVISOR|REPORT|HEARTBEAT)$/i;   // eventi di routine (modificabile): li nasconde il filtro "Senza routine"
-let _logAll = [], _logFilter = 'all', _logErr24 = 0, _lastLogsFetch = 0;
+let _logAll = [], _logFilter = 'all', _logQ = '', _logErr24 = 0, _lastLogsFetch = 0;
 
 const isErrLog = x =>
   /err|fail|timeout|exception/i.test(x.code || '') ||
@@ -529,6 +530,9 @@ function renderLogs(logs) {
   drawLogs();
   try { notifyOnLogs(_logAll); } catch (_) {}
 }
+
+const logText = x => `${x.code || ''} ${x.desc || ''} ${x.note || ''}`.toLowerCase();
+const logPeople = () => ((MODEL && MODEL.people) || []).map(p => String(p.name || '').toLowerCase()).filter(Boolean);
 
 function drawLogs() {
   const list = $('#log-list'), empty = $('#log-empty'), chips = $('#log-chips'), sum = $('#log-summary');
@@ -562,6 +566,7 @@ function drawLogs() {
       { id: 'all',       label: 'Tutti',         n: all.length },
       { id: 'err',       label: 'Errori',        n: errs.length, err: true },
       { id: 'noroutine', label: 'Senza routine', n: all.filter(x => !ROUTINE_RE.test(x.code || '')).length },
+      ...logPeople().map(n => ({ id: 'who:' + n, label: cap(n), n: all.filter(x => logText(x).includes(n)).length })).filter(d => d.n),
       ...types.map(t => ({ id: 'code:' + t, label: cap(t.toLowerCase()), n: counts[t] })),
     ];
     chips.innerHTML = defs.map(d =>
@@ -572,8 +577,10 @@ function drawLogs() {
   const pass = x =>
     _logFilter === 'err' ? isErrLog(x) :
     _logFilter === 'noroutine' ? !ROUTINE_RE.test(x.code || '') :
-    _logFilter.startsWith('code:') ? logCode(x) === _logFilter.slice(5) : true;
-  const rows = all.filter(pass);
+    _logFilter.startsWith('code:') ? logCode(x) === _logFilter.slice(5) :
+    _logFilter.startsWith('who:') ? logText(x).includes(_logFilter.slice(4)) : true;
+  const q = _logQ.trim().toLowerCase();
+  const rows = all.filter(x => pass(x) && (!q || logText(x).includes(q)));
 
   list.innerHTML = '';
   if (!rows.length) {
@@ -621,6 +628,7 @@ function drawLogs() {
 }
 
 function initLogUI() {
+  $('#log-search')?.addEventListener('input', e => { _logQ = e.target.value; drawLogs(); });
   $('#log-chips')?.addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
     _logFilter = b.dataset.f || 'all';

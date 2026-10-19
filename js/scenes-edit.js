@@ -18,6 +18,9 @@ const ACTIONS = [
 const SCENE_ICONS = ['sun', 'door', 'home', 'moon', 'play', 'leaf', 'shield', 'plane'];
 const SCENE_TONES = ['blue', 'green', 'amber', 'purple', 'red'];
 
+// Le scene sono salvate nello script (valgono per tutta la casa). Copia locale per l'uso offline.
+const scenesShared = () => !!(MODEL && MODEL.scenes !== undefined);
+
 function getScenes() {
   try {
     const s = JSON.parse(localStorage.getItem('ui_scenes') || 'null');
@@ -25,13 +28,35 @@ function getScenes() {
   } catch (_) {}
   return CONFIG.SCENES || DEFAULT_SCENES;
 }
-function saveScenes(list) {
-  try { localStorage.setItem('ui_scenes', JSON.stringify(list)); } catch (_) {}
+// Chiamata a ogni aggiornamento: allinea la copia locale a quella dello script
+function syncSharedScenes(m) {
+  if (!m || m.scenes === undefined) return;          // script non ancora aggiornato: resta la copia locale
+  let before = '';
+  try { before = localStorage.getItem('ui_scenes') || ''; } catch (_) {}
+  const now = Array.isArray(m.scenes) && m.scenes.length ? JSON.stringify(m.scenes) : '';
+  if (before === now) return;
+  try { if (now) localStorage.setItem('ui_scenes', now); else localStorage.removeItem('ui_scenes'); } catch (_) {}
   renderScenes(true);
 }
-function resetScenes() {
+async function saveScenes(list) {
+  const json = JSON.stringify(list);
+  if (scenesShared()) {
+    if (json.length > 7500) { toast('Troppe scene o troppo lunghe.', 'err'); return false; }
+    const r = await callAdmin('set_scenes', { value: json });
+    if (!r || r.ok === false) { if (r) toast('Lo script non ha salvato le scene.', 'err'); return false; }
+  }
+  try { localStorage.setItem('ui_scenes', json); } catch (_) {}
+  renderScenes(true);
+  return true;
+}
+async function resetScenes() {
+  if (scenesShared()) {
+    const r = await callAdmin('set_scenes', { value: 'default' });
+    if (!r || r.ok === false) return false;
+  }
   try { localStorage.removeItem('ui_scenes'); } catch (_) {}
   renderScenes(true);
+  return true;
 }
 const actionLabel = ev => (ACTIONS.find(a => a.id === ev) || {}).label || ev;
 
@@ -46,7 +71,7 @@ function showSceneList(wrap) {
   setSheetTitle('Scene');
   const list = getScenes();
   wrap.innerHTML = `
-    <p class="sheet-note">Tocca una scena per modificarla. Le modifiche valgono solo su questo dispositivo.</p>
+    <p class="sheet-note">Tocca una scena per modificarla. ${scenesShared() ? 'Le modifiche valgono per tutta la casa.' : 'Le modifiche valgono solo su questo dispositivo.'}</p>
     <div class="se-list"></div>
     <div class="sheet-actions">
       <button class="btn-primary" type="button" id="se-new">Nuova scena</button>
@@ -65,10 +90,9 @@ function showSceneList(wrap) {
     host.appendChild(b);
   });
   wrap.querySelector('#se-new').addEventListener('click', () => showSceneEdit(wrap, -1));
-  wrap.querySelector('#se-reset').addEventListener('click', () => {
-    if (!confirm('Ripristinare le scene predefinite? Le tue modifiche su questo dispositivo andranno perse.')) return;
-    resetScenes();
-    showSceneList(wrap);
+  wrap.querySelector('#se-reset').addEventListener('click', async () => {
+    if (!confirm('Ripristinare le scene predefinite? Le modifiche andranno perse.')) return;
+    if (await resetScenes()) showSceneList(wrap);
   });
 }
 
@@ -115,13 +139,12 @@ function showSceneEdit(wrap, idx) {
   });
 
   wrap.querySelector('#se-back').addEventListener('click', () => showSceneList(wrap));
-  wrap.querySelector('#se-del')?.addEventListener('click', () => {
+  wrap.querySelector('#se-del')?.addEventListener('click', async () => {
     if (!confirm(`Eliminare la scena «${sc.label}»?`)) return;
     list.splice(idx, 1);
-    saveScenes(list.length ? list : DEFAULT_SCENES);
-    showSceneList(wrap);
+    if (await saveScenes(list.length ? list : DEFAULT_SCENES)) showSceneList(wrap);
   });
-  wrap.querySelector('#se-save').addEventListener('click', () => {
+  wrap.querySelector('#se-save').addEventListener('click', async () => {
     const name = wrap.querySelector('#se-name').value.trim();
     const err = wrap.querySelector('#se-err');
     if (!name) { err.textContent = 'Scrivi un nome per la scena.'; return; }
@@ -129,7 +152,7 @@ function showSceneEdit(wrap, idx) {
     sc.label = name;
     sc.sub = wrap.querySelector('#se-sub').value.trim();
     if (isNew) list.push(sc); else list[idx] = sc;
-    saveScenes(list);
-    showSceneList(wrap);
+    if (await saveScenes(list)) showSceneList(wrap);
+    else err.textContent = 'Non sono riuscito a salvare. Riprova.';
   });
 }

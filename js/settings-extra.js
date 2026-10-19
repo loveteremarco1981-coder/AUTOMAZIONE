@@ -12,8 +12,8 @@ function extraSettingRows(list, rowHtml, m) {
   const btn = txt => `<button class="small-btn" type="button">${txt}</button>`;
   const ro = isReadOnly();
 
-  add({ label: 'Scene', sub: `${getScenes().length} scene a un tocco`, icon: 'play', tone: 'blue' }, btn('Modifica'),
-    row => row.querySelector('button').addEventListener('click', openScenesSheet));
+  add({ label: 'Scene', sub: `${getScenes().length} scene a un tocco`, icon: 'play', tone: 'blue' }, ro ? '' : btn('Modifica'),
+    row => row.querySelector('button')?.addEventListener('click', openScenesSheet));
 
   add({ label: 'Orari tapparelle', sub: scheduleSummary(m), icon: 'sun', tone: 'amber' }, ro ? '' : btn('Cambia'),
     row => row.querySelector('button')?.addEventListener('click', () => openScheduleSheet(m)));

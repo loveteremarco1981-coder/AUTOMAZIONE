@@ -5,6 +5,7 @@
    ============================================================ */
 function renderModel(m) {
   applyRole(m);
+  syncSharedScenes(m);
   renderBanner(m); renderCards(m); renderScenes(); renderFavorites(m);
   renderPeopleChips(m); renderEvents(m); renderDevices(m);
   renderPeopleDetail(m); renderSettings(m);
