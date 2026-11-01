@@ -126,11 +126,11 @@ function updateShutterSubs() {
 
 /* ---- Scene (modificabili: basta definire CONFIG.SCENES in config.js) ---- */
 const DEFAULT_SCENES = [
-  { id: 'buongiorno', label: 'Buongiorno', sub: 'Alza e clima auto', icon: 'sun', tone: 'amber',
+  { id: 'buongiorno', label: 'Buongiorno', sub: 'Alza e programma', icon: 'sun', tone: 'amber',
     steps: [{ event: 'alza_tutto', params: { manual: 'TRUE' } }, { event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
-  { id: 'esco', label: 'Esco', sub: 'Chiudi, clima off, cam', icon: 'door', tone: 'blue',
-    steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'off_termostato' }, { event: 'ezviz_interne_on' }] },
-  { id: 'rientro', label: 'Rientro', sub: 'Clima auto, cam off', icon: 'home', tone: 'green',
+  { id: 'esco', label: 'Esco', sub: 'Chiudi, ridotta, cam', icon: 'door', tone: 'blue',
+    steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'eco_termostato' }, { event: 'ezviz_interne_on' }] },
+  { id: 'rientro', label: 'Rientro', sub: 'Programma, cam off', icon: 'home', tone: 'green',
     steps: [{ event: 'termostato_auto' }, { event: 'ezviz_interne_off' }] },
   { id: 'notte', label: 'Notte', sub: 'Chiudi e cam esterne', icon: 'moon', tone: 'purple',
     steps: [{ event: 'abbassa_tutto', params: { manual: 'TRUE' } }, { event: 'ezviz_esterne_on' }, { event: 'ezviz_interne_off' }] },

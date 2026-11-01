@@ -434,9 +434,11 @@ function renderDevices(m) {
 
 // Termostati e clima di config.js, più "Termostati Eco" e "Clima On" se config.js non li elenca ancora
 function thermostatList(list) {
-  const out = (list || []).slice();
+  // I termostati li comanda lo script: "programma" riprende le fasce, "ridotta" abbassa tutti
+  const ETICHETTE = { termostato_auto: 'Termostati: programma', eco_termostato: 'Termostati: ridotta', off_termostato: 'Termostati: spenti' };
+  const out = (list || []).map(t => ETICHETTE[t.event] ? { ...t, label: ETICHETTE[t.event] } : t);
   if (!out.some(t => t.event === 'eco_termostato')) {
-    const eco = { label: 'Termostati Eco', svgIcon: 'leaf', event: 'eco_termostato' };
+    const eco = { label: ETICHETTE.eco_termostato, svgIcon: 'leaf', event: 'eco_termostato' };
     const j = out.findIndex(t => t.event === 'off_termostato');
     if (j >= 0) out.splice(j, 0, eco); else out.push(eco);
   }

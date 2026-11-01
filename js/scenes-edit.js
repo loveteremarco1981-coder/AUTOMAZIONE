@@ -6,9 +6,9 @@
 const ACTIONS = [
   { id: 'alza_tutto',        label: 'Alza le tapparelle',          params: { manual: 'TRUE' } },
   { id: 'abbassa_tutto',     label: 'Abbassa le tapparelle',       params: { manual: 'TRUE' } },
-  { id: 'termostato_auto',   label: 'Termostato in automatico' },
-  { id: 'eco_termostato',    label: 'Termostati in Eco' },
-  { id: 'off_termostato',    label: 'Termostato spento' },
+  { id: 'termostato_auto',   label: 'Termostati: programma' },
+  { id: 'eco_termostato',    label: 'Termostati: ridotta' },
+  { id: 'off_termostato',    label: 'Termostati spenti' },
   { id: 'accendi_clima',     label: 'Clima acceso' },
   { id: 'spegni_clima',      label: 'Clima spento' },
   { id: 'ezviz_interne_on',  label: 'Telecamere interne accese' },
