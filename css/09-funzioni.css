@@ -1150,3 +1150,51 @@ body.ro .qa-btn {
 .tm-3 > * {
   flex: 1 1 0;
 }
+
+/* ---- Termostati: caldaia ferma e temperatura al volo ---- */
+
+.onoff.stop {
+  color: #3b82f6;
+  background: rgba(59,130,246,.15);
+}
+
+.termo-volo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 8px 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.termo-volo > span {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.termo-volo .tv-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.termo-volo .tv-btn:active { transform: scale(.94); }
+
+.termo-volo .tv-val {
+  min-width: 52px;
+  text-align: center;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.termo-volo.is-busy { opacity: .6; }
