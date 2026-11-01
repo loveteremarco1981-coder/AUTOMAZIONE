@@ -147,3 +147,14 @@ body::after {
     transition: none;
   }
 }
+
+/* Schermi larghi (PC): la barra resta centrata.
+   03-compatto.css la fissa a 14px dai bordi: qui si rimette al centro,
+   altrimenti lo spostamento di -50% la porta fuori dallo schermo. */
+
+@media (min-width: 720px) {
+  .tabbar {
+    left: 50%;
+    right: auto;
+  }
+}

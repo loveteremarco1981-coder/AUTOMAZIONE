@@ -407,7 +407,7 @@ body.sheet-open {
   padding: 6px 11px;
 }
 
-.theme-seg .seg-btn.is-active, #hist-seg .seg-btn.is-active {
+.theme-seg .seg-btn.is-active, #hist-seg .seg-btn.is-active, .tm-seg .seg-btn.is-active {
   background: var(--accent2);
   color: #fff;
 }
