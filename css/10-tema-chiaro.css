@@ -239,3 +239,7 @@
 [data-theme="light"] .termo-vals > div {
   background: var(--bg3);
 }
+
+[data-theme="light"] .onoff.eco {
+  color: #b45309;
+}
