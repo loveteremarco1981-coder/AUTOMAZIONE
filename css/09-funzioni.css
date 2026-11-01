@@ -622,3 +622,91 @@ body.ro .qa-btn {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+
+/* ---- Avviso IFTTT: servizio da ricollegare ---- */
+
+.ifttt-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: calc(100% - 28px);
+  max-width: 532px;
+  margin: 8px auto 0;
+  padding: 11px 12px;
+  border-radius: 16px;
+  color: var(--fg);
+  background: linear-gradient(var(--red-dim), var(--red-dim)), var(--bg);
+  border: 1px solid rgba(248,81,73,.4);
+}
+
+.ifttt-banner[hidden] {
+  display: none;
+}
+
+.ifttt-banner .ib-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: var(--red);
+  background: var(--red-dim);
+}
+
+.ifttt-banner .ib-ico .ico {
+  width: 17px;
+  height: 17px;
+}
+
+.ifttt-banner .ib-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ifttt-banner .ib-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ifttt-banner .ib-sub {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.ifttt-banner .ib-btns {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ifttt-banner .ib-btn {
+  display: block;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #fff;
+  background: var(--red);
+}
+
+.ifttt-banner .ib-done {
+  color: var(--fg);
+  background: rgba(255,255,255,.1);
+}
+
+.ifttt-banner .ib-btn.is-busy {
+  opacity: .6;
+}
