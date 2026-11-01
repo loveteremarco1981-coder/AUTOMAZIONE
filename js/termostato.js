@@ -58,6 +58,7 @@ function renderTermoMini(m) {
 function termoSummary(m) {
   const t = termo(m);
   if (!t) return 'Da attivare nello script';
+  if (t.manuale) return 'Gestione manuale: lo script non li comanda';
   return `Giorno ${gradi(t.zone.giorno.cfg.base)} · notte ${gradi(t.zone.notte.cfg.base)} · ${STAGIONE_NOME[t.stagione]}`;
 }
 
@@ -93,7 +94,7 @@ function renderTermostatoCard(m) {
       <span class="dev-icon t-orange">${svg('thermo')}</span>
       <span class="shutter-text">
         <span class="shutter-label">Termostati Vimar</span>
-        <span class="shutter-sub">${esc(STAGIONE_NOME[t.stagione])}${t.cfg.stagione === 'auto' ? '' : ' (scelta a mano)'}</span>
+        <span class="shutter-sub">${t.manuale ? '<b class="termo-man">Gestione manuale</b> · ' : ''}${esc(STAGIONE_NOME[t.stagione])}${t.cfg.stagione === 'auto' ? '' : ' (scelta a mano)'}</span>
       </span>
       ${isReadOnly() ? '' : `<button class="small-btn" type="button" id="termo-edit">Cambia</button>`}
     </div>
@@ -106,6 +107,7 @@ function renderTermostatoCard(m) {
 // Riga in fondo alla scheda: anticipo e rientro abituale
 function anticipoTxt(t) {
   const c = t.cfg || {}, oggi = t.anticipoOggi;
+  if (t.manuale) return 'Gestione manuale attiva: lo script registra temperature e accensioni ma non comanda i termostati. Si spegne in Impostazioni.';
   if (!c.anticipo) return 'Anticipo sul rientro: spento.';
   if (t.stagione !== 'inverno') return 'Anticipo sul rientro: attivo solo in autunno-inverno.';
   let s = `Rientro abituale: ${esc(abitudiniTxt(t))}. Anticipo ${c.anticipo} min.`;

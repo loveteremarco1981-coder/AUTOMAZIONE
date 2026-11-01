@@ -21,6 +21,22 @@ function extraSettingRows(list, rowHtml, m) {
   add({ label: 'Termostati', sub: termoSummary(m), icon: 'thermo', tone: 'amber' }, ro || !termo(m) ? '' : btn('Cambia'),
     row => row.querySelector('button')?.addEventListener('click', () => openTermostatoSheet(MODEL || m)));
 
+  // Gestione manuale: lo script smette di comandare i termostati (lo storico continua)
+  if (termo(m)) {
+    const man = !!m.termostato.manuale;
+    add({ label: 'Termostati: gestione manuale', sub: man ? 'Attiva: li comandi da casa, lo script registra soltanto' : 'Spenta: lo script comanda Auto, Eco e Off',
+          icon: 'lock', tone: 'red' },
+      `<label class="toggle-wrap"><input type="checkbox" aria-label="Termostati: gestione manuale" ${man ? 'checked' : ''} ${ro ? 'disabled' : ''}><span class="toggle-slider"></span></label>`,
+      row => row.querySelector('input').addEventListener('change', async e => {
+        const next = e.target.checked;
+        const r = await callAdmin('set_termostato', { manuale: next ? '1' : '0' }, { noUndo: true });
+        if (!r || r.ok === false) { e.target.checked = !next; if (r) toast('Lo script non ha registrato la modifica.', 'err'); return; }
+        if (MODEL && r.termostato) { MODEL.termostato = r.termostato; saveModel(MODEL); }
+        toast(next ? 'Gestione manuale: lo script non comanda più i termostati' : 'Lo script torna a comandare i termostati', 'ok', 3200);
+        renderTermostatoCard(MODEL || m); renderSettings(MODEL || m);
+      }));
+  }
+
   const np = notifyPrefs();
   const nOn = np.presence || np.errors;
   add({ label: 'Notifiche', sub: nOn ? [np.presence && 'ingressi e uscite', np.errors && 'errori'].filter(Boolean).join(' e ') : 'Disattivate su questo dispositivo', icon: 'bell', tone: 'red' }, btn('Imposta'),
