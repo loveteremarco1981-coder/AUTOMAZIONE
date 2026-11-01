@@ -229,3 +229,13 @@
 [data-theme="light"] .ifttt-banner .ib-done {
   background: rgba(15,23,42,.08);
 }
+
+/* Termostato */
+
+[data-theme="light"] .termo-state.on {
+  color: #b45309;
+}
+
+[data-theme="light"] .termo-vals > div {
+  background: var(--bg3);
+}

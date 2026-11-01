@@ -710,3 +710,114 @@ body.ro .qa-btn {
 .ifttt-banner .ib-btn.is-busy {
   opacity: .6;
 }
+
+/* ---- Termostato Vimar: scheda in Dispositivi e pannello ---- */
+
+.termo-card {
+  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.termo-card[hidden] {
+  display: none;
+}
+
+.termo-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.termo-head .shutter-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.termo-vals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.termo-vals > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.termo-vals span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.termo-vals b {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.termo-vals small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.termo-state {
+  margin: 10px 2px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.termo-state.on {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.fld-row {
+  display: flex;
+  gap: 10px;
+}
+
+.fld-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.fld input[type="number"], .fld select {
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 13px;
+  border: 1px solid var(--line2);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.fld select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.fld-hint {
+  margin: -6px 2px 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tm-seg {
+  display: flex;
+}
+
+.tm-seg .seg-btn {
+  flex: 1;
+}
