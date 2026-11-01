@@ -200,9 +200,9 @@ function openTermostatoSheet(m) {
           ${gradiInput('tm-ridotta-' + id, z.ridotta, 'Ridotta', 5, 30)}
           ${gradiInput('tm-base-' + id, z.base, 'Massimo', 16, 28)}
         </div>
-        <label class="fld"><span>Fasce Comfort · lunedì–venerdì</span><input type="text" id="tm-fer-${id}" value="${esc(z.feriali)}" placeholder="06:30-08:30, 17:00-22:30" autocomplete="off"></label>
-        <label class="fld"><span>Fasce Comfort · sabato e domenica</span><input type="text" id="tm-wk-${id}" value="${esc(z.weekend)}" placeholder="08:00-23:00" autocomplete="off"></label>
-        <p class="fld-hint">Fuori dalle fasce: Ridotta. Separa le fasce con una virgola; lascia vuoto per Ridotta tutto il giorno.</p>
+        ${fasceHtml('tm-fer-' + id, 'Comfort lunedì–venerdì', z.feriali)}
+        ${fasceHtml('tm-wk-' + id, 'Comfort sabato e domenica', z.weekend)}
+        <p class="fld-hint">Nella barra: arancione Comfort, il resto Ridotta. Senza fasce: Ridotta tutto il giorno.</p>
       </div>`;
   };
   const dz = (d.zone || {});
@@ -249,6 +249,7 @@ function openTermostatoSheet(m) {
     </div>
     <p class="sheet-note small">Predefiniti: ${ZONE.map(([id, nome]) => { const z = dz[id] || {}; return `${nome.split(' · ')[1]} comfort ${gradi(z.comfort)}, ridotta ${gradi(z.ridotta)}, feriali ${z.feriali}, weekend ${z.weekend}`; }).join('; ')}; anticipo ${d.anticipo ?? 30} minuti; stagione dalla data, autunno-inverno dal ${dataTxt(d.invernoDa)} al ${dataTxt(d.invernoA)}.</p>`;
   openSheet('Termostati', wrap);
+  wrap.querySelectorAll('.fx').forEach(bindFasce);
 
   const $w = s => wrap.querySelector(s);
   const err = $w('#tm-err');
@@ -284,7 +285,8 @@ function openTermostatoSheet(m) {
       if (ridotta > comfort) { err.textContent = `${piano}: la Ridotta non può superare il Comfort.`; return; }
       if (comfort > base) { err.textContent = `${piano}: il Comfort non può superare il Massimo.`; return; }
       const fer = $w('#tm-fer-' + id).value, wk = $w('#tm-wk-' + id).value;
-      if (!fasciaOk(fer) || !fasciaOk(wk)) { err.textContent = `${piano}: scrivi le fasce come 06:30-08:30, separate da una virgola.`; return; }
+      const fx = [fasceErrore(fer), fasceErrore(wk)].find(Boolean);
+      if (fx || !fasciaOk(fer) || !fasciaOk(wk)) { err.textContent = `${piano}: ${fx || 'orari delle fasce non validi'}.`; return; }
       Object.assign(params, { ['comfort_' + id]: comfort, ['ridotta_' + id]: ridotta, ['base_' + id]: base, ['feriali_' + id]: fer, ['weekend_' + id]: wk });
     }
     const r = await callAdmin('set_termostato', params, { noUndo: true });
@@ -295,4 +297,77 @@ function openTermostatoSheet(m) {
     const r = await callAdmin('set_termostato', { reset: '1' }, { noUndo: true });
     finito(r, 'Termostati: valori predefiniti ripristinati');
   }));
+}
+
+/* ---- Fasce orarie: barra delle 24 ore + una riga per fascia ---- */
+const hmMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+const minHm = x => `${String(Math.floor(x / 60) % 24).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`;
+// "06:30-08:30, 17:00-22:30" → [[390, 510], [1020, 1350]]   (fine "00:00" o "24:00" = mezzanotte)
+function fasceDa(testo) {
+  return String(testo || '').split(/[,;]+/).map(x => x.trim()).filter(Boolean).map(x => {
+    const m = /^(\d{1,2})[:.](\d{2})\s*[-–]\s*(\d{1,2})[:.](\d{2})$/.exec(x);
+    if (!m) return null;
+    const a = +m[1] * 60 + +m[2]; let b = +m[3] * 60 + +m[4]; if (b === 0) b = 1440;
+    return [a, b];
+  }).filter(Boolean);
+}
+const fasceTesto = l => l.map(([a, b]) => `${minHm(a)}-${b >= 1440 ? '24:00' : minHm(b)}`).join(', ');
+function fasceErrore(testo) {
+  const l = fasceDa(testo).slice().sort((x, y) => x[0] - y[0]);
+  for (const [a, b] of l) if (b <= a) return `nella fascia ${minHm(a)}–${minHm(b)} la fine deve venire dopo l’inizio`;
+  for (let i = 1; i < l.length; i++) if (l[i][0] < l[i - 1][1]) return 'due fasce si sovrappongono';
+  return '';
+}
+// Tendina a quarti d'ora, sempre in 24 ore (00:00 … 24:00)
+function orari(sel, da, a) {
+  let h = '';
+  const scelto = Math.round(sel / 15) * 15;
+  for (let x = da; x <= a; x += 15) h += `<option value="${x}"${x === scelto ? ' selected' : ''}>${x === 1440 ? '24:00' : minHm(x)}</option>`;
+  return h;
+}
+function fasceHtml(id, titolo, testo) {
+  return `<div class="fx" data-id="${id}">
+    <div class="fx-head"><span>${titolo}</span><button type="button" class="small-btn fx-add">+ Fascia</button></div>
+    <div class="fx-bar" aria-hidden="true"><div class="fx-track"></div><div class="fx-ticks"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>
+    <div class="fx-list"></div>
+    <input type="hidden" id="${id}" value="${esc(testo || '')}">
+  </div>`;
+}
+function bindFasce(box) {
+  const hidden = box.querySelector('input[type=hidden]');
+  const list = box.querySelector('.fx-list'), track = box.querySelector('.fx-track');
+  let fasce = fasceDa(hidden.value);
+  const salva = () => {
+    hidden.value = fasceTesto(fasce);
+    track.innerHTML = fasce.filter(([a, b]) => b > a).map(([a, b]) =>
+      `<i style="left:${(a / 1440 * 100).toFixed(2)}%;width:${((b - a) / 1440 * 100).toFixed(2)}%"></i>`).join('');
+  };
+  const disegna = () => {
+    list.innerHTML = fasce.length ? fasce.map(([a, b], i) => `
+      <div class="fx-row" data-i="${i}">
+        <select class="fx-da" aria-label="Inizio">${orari(a, 0, 1425)}</select>
+        <span class="fx-sep">→</span>
+        <select class="fx-a" aria-label="Fine">${orari(b, 15, 1440)}</select>
+        <button type="button" class="fx-del" aria-label="Togli la fascia">×</button>
+      </div>`).join('') : '<p class="fx-empty">Nessuna fascia: Ridotta tutto il giorno</p>';
+    salva();
+  };
+  list.addEventListener('change', e => {
+    const row = e.target.closest('.fx-row'); if (!row || !e.target.value) return;
+    const i = +row.dataset.i;
+    if (e.target.classList.contains('fx-da')) fasce[i][0] = Number(e.target.value);
+    else fasce[i][1] = Number(e.target.value);
+    salva();
+  });
+  list.addEventListener('click', e => {
+    const del = e.target.closest('.fx-del'); if (!del) return;
+    fasce.splice(+del.closest('.fx-row').dataset.i, 1); disegna();
+  });
+  box.querySelector('.fx-add').addEventListener('click', () => {
+    const fine = fasce.reduce((m, f) => Math.max(m, f[1]), 0);
+    const a = fasce.length ? Math.min(fine + 60, 1380) : 420;
+    fasce.push([a, Math.min(a + 120, 1440)]);
+    fasce.sort((x, y) => x[0] - y[0]); disegna();
+  });
+  disegna();
 }
