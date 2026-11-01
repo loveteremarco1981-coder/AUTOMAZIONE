@@ -152,7 +152,7 @@ async function runScene(scene, onlySteps) {
     if (s.event === 'abbassa_tutto') { setShuttersUp(false); markShutters('down'); }
   }
   if (failed.length) failToast(`${scene.label}: ${failed.length} ${failed.length === 1 ? 'comando non confermato' : 'comandi non confermati'}`, () => runScene(scene, failed));
-  else toast(`${scene.label}: comandi inviati`, 'ok', 3000);
+  else iftttEsito((onlySteps || scene.steps).map(s => s.event), `${scene.label}: comandi inviati`);
   reloadSoon(800);
 }
 

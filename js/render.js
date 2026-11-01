@@ -37,6 +37,79 @@ function renderBanner(m) {
     <span class="sb-chev">${svg('chevron')}</span>`;
 }
 
+/* ---- Avviso IFTTT: un servizio ha perso l'accesso (lo script legge le email di IFTTT) ---- */
+// Quale servizio IFTTT serve a ciascun comando (per avvisare prima di un comando che non arriverebbe)
+const IFTTT_SERVIZIO = {
+  accendi_clima: 'NetHome Plus', spegni_clima: 'NetHome Plus',
+  alza_tutto: 'Vimar', abbassa_tutto: 'Vimar', piante: 'Vimar', termostato_auto: 'Vimar', off_termostato: 'Vimar',
+  ezviz_interne_on: 'EZVIZ', ezviz_interne_off: 'EZVIZ', ezviz_esterne_on: 'EZVIZ', ezviz_esterne_off: 'EZVIZ',
+};
+const iftttAvvisi = () => (MODEL && MODEL.ifttt && Array.isArray(MODEL.ifttt.avvisi)) ? MODEL.ifttt.avvisi : [];
+
+// Servizio senza accesso che riguarda questo comando ('' se è tutto a posto)
+function iftttBloccato(event) {
+  const nomi = iftttAvvisi().map(a => a.servizio);
+  if (nomi.includes('Webhooks')) return 'Webhooks';
+  const s = IFTTT_SERVIZIO[event];
+  return s && nomi.includes(s) ? s : '';
+}
+// Messaggio dopo un comando "inviato": avverte se IFTTT non ha accesso al servizio
+function iftttEsito(events, okMsg) {
+  const bloccati = [...new Set((events || []).map(iftttBloccato).filter(Boolean))];
+  if (!bloccati.length) { toast(okMsg, 'ok', 3000); return; }
+  toast(`Comando inviato, ma IFTTT ha perso l’accesso a ${bloccati.join(' e ')}: potrebbe non arrivare.`, 'err', 6000);
+}
+
+function iftttLink() {
+  const app = ((CONFIG.DEVICES || {}).APPS || []).find(a => /ifttt/i.test(a.label || ''));
+  return (app && (app.urlFallback || app.url)) || 'https://ifttt.com/activity';
+}
+
+function renderIftttBanner(m) {
+  const el = $('#ifttt-banner'); if (!el) return;
+  const avvisi = (m && m.ifttt && Array.isArray(m.ifttt.avvisi)) ? m.ifttt.avvisi : [];
+  if (!avvisi.length) { el.hidden = true; el.innerHTML = ''; return; }
+
+  const nomi = avvisi.map(a => a.servizio);
+  const elenco = nomi.length === 1 ? nomi[0] : `${nomi.slice(0, -1).join(', ')} e ${nomi[nomi.length - 1]}`;
+  const effetto = avvisi.length === 1 ? (avvisi[0].effetto || 'Alcuni comandi potrebbero non arrivare.') : 'Alcuni comandi potrebbero non arrivare.';
+  const d = new Date(avvisi[0].data);
+  const quando = isNaN(d.getTime()) ? '' : ` Email di IFTTT del ${d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}.`;
+
+  el.innerHTML = `
+    <span class="ib-ico">${svg('alert')}</span>
+    <span class="ib-text">
+      <span class="ib-title">IFTTT ha perso l’accesso a ${esc(elenco)}</span>
+      <span class="ib-sub">${esc(effetto)} Ricollega ${avvisi.length === 1 ? 'il servizio' : 'i servizi'} nell’app IFTTT.${esc(quando)}</span>
+    </span>
+    <span class="ib-btns">
+      <a class="ib-btn" href="${esc(iftttLink())}" target="_blank" rel="noopener">Apri IFTTT</a>
+      ${isReadOnly() ? '' : '<button class="ib-btn ib-done" type="button">Fatto</button>'}
+    </span>`;
+  el.hidden = false;
+
+  el.querySelector('.ib-done')?.addEventListener('click', e => busy(e.currentTarget, async () => {
+    haptic();
+    const r = await callAdmin('ifttt_ricollegato', null, { noUndo: true });
+    if (!r) return;
+    if (r.ok === false) { toast('Lo script non ha registrato la modifica. Riprova.', 'err'); return; }
+    if (MODEL) { MODEL.ifttt = r.ifttt || { avvisi: [] }; saveModel(MODEL); }
+    renderIftttBanner(MODEL || {});
+    toast('Bene. Se IFTTT segnala di nuovo un problema, l’avviso ricompare.', 'ok', 3500);
+  }));
+}
+
+// Stato del controllo delle email (Impostazioni → Info)
+function iftttControlloTesto(m) {
+  const c = m && m.ifttt;
+  if (!c) return 'Non attivo nello script';
+  if (c.errore) return 'Non riuscito: ' + c.errore;
+  const d = c.controllatoIl ? new Date(c.controllatoIl) : null;
+  if (!d || isNaN(d.getTime())) return 'Mai eseguito';
+  const ore = (Date.now() - d.getTime()) / 36e5;
+  return (ore > 3 ? 'Fermo dal ' : 'Ultimo ') + fmtDateTime(c.controllatoIl);
+}
+
 function renderCards(m) {
   const people = Array.isArray(m.people) ? m.people : [];
   const inCount = people.filter(p => p.onlineSmart).length;
@@ -283,20 +356,22 @@ function renderDevices(m) {
   const thermoList = $('#thermostat-list');
   if (thermoList && !thermoList.dataset.built) {
     thermoList.innerHTML = '';
-    (DEV.THERMOSTATS || []).forEach(t => {
+    thermostatList(DEV.THERMOSTATS).forEach(t => {
       const card = document.createElement('div');
       card.className = 'shutter-card';
       card.innerHTML = `
-        <span class="dev-icon t-orange">${iconFromEmoji(t.icon || '🌡️', 'thermo')}</span>
+        <span class="dev-icon t-orange">${t.svgIcon ? svg(t.svgIcon) : iconFromEmoji(t.icon || '🌡️', 'thermo')}</span>
         <span class="shutter-label">${esc(t.label)}</span>
         <div class="shutter-btns">
           <button class="sh-btn" type="button" data-ev="${esc(t.event)}" title="Applica" aria-label="Applica ${esc(t.label)}">${svg('play')}</button>
         </div>`;
       const b = card.querySelector('.sh-btn');
-      b.addEventListener('click', () => busy(b, async () => {
+      b.addEventListener('click', () => busy(b, async function run() {
         haptic();
         toast(`${t.label} in corso…`);
-        await callAdmin(t.event);
+        const r = await callAdmin(t.event);
+        if (r && r.ok === false) failToast(`${t.label}: IFTTT non ha confermato il comando.`, () => busy(b, run));
+        else if (r) iftttEsito([t.event], `${t.label}: comando inviato`);
       }));
       thermoList.appendChild(card);
     });
@@ -354,6 +429,17 @@ function renderDevices(m) {
     }
     updateCamStates(m);
   }
+}
+
+// Termostati e clima di config.js, più "Clima On" (accendi_clima) se config.js non lo elenca ancora
+function thermostatList(list) {
+  const out = (list || []).slice();
+  if (!out.some(t => t.event === 'accendi_clima')) {
+    const on = { label: 'Clima On', svgIcon: 'power', event: 'accendi_clima' };
+    const i = out.findIndex(t => t.event === 'spegni_clima');
+    if (i >= 0) out.splice(i, 0, on); else out.push(on);
+  }
+  return out;
 }
 
 function setCamButtons(card, isOn) {
@@ -508,6 +594,7 @@ function renderSettings(m) {
       ['Tramonto',   tram],
       ['Aggiornato', updated],
       ['Errori log', String(errors)],
+      ['Controllo IFTTT', iftttControlloTesto(m)],
       ['Wi‑Fi attivo', ssidActive],
     ].map(([k, v]) => `<div class="info-row"><span class="info-key">${k}</span><span class="info-val">${esc(v)}</span></div>`).join('');
   }
