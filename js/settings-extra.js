@@ -18,7 +18,7 @@ function extraSettingRows(list, rowHtml, m) {
   add({ label: 'Orari tapparelle', sub: scheduleSummary(m), icon: 'sun', tone: 'amber' }, ro ? '' : btn('Cambia'),
     row => row.querySelector('button')?.addEventListener('click', () => openScheduleSheet(m)));
 
-  add({ label: 'Termostato', sub: termoSummary(m), icon: 'thermo', tone: 'amber' }, ro || !termo(m) ? '' : btn('Cambia'),
+  add({ label: 'Termostati', sub: termoSummary(m), icon: 'thermo', tone: 'amber' }, ro || !termo(m) ? '' : btn('Cambia'),
     row => row.querySelector('button')?.addEventListener('click', () => openTermostatoSheet(MODEL || m)));
 
   const np = notifyPrefs();
