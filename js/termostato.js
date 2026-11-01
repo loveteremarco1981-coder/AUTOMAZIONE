@@ -108,9 +108,9 @@ function renderTermostatoCard(m) {
 function anticipoTxt(t) {
   const c = t.cfg || {}, oggi = t.anticipoOggi;
   if (t.manuale) return 'Gestione manuale attiva: lo script registra temperature e accensioni ma non comanda i termostati. Si spegne in Impostazioni.';
-  if (!c.anticipo) return 'Anticipo sul rientro: spento.';
+  if (!c.anticipo) return 'Anticipo sul rientro: spento.' + (c.spento ? ` Spento per sbaglio: Auto dopo ${durataTxt(c.spento)}.` : '');
   if (t.stagione !== 'inverno') return 'Anticipo sul rientro: attivo solo in autunno-inverno.';
-  let s = `Rientro abituale: ${esc(abitudiniTxt(t))}. Anticipo ${c.anticipo} min.`;
+  let s = `Rientro abituale: ${esc(abitudiniTxt(t))}. Anticipo ${c.anticipo} min.` + (c.spento ? ` Spento per sbaglio: Auto dopo ${durataTxt(c.spento)}.` : '');
   if (oggi && oggi.fase === 'auto') s += ` Oggi termostati in Auto per il rientro delle ${esc(oggi.ora)}.`;
   else if (oggi && oggi.fase === 'eco') s += ` Oggi nessun rientro dopo l’anticipo: di nuovo Eco.`;
   else if (oggi && oggi.fase === 'rientrato') s += ` Oggi anticipo riuscito: siete rientrati.`;
@@ -153,9 +153,11 @@ function openTermostatoSheet(m) {
     <p class="sheet-note">Le temperature si impostano nell’app Vimar (programma Auto, Eco). Lo script sceglie la modalità: se qualcuno supera la base rimette quella zona in Auto; se dopo il tempo di regolazione la stanza non arriva alla temperatura impostata − delta, la rimette in Auto (o in Eco/spenta a casa vuota). La base deve essere almeno la T3 del programma Vimar.</p>
     ${ZONE.map(zonaHtml).join('')}
     <div class="tm-zone">
-      <h3>Rientro (per tutta la casa)</h3>
+      <h3>Automatismi (per tutta la casa)</h3>
       <label class="fld"><span>Anticipo sul rientro abituale</span><select id="tm-anticipo">${[0, 15, 30, 45, 60, 90, 120].map(x => opt(x, Number(c.anticipo || 0), x ? `${x} minuti prima` : 'Spento')).join('')}</select></label>
       <p class="fld-hint">A casa vuota, in autunno-inverno, rimette Auto prima dell’ora abituale di rientro; se entro un’ora non rientra nessuno, torna in Eco. Rientro abituale: ${esc(abitudiniTxt(t))}</p>
+      <label class="fld"><span>Spento per sbaglio: rimetti Auto dopo</span><select id="tm-spento">${[0, 30, 60, 90, 120, 180, 240].map(x => opt(x, Number(c.spento ?? 60), x ? durataTxt(x) : 'Mai')).join('')}</select></label>
+      <p class="fld-hint">In autunno-inverno, con qualcuno in casa, una zona rimasta spenta più di questo tempo torna in Auto (controllo ogni 15 minuti). Per tenere spento un piano di proposito, attiva la gestione manuale.</p>
     </div>
     <div class="tm-zone">
       <h3>Stagione (per tutta la casa)</h3>
@@ -179,7 +181,7 @@ function openTermostatoSheet(m) {
       <button class="btn-primary" type="button" id="tm-save">Salva</button>
       <button class="btn-ghost" type="button" id="tm-reset">Ripristina predefiniti</button>
     </div>
-    <p class="sheet-note small">Predefiniti: ${ZONE.map(([id, nome]) => { const z = dz[id] || {}; return `${nome.toLowerCase()} base ${gradi(z.base)}, delta ${gradi(z.delta)}, ${durataTxt(z.minuti || 120)}`; }).join('; ')}; anticipo ${d.anticipo || 30} minuti; stagione dalla data, autunno-inverno dal ${dataTxt(d.invernoDa)} al ${dataTxt(d.invernoA)}.</p>`;
+    <p class="sheet-note small">Predefiniti: ${ZONE.map(([id, nome]) => { const z = dz[id] || {}; return `${nome.toLowerCase()} base ${gradi(z.base)}, delta ${gradi(z.delta)}, ${durataTxt(z.minuti || 120)}`; }).join('; ')}; anticipo ${d.anticipo || 30} minuti; spento per sbaglio dopo ${durataTxt(d.spento || 60)}; stagione dalla data, autunno-inverno dal ${dataTxt(d.invernoDa)} al ${dataTxt(d.invernoA)}.</p>`;
   openSheet('Termostati', wrap);
 
   const $w = s => wrap.querySelector(s);
@@ -210,7 +212,7 @@ function openTermostatoSheet(m) {
 
   $w('#tm-save').addEventListener('click', e => busy(e.currentTarget, async () => {
     err.textContent = '';
-    const params = { stagione: c.stagione, invernoDa: mmdd('#tm-da-g', '#tm-da-m'), invernoA: mmdd('#tm-a-g', '#tm-a-m'), anticipo: $w('#tm-anticipo').value };
+    const params = { stagione: c.stagione, invernoDa: mmdd('#tm-da-g', '#tm-da-m'), invernoA: mmdd('#tm-a-g', '#tm-a-m'), anticipo: $w('#tm-anticipo').value, spento: $w('#tm-spento').value };
     for (const [id, nome] of ZONE) {
       const base = num('#tm-base-' + id), delta = num('#tm-delta-' + id);
       if (isNaN(base) || base < 15 || base > 25) { err.textContent = `${nome}: la base deve essere tra 15° e 25°.`; return; }
