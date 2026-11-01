@@ -1128,3 +1128,8 @@ body.ro .qa-btn {
   line-height: 1.45;
   color: var(--muted);
 }
+
+.termo-man {
+  color: var(--red);
+  font-weight: 700;
+}
