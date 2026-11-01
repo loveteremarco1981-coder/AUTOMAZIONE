@@ -1133,3 +1133,20 @@ body.ro .qa-btn {
   color: var(--red);
   font-weight: 700;
 }
+
+/* ---- Termostati comandati dallo script: pillola A MANO e programma ---- */
+
+.onoff.man {
+  color: #7c3aed;
+  background: rgba(139,92,246,.16);
+}
+
+.termo-vals b.termo-prog {
+  font-size: 16px;
+  line-height: 1.25;
+  padding-top: 2px;
+}
+
+.tm-3 > * {
+  flex: 1 1 0;
+}

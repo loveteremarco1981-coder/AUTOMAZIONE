@@ -243,3 +243,8 @@
 [data-theme="light"] .onoff.eco {
   color: #b45309;
 }
+
+[data-theme="light"] .onoff.man {
+  color: #6d28d9;
+  background: rgba(124,58,237,.12);
+}
