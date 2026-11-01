@@ -1,5 +1,5 @@
 'use strict';
-/* Righe aggiuntive di Impostazioni: scene, orari, notifiche, conferma, tema */
+/* Righe aggiuntive di Impostazioni: scene, orari, termostato, notifiche, conferma, tema */
 function extraSettingRows(list, rowHtml, m) {
   const add = (r, control, handler) => {
     const row = document.createElement('div');
@@ -17,6 +17,9 @@ function extraSettingRows(list, rowHtml, m) {
 
   add({ label: 'Orari tapparelle', sub: scheduleSummary(m), icon: 'sun', tone: 'amber' }, ro ? '' : btn('Cambia'),
     row => row.querySelector('button')?.addEventListener('click', () => openScheduleSheet(m)));
+
+  add({ label: 'Termostato', sub: termoSummary(m), icon: 'thermo', tone: 'amber' }, ro || !termo(m) ? '' : btn('Cambia'),
+    row => row.querySelector('button')?.addEventListener('click', () => openTermostatoSheet(MODEL || m)));
 
   const np = notifyPrefs();
   const nOn = np.presence || np.errors;

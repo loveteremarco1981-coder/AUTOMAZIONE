@@ -7,7 +7,7 @@ function renderModel(m) {
   applyRole(m);
   syncSharedScenes(m);
   renderBanner(m); renderIftttBanner(m); renderCards(m); renderScenes(); renderFavorites(m);
-  renderPeopleChips(m); renderEvents(m); renderDevices(m);
+  renderPeopleChips(m); renderEvents(m); renderDevices(m); renderTermostatoCard(m);
   renderPeopleDetail(m); renderSettings(m);
   updateErrorBadge(m); updateTs(m);
   updateHero();
