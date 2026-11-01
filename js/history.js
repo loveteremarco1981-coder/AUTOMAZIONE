@@ -147,7 +147,9 @@ function heatingCard(rows, axis) {
     const z = per && per[id];
     return `<div class="hb-row">
       <div class="hb-head"><b>${nome}</b>
-        <span>${!z ? 'nessun dato dal registro' : t.versione
+        <span>${!z ? 'nessun dato dal registro' : t.versione >= 3
+          ? `scalda ${oreTxt(z.ore)} · ${z.accensioni} ${z.accensioni === 1 ? 'accensione' : 'accensioni'}${z.oreSpento ? ` · spento ${oreTxt(z.oreSpento)}` : ''} · ${z.modifiche} ${z.modifiche === 1 ? 'modifica' : 'modifiche'} a mano`
+          : t.versione
           ? `comfort ${oreTxt(z.ore)} · ridotta ${oreTxt(z.oreRidotta)}${z.oreSpento ? ` · spento ${oreTxt(z.oreSpento)}` : ''} · ${z.modifiche} ${z.modifiche === 1 ? 'modifica' : 'modifiche'} a mano`
           : `acceso ${oreTxt(z.ore)} · ${z.accensioni} ${z.accensioni === 1 ? 'accensione' : 'accensioni'} · ${z.interventi} ${z.interventi === 1 ? 'intervento' : 'interventi'} dello script`}</span>
       </div>
@@ -162,7 +164,7 @@ function heatingCard(rows, axis) {
       const barre = piani.map(([id, nome]) => { const o = (g.zone[id] || {}).ore || 0; return `<i class="hb-${id}" style="height:${Math.max(2, o / max * 100).toFixed(0)}%" title="${nome}: ${oreTxt(o)}"></i>`; }).join('');
       return `<div class="hb-day"><div class="hb-bars">${barre}</div><span>${d.toLocaleDateString('it-IT', { weekday: 'short' })}</span></div>`;
     }).join('')}</div>
-    <div class="hb-legend"><span><i class="hb-giorno"></i>3° piano</span><span><i class="hb-notte"></i>4° piano</span><span>${t.versione ? 'ore di Comfort al giorno' : 'ore di accensione al giorno'}</span></div>`;
+    <div class="hb-legend"><span><i class="hb-giorno"></i>3° piano</span><span><i class="hb-notte"></i>4° piano</span><span>${t.versione >= 3 ? 'ore di riscaldamento al giorno' : t.versione ? 'ore di Comfort al giorno' : 'ore di accensione al giorno'}</span></div>`;
   }
   return `<article class="hc-card hc-wide"><header><span class="hc-t">Riscaldamento</span><span class="hc-v"><small>${_histDays <= 1 ? 'ultime 24 ore' : 'ultimi 7 giorni'}</small></span></header>
     ${righe}${axis}${giorni}</article>`;

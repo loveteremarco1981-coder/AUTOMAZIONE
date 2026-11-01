@@ -24,7 +24,7 @@ function extraSettingRows(list, rowHtml, m) {
   // Gestione manuale: lo script smette di comandare i termostati (lo storico continua)
   if (termo(m)) {
     const man = !!m.termostato.manuale;
-    add({ label: 'Termostati: gestione manuale', sub: man ? 'Attiva: li comandi da casa, lo script registra soltanto' : 'Spenta: lo script comanda Comfort e Ridotta con le fasce orarie',
+    add({ label: 'Termostati: gestione manuale', sub: man ? 'Attiva: li comandi da casa, lo script registra soltanto' : 'Spenta: lo script regola la temperatura di ogni piano',
           icon: 'lock', tone: 'red' },
       `<label class="toggle-wrap"><input type="checkbox" aria-label="Termostati: gestione manuale" ${man ? 'checked' : ''} ${ro ? 'disabled' : ''}><span class="toggle-slider"></span></label>`,
       row => row.querySelector('input').addEventListener('change', async e => {
