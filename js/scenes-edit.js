@@ -7,6 +7,7 @@ const ACTIONS = [
   { id: 'alza_tutto',        label: 'Alza le tapparelle',          params: { manual: 'TRUE' } },
   { id: 'abbassa_tutto',     label: 'Abbassa le tapparelle',       params: { manual: 'TRUE' } },
   { id: 'termostato_auto',   label: 'Termostato in automatico' },
+  { id: 'eco_termostato',    label: 'Termostati in Eco' },
   { id: 'off_termostato',    label: 'Termostato spento' },
   { id: 'accendi_clima',     label: 'Clima acceso' },
   { id: 'spegni_clima',      label: 'Clima spento' },
@@ -17,13 +18,14 @@ const ACTIONS = [
   { id: 'piante',            label: 'Annaffia le piante' },
 ];
 // Azioni opposte: sceglierne una toglie l'altra dalla scena (accendere e spegnere insieme non ha senso)
-const OPPOSTI = {
-  alza_tutto: 'abbassa_tutto', abbassa_tutto: 'alza_tutto',
-  termostato_auto: 'off_termostato', off_termostato: 'termostato_auto',
-  accendi_clima: 'spegni_clima', spegni_clima: 'accendi_clima',
-  ezviz_interne_on: 'ezviz_interne_off', ezviz_interne_off: 'ezviz_interne_on',
-  ezviz_esterne_on: 'ezviz_esterne_off', ezviz_esterne_off: 'ezviz_esterne_on',
-};
+const GRUPPI_OPPOSTI = [
+  ['alza_tutto', 'abbassa_tutto'],
+  ['termostato_auto', 'eco_termostato', 'off_termostato'],
+  ['accendi_clima', 'spegni_clima'],
+  ['ezviz_interne_on', 'ezviz_interne_off'],
+  ['ezviz_esterne_on', 'ezviz_esterne_off'],
+];
+const opposti = id => (GRUPPI_OPPOSTI.find(g => g.includes(id)) || []).filter(x => x !== id);
 const SCENE_ICONS = ['sun', 'door', 'home', 'moon', 'play', 'leaf', 'shield', 'plane'];
 const SCENE_TONES = ['blue', 'green', 'amber', 'purple', 'red'];
 
@@ -145,8 +147,8 @@ function showSceneEdit(wrap, idx) {
     if (pos >= 0) sc.steps.splice(pos, 1);
     else {
       const a = ACTIONS.find(x => x.id === b.dataset.id);
-      const opp = sc.steps.findIndex(s => s.event === OPPOSTI[a.id]);
-      if (opp >= 0) sc.steps.splice(opp, 1);
+      const via = opposti(a.id);
+      sc.steps = sc.steps.filter(s => !via.includes(s.event));
       sc.steps.push(a.params ? { event: a.id, params: { ...a.params } } : { event: a.id });
     }
     drawSteps();

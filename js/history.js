@@ -1,9 +1,10 @@
 'use strict';
 /* ============================================================
-   STORICO — grafici di temperatura, umidità e presenze.
-   I dati arrivano dallo script (foglio "Storico"): ?history=1
+   STORICO — grafici di temperature (esterna, 3° e 4° piano), umidità,
+   riscaldamento (ore accese, accensioni, interventi) e presenze.
+   I dati arrivano dallo script (fogli "Storico" e "Termostati"): ?history=1
    ============================================================ */
-let _hist = { rows: [], ts: 0, ok: false };
+let _hist = { rows: [], ts: 0, ok: false, termo: null };
 let _histDays = 1;
 
 function parseHistRow(r) {
@@ -11,7 +12,8 @@ function parseHistRow(r) {
   const t = new Date(r[0]).getTime();
   if (isNaN(t)) return null;
   const num = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
-  return { t, temp: num(r[1]), hum: num(r[2]), n: num(r[3]), names: String(r[4] || '').split(',').map(s => s.trim()).filter(Boolean) };
+  return { t, temp: num(r[1]), hum: num(r[2]), n: num(r[3]), names: String(r[4] || '').split(',').map(s => s.trim()).filter(Boolean),
+           tg: num(r[5]), tn: num(r[6]), ag: num(r[9]), an: num(r[10]) };
 }
 
 async function loadHistory(force) {
@@ -23,6 +25,7 @@ async function loadHistory(force) {
     if (d && d.ok !== false && Array.isArray(d.rows)) {
       _hist.rows = d.rows.map(parseHistRow).filter(Boolean).sort((a, b) => a.t - b.t);
       _hist.ok = _hist.rows.length > 1;
+      _hist.termo = d.termostati || null;
     } else {
       _hist.ok = false;            // script non ancora aggiornato: la sezione resta nascosta
     }
@@ -90,6 +93,79 @@ function presenceChart(rows) {
   </svg>`;
 }
 
+// Più linee sulla stessa scala (temperature esterna, 3° e 4° piano)
+function multiLineChart(rows, series) {
+  const usate = series.filter(sr => rows.filter(r => r[sr.key] !== null).length >= 2);
+  if (!usate.length) return '<div class="hc-empty">Dati non ancora sufficienti</div>';
+  const W = 320, H = 110, PL = 4, PR = 4, PT = 8, PB = 4;
+  const t0 = rows[0].t, t1 = rows[rows.length - 1].t;
+  const vals = usate.flatMap(sr => rows.filter(r => r[sr.key] !== null).map(r => r[sr.key]));
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  if (hi - lo < 2) { const c = (hi + lo) / 2; lo = c - 1; hi = c + 1; }
+  const pad = (hi - lo) * .1; lo -= pad; hi += pad;
+  const x = t => PL + (t - t0) / Math.max(1, t1 - t0) * (W - PL - PR);
+  const y = v => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB);
+  const paths = usate.map(sr => {
+    const pts = rows.filter(r => r[sr.key] !== null);
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + x(p.t).toFixed(1) + ' ' + y(p[sr.key]).toFixed(1)).join(' ');
+    return `<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+  return `<svg class="hc-svg hc-multi" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Temperature esterna e dei piani">${paths}</svg>`;
+}
+
+function lastVal(rows, key) {
+  for (let i = rows.length - 1; i >= 0; i--) if (rows[i][key] !== null) return rows[i][key];
+  return null;
+}
+
+// Striscia acceso/spento nel tempo (dalle righe dello storico)
+function onOffBand(rows, key) {
+  const pts = rows.filter(r => r[key] !== null);
+  if (!pts.length) return '<div class="hb-band hb-empty"></div>';
+  const t0 = rows[0].t, t1 = rows[rows.length - 1].t, span = Math.max(1, t1 - t0);
+  let html = '';
+  pts.forEach((p, i) => {
+    if (p[key] !== 1) return;
+    const fine = i + 1 < pts.length ? pts[i + 1].t : t1;
+    const l = (p.t - t0) / span * 100, w = Math.max(.6, (fine - p.t) / span * 100);
+    html += `<i style="left:${l.toFixed(2)}%;width:${w.toFixed(2)}%"></i>`;
+  });
+  return `<div class="hb-band">${html}</div>`;
+}
+
+function oreTxt(h) {
+  if (h === null || h === undefined) return '—';
+  if (h < 1) return Math.round(h * 60) + ' min';
+  return String(Math.round(h * 10) / 10).replace('.', ',') + ' h';
+}
+
+function heatingCard(rows, axis) {
+  const t = _hist.termo;
+  const per = t && t.periodi ? t.periodi[String(_histDays)] : null;
+  const piani = [['giorno', '3° piano', 'ag'], ['notte', '4° piano', 'an']];
+  const righe = piani.map(([id, nome, key]) => {
+    const z = per && per[id];
+    return `<div class="hb-row">
+      <div class="hb-head"><b>${nome}</b>
+        <span>${z ? `acceso ${oreTxt(z.ore)} · ${z.accensioni} ${z.accensioni === 1 ? 'accensione' : 'accensioni'} · ${z.interventi} ${z.interventi === 1 ? 'intervento' : 'interventi'} dello script` : 'nessun dato dal registro'}</span>
+      </div>
+      ${onOffBand(rows, key)}
+    </div>`;
+  }).join('');
+  let giorni = '';
+  if (_histDays > 1 && t && Array.isArray(t.giorni)) {
+    const max = Math.max(1, ...t.giorni.flatMap(g => piani.map(([id]) => (g.zone[id] || {}).ore || 0)));
+    giorni = `<div class="hb-days" aria-label="Ore di accensione per giorno">${t.giorni.map(g => {
+      const d = new Date(g.data + 'T12:00:00');
+      const barre = piani.map(([id, nome]) => { const o = (g.zone[id] || {}).ore || 0; return `<i class="hb-${id}" style="height:${Math.max(2, o / max * 100).toFixed(0)}%" title="${nome}: ${oreTxt(o)}"></i>`; }).join('');
+      return `<div class="hb-day"><div class="hb-bars">${barre}</div><span>${d.toLocaleDateString('it-IT', { weekday: 'short' })}</span></div>`;
+    }).join('')}</div>
+    <div class="hb-legend"><span><i class="hb-giorno"></i>3° piano</span><span><i class="hb-notte"></i>4° piano</span><span>ore di accensione al giorno</span></div>`;
+  }
+  return `<article class="hc-card hc-wide"><header><span class="hc-t">Riscaldamento</span><span class="hc-v"><small>${_histDays <= 1 ? 'ultime 24 ore' : 'ultimi 7 giorni'}</small></span></header>
+    ${righe}${axis}${giorni}</article>`;
+}
+
 function statLine(rows, key, unit, dec) {
   const v = rows.filter(r => r[key] !== null).map(r => r[key]);
   if (!v.length) return '—';
@@ -113,12 +189,18 @@ function renderHistory() {
     ? `Più presenze: ${peak.n} ${peak.n === 1 ? 'persona' : 'persone'}, ${_histDays <= 1 ? fmtTime(new Date(peak.t).toISOString()) : new Date(peak.t).toLocaleDateString('it-IT', { weekday: 'long' })}`
     : 'Nessuna presenza registrata nel periodo';
 
+  const SERIE = [{ key: 'temp', color: '#ff9f43', label: 'Esterna' }, { key: 'tg', color: '#f472b6', label: '3° piano' }, { key: 'tn', color: '#a78bfa', label: '4° piano' }];
+  const g1 = v => v === null ? '—' : String(Math.round(v * 10) / 10).replace('.', ',') + '°';
+  const legenda = SERIE.map(sr => `<span><i style="background:${sr.color}"></i>${sr.label} <b>${g1(lastVal(rows, sr.key))}</b></span>`).join('');
+
   body.innerHTML = `
+    <article class="hc-card hc-wide"><header><span class="hc-t">Temperature</span></header>
+      <div class="hc-legend">${legenda}</div>${multiLineChart(rows, SERIE)}${axis}</article>
+    ${heatingCard(rows, axis)}
     <div class="hc-grid">
-      <article class="hc-card"><header><span class="hc-t">Temperatura</span><span class="hc-v">${statLine(rows, 'temp', '°', true)}</span></header>${lineChart(rows, 'temp', '#ff9f43')}${axis}</article>
-      <article class="hc-card"><header><span class="hc-t">Umidità</span><span class="hc-v">${statLine(rows, 'hum', '%', false)}</span></header>${lineChart(rows, 'hum', '#58a6ff')}${axis}</article>
-    </div>
-    <article class="hc-card hc-wide"><header><span class="hc-t">Presenze in casa</span><span class="hc-v"><small>${esc(peakTxt)}</small></span></header>${presenceChart(rows)}${axis}</article>`;
+      <article class="hc-card"><header><span class="hc-t">Umidità esterna</span><span class="hc-v">${statLine(rows, 'hum', '%', false)}</span></header>${lineChart(rows, 'hum', '#58a6ff')}${axis}</article>
+      <article class="hc-card"><header><span class="hc-t">Presenze</span><span class="hc-v"><small>${esc(peakTxt)}</small></span></header>${presenceChart(rows)}${axis}</article>
+    </div>`;
   syncHistSeg();
 }
 

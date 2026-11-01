@@ -42,6 +42,7 @@ function renderBanner(m) {
 const IFTTT_SERVIZIO = {
   accendi_clima: 'NetHome Plus', spegni_clima: 'NetHome Plus',
   alza_tutto: 'Vimar', abbassa_tutto: 'Vimar', piante: 'Vimar', termostato_auto: 'Vimar', off_termostato: 'Vimar',
+  eco_termostato: 'Vimar', termostato_auto_giorno: 'Vimar', termostato_auto_notte: 'Vimar',
   ezviz_interne_on: 'EZVIZ', ezviz_interne_off: 'EZVIZ', ezviz_esterne_on: 'EZVIZ', ezviz_esterne_off: 'EZVIZ',
 };
 const iftttAvvisi = () => (MODEL && MODEL.ifttt && Array.isArray(MODEL.ifttt.avvisi)) ? MODEL.ifttt.avvisi : [];
@@ -431,9 +432,14 @@ function renderDevices(m) {
   }
 }
 
-// Termostati e clima di config.js, più "Clima On" (accendi_clima) se config.js non lo elenca ancora
+// Termostati e clima di config.js, più "Termostati Eco" e "Clima On" se config.js non li elenca ancora
 function thermostatList(list) {
   const out = (list || []).slice();
+  if (!out.some(t => t.event === 'eco_termostato')) {
+    const eco = { label: 'Termostati Eco', svgIcon: 'leaf', event: 'eco_termostato' };
+    const j = out.findIndex(t => t.event === 'off_termostato');
+    if (j >= 0) out.splice(j, 0, eco); else out.push(eco);
+  }
   if (!out.some(t => t.event === 'accendi_clima')) {
     const on = { label: 'Clima On', svgIcon: 'power', event: 'accendi_clima' };
     const i = out.findIndex(t => t.event === 'spegni_clima');
