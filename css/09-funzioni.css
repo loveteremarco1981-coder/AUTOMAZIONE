@@ -1301,3 +1301,24 @@ body.ro .qa-btn {
 .fx + .fld-hint {
   margin-top: 10px;
 }
+
+/* ---- Termostati: avvisi di sicurezza e riquadro rapido dalla Home ---- */
+
+.termo-alert {
+  margin-top: 10px;
+}
+
+.termo-state.alert {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.termo-rapido .termo-zone {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.termo-rapido .termo-zone-head span {
+  display: none;
+}
