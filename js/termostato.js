@@ -61,8 +61,59 @@ function renderTermoMini(m) {
   $$('.tc-floor').forEach(b => {
     if (b.dataset.bound) return;
     b.dataset.bound = '1';
-    b.addEventListener('click', () => { haptic(); activateTab('devices'); });
+    b.addEventListener('click', () => {
+      haptic();
+      const tt = termo(MODEL || m), id = b.id === 'tc-floor-notte' || /notte/.test(b.dataset.zona || b.id) ? 'notte' : 'giorno';
+      if (tt && tt.versione >= 3 && tt.zone[id]) openTermoRapido(id);
+      else activateTab('devices');
+    });
   });
+  renderTermoAvviso(m);
+}
+
+// Avviso rosso in Home quando una zona ha un problema di sicurezza
+function renderTermoAvviso(m) {
+  const el = $('#termo-alert'); if (!el) return;
+  const t = termo(m);
+  const zone = t && !t.manuale && t.stagione === 'inverno' ? ZONE.filter(([id]) => avvisoZona(t.zone[id])) : [];
+  if (!zone.length) { el.hidden = true; el.innerHTML = ''; return; }
+  const [id] = zone[0], av = avvisoZona(t.zone[id]);
+  const piani = zone.map(([zid]) => PIANO[zid]).join(' e ');
+  el.innerHTML = `
+    <span class="ib-ico">${svg('alert')}</span>
+    <span class="ib-text">
+      <span class="ib-title">Termostato ${esc(piani)}: ${esc(av.titolo)}</span>
+      <span class="ib-sub">${esc(av.testo)}</span>
+    </span>
+    <span class="ib-btns">
+      <a class="ib-btn" href="${esc(iftttLink())}" target="_blank" rel="noopener">Apri IFTTT</a>
+      ${isReadOnly() ? '' : '<button class="ib-btn ib-done" type="button">Riprova</button>'}
+    </span>`;
+  el.hidden = false;
+  el.querySelector('.ib-done')?.addEventListener('click', e => busy(e.currentTarget, async () => {
+    haptic();
+    const r = await callAdmin('termostato_auto', null, { noUndo: true });
+    if (!r || r.ok === false) { if (r) toast('Lo script non ha registrato il comando.', 'err'); return; }
+    toast('Comando rimandato: se il problema resta, l’avviso ricompare.', 'ok', 3500);
+    reloadSoon(800);
+  }));
+}
+
+// Tocco su un piano nella Home: riquadro con stanza, obiettivo e − / +
+function openTermoRapido(id) {
+  const wrap = document.createElement('div');
+  wrap.className = 'se termo-rapido';
+  const disegna = () => {
+    const t = termo(MODEL);
+    if (!t) { closeSheet(); return; }
+    const nome = ZONE.find(([zid]) => zid === id)[1];
+    wrap.innerHTML = `<div class="termo-card-in">${zonaHtml(t, [id, nome])}</div>
+      <div class="sheet-actions"><button class="btn-ghost" type="button" id="tr-dettagli">Tutti i termostati</button></div>`;
+    wrap.querySelectorAll('.termo-volo').forEach(b => bindVolo(b, disegna));
+    wrap.querySelector('#tr-dettagli').addEventListener('click', () => { closeSheet(); activateTab('devices'); });
+  };
+  openSheet(PIANO[id], wrap);
+  disegna();
 }
 
 function termoSummary(m) {
@@ -74,55 +125,69 @@ function termoSummary(m) {
   return `Comfort ${gradi(z.giorno.cfg.comfort)} / ridotta ${gradi(z.giorno.cfg.ridotta)} · ${STAGIONE_NOME[t.stagione]}`;
 }
 
+const quandoTxt = x => x && x.ts ? `<small>alle ${oraTxt(x.ts)}</small>` : '<small>&nbsp;</small>';
+const PIANO = { giorno: '3° piano', notte: '4° piano' };
+
+// Testo dell'avviso di sicurezza di una zona (null se non c'è)
+function avvisoZona(z) {
+const a = z && z.allarme; if (!a) return null;
+if (a.tipo === 'temperatura') return {
+  titolo: 'riscaldamento fermato per sicurezza',
+  testo: `IFTTT non manda la temperatura della stanza ${a.da ? 'dalle ' + oraTxt(a.da) : 'da tempo'}. Controlla l’applet vimar_temp_${z.nome === 'notte' || /notte/i.test(z.nome) ? 'notte' : 'giorno'}: appena arriva una temperatura riparte da solo.` };
+return {
+  titolo: 'il termostato non risponde',
+  testo: `${CALDAIA_NOME[a.comando] || 'Il comando'} non è stato confermato nemmeno al secondo tentativo. Controlla l’applet ${a.comando === 'scalda' ? 'comfort' : 'ridotta'}_${/notte/i.test(z.nome) ? 'notte' : 'giorno'} e lo scenario Vimar.` };
+}
+
+function zonaHtml(t, [id, nome]) {
+  const z = t.zone[id]; if (!z) return '';
+  const c = z.cfg || {};
+  const estate = t.stagione !== 'inverno';
+  const v3 = t.versione >= 3;
+  const fino = estate ? 'primavera-estate' : z.volo ? `al volo fino alle ${oraTxt(z.volo.fino)}`
+    : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} fino alle ${oraTxt(z.prossimo.ts)}` : '&nbsp;';
+  const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
+    : z.programma ? `${COMANDO_NOME[z.programma]} ${gradi(c[z.programma])}` : '—';
+  const caldaia = z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
+  const terzo = v3
+    ? `<div><span>Caldaia</span><b class="termo-prog">${esc(caldaia)}</b><small>${z.setpoint ? `termostato ${gradi(z.setpoint.v)}` : '&nbsp;'}</small></div>`
+    : `<div><span>Impostata</span><b>${gradi(z.setpoint && z.setpoint.v)}</b>${quandoTxt(z.setpoint)}</div>`;
+  const voloVal = z.volo ? z.volo.v : (typeof z.obiettivo === 'number' ? z.obiettivo : c[z.programma] || c.comfort);
+  const volo = v3 && !estate && !isReadOnly() && !t.manuale ? `
+      <div class="termo-volo" data-zona="${id}" data-v="${voloVal}" data-max="${c.base}">
+        <span>Al volo</span>
+        <button type="button" class="tv-btn" data-d="-0.5" aria-label="Mezzo grado in meno">−</button>
+        <b class="tv-val">${gradi(voloVal)}</b>
+        <button type="button" class="tv-btn" data-d="0.5" aria-label="Mezzo grado in più">+</button>
+        ${z.volo ? '<button type="button" class="small-btn tv-reset">Programma</button>' : ''}
+      </div>` : '';
+  let stato;
+  const av = !t.manuale && !estate ? avvisoZona(z) : null;
+  if (av) stato = `${cap(av.titolo)}. ${av.testo}`;
+  else if (t.manuale) stato = 'Gestione manuale: lo script registra soltanto';
+  else if (estate) stato = 'Primavera-estate: lo script non accende il riscaldamento';
+  else if (z.hold) stato = z.hold.fino ? `${z.hold.motivo ? cap(z.hold.motivo) : 'Modifica a mano'}: torna al programma alle ${oraTxt(z.hold.fino)}` : `${cap(z.hold.motivo || 'Spento a mano')}: resta così finché non lo cambi`;
+  else if (z.ultima) stato = `${z.ultima.testo} · ${shutterWhen(z.ultima.ts)}`;
+  else if (!z.temp && !z.setpoint) stato = 'In attesa dei primi dati da IFTTT';
+  else stato = 'Il programma partirà al prossimo controllo';
+  return `
+    <div class="termo-zone" data-zona="${id}">
+      <div class="termo-zone-head"><b>${esc(nome)} ${onOffBadge(z, t)}</b><span>max ${gradi(c.base)}</span></div>
+      <div class="termo-vals">
+        <div><span>Stanza</span><b>${gradi(z.temp && z.temp.v)}</b>${quandoTxt(z.temp)}</div>
+        <div><span>Obiettivo</span><b>${esc(obiettivo)}</b><small>${fino}</small></div>
+        ${terzo}
+      </div>${volo}
+      <p class="termo-state${av ? ' alert' : z.hold && !t.manuale && !estate ? ' on' : ''}">${esc(stato)}</p>
+    </div>`;
+}
+
 /* ---- Schede in Dispositivi ---- */
 function renderTermostatoCard(m) {
   renderTermoMini(m);
   const el = $('#termo-card'); if (!el) return;
   const t = termo(m);
   if (!t) { el.hidden = true; return; }
-  const quando = x => x && x.ts ? `<small>alle ${oraTxt(x.ts)}</small>` : '<small>&nbsp;</small>';
-
-  const zona = ([id, nome]) => {
-    const z = t.zone[id]; if (!z) return '';
-    const c = z.cfg || {};
-    const estate = t.stagione !== 'inverno';
-    const v3 = t.versione >= 3;
-    const fino = estate ? 'primavera-estate' : z.volo ? `al volo fino alle ${oraTxt(z.volo.fino)}`
-      : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} fino alle ${oraTxt(z.prossimo.ts)}` : '&nbsp;';
-    const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
-      : z.programma ? `${COMANDO_NOME[z.programma]} ${gradi(c[z.programma])}` : '—';
-    const caldaia = z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
-    const terzo = v3
-      ? `<div><span>Caldaia</span><b class="termo-prog">${esc(caldaia)}</b><small>${z.setpoint ? `termostato ${gradi(z.setpoint.v)}` : '&nbsp;'}</small></div>`
-      : `<div><span>Impostata</span><b>${gradi(z.setpoint && z.setpoint.v)}</b>${quando(z.setpoint)}</div>`;
-    const voloVal = z.volo ? z.volo.v : (typeof z.obiettivo === 'number' ? z.obiettivo : c[z.programma] || c.comfort);
-    const volo = v3 && !estate && !isReadOnly() && !t.manuale ? `
-        <div class="termo-volo" data-zona="${id}" data-v="${voloVal}" data-max="${c.base}">
-          <span>Al volo</span>
-          <button type="button" class="tv-btn" data-d="-0.5" aria-label="Mezzo grado in meno">−</button>
-          <b class="tv-val">${gradi(voloVal)}</b>
-          <button type="button" class="tv-btn" data-d="0.5" aria-label="Mezzo grado in più">+</button>
-          ${z.volo ? '<button type="button" class="small-btn tv-reset">Programma</button>' : ''}
-        </div>` : '';
-    let stato;
-    if (t.manuale) stato = 'Gestione manuale: lo script registra soltanto';
-    else if (estate) stato = 'Primavera-estate: lo script non accende il riscaldamento';
-    else if (z.hold) stato = z.hold.fino ? `${z.hold.motivo ? cap(z.hold.motivo) : 'Modifica a mano'}: torna al programma alle ${oraTxt(z.hold.fino)}` : `${cap(z.hold.motivo || 'Spento a mano')}: resta così finché non lo cambi`;
-    else if (z.ultima) stato = `${z.ultima.testo} · ${shutterWhen(z.ultima.ts)}`;
-    else if (!z.temp && !z.setpoint) stato = 'In attesa dei primi dati da IFTTT';
-    else stato = 'Il programma partirà al prossimo controllo';
-    return `
-      <div class="termo-zone" data-zona="${id}">
-        <div class="termo-zone-head"><b>${esc(nome)} ${onOffBadge(z, t)}</b><span>max ${gradi(c.base)}</span></div>
-        <div class="termo-vals">
-          <div><span>Stanza</span><b>${gradi(z.temp && z.temp.v)}</b>${quando(z.temp)}</div>
-          <div><span>Obiettivo</span><b>${esc(obiettivo)}</b><small>${fino}</small></div>
-          ${terzo}
-        </div>${volo}
-        <p class="termo-state${z.hold && !t.manuale && !estate ? ' on' : ''}">${esc(stato)}</p>
-      </div>`;
-  };
-
   el.innerHTML = `
     <div class="termo-head">
       <span class="dev-icon t-orange">${svg('thermo')}</span>
@@ -132,15 +197,15 @@ function renderTermostatoCard(m) {
       </span>
       ${isReadOnly() ? '' : `<button class="small-btn" type="button" id="termo-edit">Cambia</button>`}
     </div>
-    ${ZONE.map(zona).join('')}
+    ${ZONE.map(zz => zonaHtml(t, zz)).join('')}
     <p class="termo-habits">${anticipoTxt(t)}</p>`;
   el.hidden = false;
   el.querySelector('#termo-edit')?.addEventListener('click', () => openTermostatoSheet(MODEL || m));
-  el.querySelectorAll('.termo-volo').forEach(bindVolo);
+  el.querySelectorAll('.termo-volo').forEach(b => bindVolo(b));
 }
 
 // − / + al volo: si aspetta un attimo che smetti di toccare, poi un solo invio
-function bindVolo(box) {
+function bindVolo(box, dopo) {
   const zona = box.dataset.zona, max = Number(box.dataset.max);
   let v = Number(box.dataset.v), timer = null;
   const val = box.querySelector('.tv-val');
@@ -149,7 +214,7 @@ function bindVolo(box) {
     const r = await callAdmin('set_termostato', params, { noUndo: true });
     box.classList.remove('is-busy');
     if (!r || r.ok === false) { if (r) toast(r.error ? `Non salvato: ${r.error}` : 'Lo script non ha registrato la temperatura.', 'err', 3200); return; }
-    if (MODEL && r.termostato) { MODEL.termostato = r.termostato; saveModel(MODEL); renderTermostatoCard(MODEL); }
+    if (MODEL && r.termostato) { MODEL.termostato = r.termostato; saveModel(MODEL); renderTermostatoCard(MODEL); if (dopo) dopo(); }
     toast(params['volo_' + zona] === 'off' ? 'Torna il programma' : `${zona === 'giorno' ? '3°' : '4°'} piano: ${gradi(v)} fino al prossimo cambio di fascia`, 'ok', 2600);
   };
   box.querySelectorAll('.tv-btn').forEach(b => b.addEventListener('click', () => {
