@@ -346,7 +346,7 @@ function openTermostatoSheet(m) {
       const comfort = num('#tm-comfort-' + id), ridotta = num('#tm-ridotta-' + id), base = num('#tm-base-' + id);
       if ([comfort, ridotta].some(x => isNaN(x) || x < 5 || x > 30)) { err.textContent = `${piano}: le temperature devono essere tra 5° e 30°.`; return; }
       if (isNaN(base) || base < 16 || base > 28) { err.textContent = `${piano}: il massimo deve essere tra 16° e 28°.`; return; }
-      if (ridotta <= params.ferma) { err.textContent = `${piano}: la Ridotta deve stare sopra la temperatura degli scenari Ferma.`; return; }
+      if (ridotta < params.ferma) { err.textContent = `${piano}: la Ridotta non può stare sotto la temperatura degli scenari Ferma.`; return; }
       if (ridotta > comfort) { err.textContent = `${piano}: la Ridotta non può superare il Comfort.`; return; }
       if (comfort > base) { err.textContent = `${piano}: il Comfort non può superare il Massimo.`; return; }
       const fer = $w('#tm-fer-' + id).value, wk = $w('#tm-wk-' + id).value;
