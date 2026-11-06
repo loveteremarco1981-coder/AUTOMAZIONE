@@ -1,0 +1,3754 @@
+[
+  {
+    "id": "OBO-TBS-250-T1.01",
+    "nome": "Giunzioni longitudinali e trasversali – conduttore tondo",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "piano",
+      "applicazione": "giunzione",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.01.dwg",
+    "immagine": "OBO-TBS-250-T1.01.pdf",
+    "note": "Giunzione e incrocio di conduttori tondi Rd 8-10 (0°/90°/180°).",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.01",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.02",
+    "nome": "Giunzioni – conduttore piatto e tondo in acciaio zincato",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "piano",
+      "applicazione": "giunzione",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5314658",
+        "descrizione": "256 A-DIN 30 FT – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "piatto/piatto"
+      },
+      {
+        "codiceOBO": "5312655",
+        "descrizione": "252 8-10 x FL30 FT – morsetto a croce tondo/piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "tondo/piatto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.02.dwg",
+    "immagine": "OBO-TBS-250-T1.02.pdf",
+    "note": "Materiali: 5019347 5052 DIN 30x3,5 piatto zincato; 5021081 RD 8-FT tondo zincato.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.02",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.03",
+    "nome": "Fissaggio dei conduttori su tetto piano (tondo, piatto, isCon)",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "guaina",
+      "applicazione": "supporti",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "1 ogni 1,0 m"
+      },
+      {
+        "codiceOBO": "5218885",
+        "descrizione": "165 MBG HFL – adattatore piatto per supporto",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "solo conduttore piatto"
+      },
+      {
+        "codiceOBO": "5218882",
+        "descrizione": "165 MBG UH – adattatore universale piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5408008",
+        "descrizione": "isCon Pro 75 SW – conduttore isolato",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "solo isCon"
+      },
+      {
+        "codiceOBO": "2153114",
+        "descrizione": "M-Quick 18-22 LGR – clip Multi-Quick",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "solo isCon"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.03.dwg",
+    "immagine": "OBO-TBS-250-T1.03.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.03",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.04",
+    "nome": "Compensatori di dilatazione termica",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "piano",
+      "applicazione": "compensatori",
+      "parametri": {
+        "passoCompensatori": {
+          "acciaio": 15,
+          "rame": 10,
+          "alluminio": 10,
+          "inox": 10
+        }
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5218926",
+        "descrizione": "172 AR – compensatore (conduttore tondo)",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore"
+      },
+      {
+        "codiceOBO": "5331501",
+        "descrizione": "856 – nastro di collegamento e dilatazione (piatto)",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore",
+        "nota": "conduttore piatto"
+      },
+      {
+        "codiceOBO": "3160734",
+        "descrizione": "SKS 10x25 F – vite M10 con dado e rondella",
+        "quantita": 2,
+        "unitaQuantita": "per_compensatore",
+        "nota": "conduttore piatto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.04.dwg",
+    "immagine": "OBO-TBS-250-T1.04.pdf",
+    "note": "Distanza tra compensatori (dalla tabella del particolare): acciaio 15 m; rame, alluminio, inox 10 m – da confermare sul disegno.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.04",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.05",
+    "nome": "Maglia con conduttore tondo sulla copertura",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "guaina",
+      "applicazione": "maglia",
+      "parametri": {
+        "passoSupporti": 1.0,
+        "materiale": "alluminio"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "supporti ogni max 1,0 m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      },
+      {
+        "codiceOBO": "5218926",
+        "descrizione": "172 AR – compensatore di dilatazione",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore",
+        "nota": "ogni 10 m (alluminio, T1.04)"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.05.dwg",
+    "immagine": "OBO-TBS-250-T1.05.pdf",
+    "note": "Interasse dei supporti max 1,0 m.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.05",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.06",
+    "nome": "Maglia con conduttore piatto sulla copertura",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "guaina",
+      "applicazione": "maglia",
+      "parametri": {
+        "passoSupporti": 1.0,
+        "materiale": "acciaio"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "supporti ogni max 1,0 m"
+      },
+      {
+        "codiceOBO": "5218885",
+        "descrizione": "165 MBG HFL – adattatore piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5314658",
+        "descrizione": "256 A-DIN 30 FT – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      },
+      {
+        "codiceOBO": "5331501",
+        "descrizione": "856 – nastro di dilatazione",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore",
+        "nota": "ogni 15 m (acciaio, T1.04)"
+      },
+      {
+        "codiceOBO": "3160734",
+        "descrizione": "SKS 10x25 F – vite M10",
+        "quantita": 2,
+        "unitaQuantita": "per_compensatore"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.06.dwg",
+    "immagine": "OBO-TBS-250-T1.06.pdf",
+    "note": "Interasse dei supporti max 1,0 m.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.06",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.07",
+    "nome": "Maglia con conduttore tondo su tetto con ghiaia",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "ghiaia",
+      "applicazione": "maglia",
+      "parametri": {
+        "passoSupporti": null,
+        "materiale": "alluminio"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218977",
+        "descrizione": "165 KRB SO – supporto per tetto piano (ghiaia)",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "passo da verificare"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.07.dwg",
+    "immagine": "OBO-TBS-250-T1.07.pdf",
+    "note": "Tetto con ghiaia (copertura zavorrata). Passo dei supporti non indicato nel PDF.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.07",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.08",
+    "nome": "Maglia con conduttore tondo su tetto con ghiaia",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "ghiaia",
+      "applicazione": "maglia",
+      "parametri": {
+        "passoSupporti": null,
+        "materiale": "alluminio"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218977",
+        "descrizione": "165 KRB SO – supporto per tetto piano (ghiaia)",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "passo da verificare"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.08.dwg",
+    "immagine": "OBO-TBS-250-T1.08.pdf",
+    "note": "Tetto con ghiaia (variante). Passo dei supporti non indicato nel PDF.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.08",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.09",
+    "nome": "Discesa del conduttore attraverso la guaina verso il pilastro metallico",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "calata",
+      "tipo": "naturale_metallica",
+      "applicazione": "attraversamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10 con sella",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento e ponticello",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5318084",
+        "descrizione": "272 8 – morsetto di collegamento fino a 14 mm",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.09.dwg",
+    "immagine": "OBO-TBS-250-T1.09.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.09",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.10",
+    "nome": "Discesa del conduttore attraverso il manto bituminoso",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "guaina",
+      "applicazione": "attraversamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5201101",
+        "descrizione": "330 K – passante per copertura",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.10.dwg",
+    "immagine": "OBO-TBS-250-T1.10.pdf",
+    "note": "Fissaggio del passante con adesivo speciale sulla guaina.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.10",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.11",
+    "nome": "Collegamento della scossalina metallica alla maglia (rivetti)",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "metallico",
+      "applicazione": "captatore_naturale",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento e ponticello",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320704",
+        "descrizione": "287 – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5331501",
+        "descrizione": "856 – nastro di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5320707",
+        "descrizione": "287 DCT – elemento con doppia traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.11.dwg",
+    "immagine": "OBO-TBS-250-T1.11.pdf",
+    "note": "Rivetti ciechi: 2 × Ø6, 4 × Ø5, 5 × Ø3,5 o 2 × Ø6,3 inox, secondo l'elemento.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.11",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.12",
+    "nome": "Conduttore tondo su parapetto piano (muratura)",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "muratura",
+      "applicazione": "bordo",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218997",
+        "descrizione": "165 R-8-10 – supporto per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "passo da verificare"
+      },
+      {
+        "codiceOBO": "5311209",
+        "descrizione": "247 8-10 FT – connettore a T",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5230322",
+        "descrizione": "113 B-Z-HD – staffa con traversa, vite e tassello",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.12.dwg",
+    "immagine": "OBO-TBS-250-T1.12.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.12",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.13",
+    "nome": "Conduttore tondo su parapetto metallico, con calata",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "metallico",
+      "applicazione": "bordo",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207444",
+        "descrizione": "177 20 M8 – staffa universale",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304164",
+        "descrizione": "5001 N-FT – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.13.dwg",
+    "immagine": "OBO-TBS-250-T1.13.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.13",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.14",
+    "nome": "Collegamento della maglia al parapetto",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "metallico",
+      "applicazione": "bordo",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311101",
+        "descrizione": "245 8-10 FT – connettore a T",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.14.dwg",
+    "immagine": "OBO-TBS-250-T1.14.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.14",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.15",
+    "nome": "Collegamento della scala antincendio alla maglia",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "scala",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311585",
+        "descrizione": "249 8-10 ALU-OT – morsetto equipotenziale",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.15.dwg",
+    "immagine": "OBO-TBS-250-T1.15.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.15",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.16",
+    "nome": "Collegamento del corrimano metallico alla maglia",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "corrimano",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218977",
+        "descrizione": "165 KRB SO – supporto per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304520",
+        "descrizione": "5010 20 FT – morsetto per strutture fino a 20 mm",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.16.dwg",
+    "immagine": "OBO-TBS-250-T1.16.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.16",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.17",
+    "nome": "Collegamento del corrimano tubolare alla maglia",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "corrimano",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5057515",
+        "descrizione": "927 1 – fascetta per tubi inox",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320707",
+        "descrizione": "287 DCT – elemento con doppia traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.17.dwg",
+    "immagine": "OBO-TBS-250-T1.17.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.17",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.18",
+    "nome": "Collegamento dei tratti di corrimano tra loro (morsetto)",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "corrimano",
+      "applicazione": "continuita",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304520",
+        "descrizione": "5010 20 FT – morsetto per strutture fino a 20 mm",
+        "quantita": 2,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.18.dwg",
+    "immagine": "OBO-TBS-250-T1.18.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.18",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.19",
+    "nome": "Collegamento dei tratti di corrimano tra loro (cavallotto)",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "corrimano",
+      "applicazione": "continuita",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5331013",
+        "descrizione": "853 300 – cavallotto",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "3160734",
+        "descrizione": "SKS 10x25 F – vite M10",
+        "quantita": 2,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.19.dwg",
+    "immagine": "OBO-TBS-250-T1.19.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.19",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.20",
+    "nome": "Conduttore su parapetto metallico – protezione di spigoli e angoli",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "metallico",
+      "applicazione": "bordo",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5230322",
+        "descrizione": "113 B-Z-HD – staffa con traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311585",
+        "descrizione": "249 8-10 ALU-OT – morsetto equipotenziale",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.20.dwg",
+    "immagine": "OBO-TBS-250-T1.20.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.20",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.21",
+    "nome": "Punte di captazione su parapetto piano",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "muratura",
+      "applicazione": "bordo",
+      "parametri": {
+        "passoSupporti": 1.0,
+        "punte": [
+          {
+            "e": 3,
+            "h": 0.15
+          },
+          {
+            "e": 4,
+            "h": 0.25
+          },
+          {
+            "e": 5,
+            "h": 0.35
+          },
+          {
+            "e": 6,
+            "h": 0.45
+          }
+        ]
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021050",
+        "descrizione": "RD 8-FT 50 – tondo acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218997",
+        "descrizione": "165 R-8-10 – supporto",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "supporti ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5320712",
+        "descrizione": "288 DIN – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5311500",
+        "descrizione": "249 8-10 ST – connettore Vario acciaio",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5405068",
+        "descrizione": "120 A – punta di captazione",
+        "quantita": 1,
+        "unitaQuantita": "per_punta"
+      },
+      {
+        "codiceOBO": "5311101",
+        "descrizione": "245 8-10 FT – connettore a T",
+        "quantita": 1,
+        "unitaQuantita": "per_punta"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.21.dwg",
+    "immagine": "OBO-TBS-250-T1.21.pdf",
+    "note": "Tabella interasse e / altezza punta h: e = 3, 4, 5, 6 m con h = 0,15 / 0,25 / 0,35 / 0,45 m (abbinamento da confermare sul disegno).",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.21",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.22",
+    "nome": "Parcheggio sulla copertura – conduttori annegati nell'impermeabilizzazione",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "carrabile",
+      "applicazione": "maglia",
+      "parametri": {
+        "materiale": "inox"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021647",
+        "descrizione": "RD 10-V4A – tondo inox Ø10",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5312318",
+        "descrizione": "252 8-10 V4A – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      },
+      {
+        "codiceOBO": "5405769",
+        "descrizione": "128 F – captatore a fungo con connettori",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.22.dwg",
+    "immagine": "OBO-TBS-250-T1.22.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.22",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.23",
+    "nome": "Parcheggio sulla copertura – conduttori annegati nell'impermeabilizzazione",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "tetto",
+      "tipo": "carrabile",
+      "applicazione": "maglia",
+      "parametri": {
+        "materiale": "inox"
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021647",
+        "descrizione": "RD 10-V4A – tondo inox Ø10",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5312318",
+        "descrizione": "252 8-10 V4A – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      },
+      {
+        "codiceOBO": "5405769",
+        "descrizione": "128 F – captatore a fungo con connettori",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA – connettore Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.23.dwg",
+    "immagine": "OBO-TBS-250-T1.23.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.23",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T1.24",
+    "nome": "Conduttore su parapetto metallico con punta di captazione",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "parapetto",
+      "tipo": "metallico",
+      "applicazione": "bordo",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5320707",
+        "descrizione": "287 DCT – elemento con doppia traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T1.24.dwg",
+    "immagine": "OBO-TBS-250-T1.24.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T1.24",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T2.02",
+    "nome": "Asta su base FangFix (tetto piano, senza forare)",
+    "categoria": "impianti_tetto",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "generico",
+      "applicazione": "asta",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5401983",
+        "descrizione": "101 VL2000 – asta conica",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5403219",
+        "descrizione": "F-FIX-KL – terminale FangFix",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5403225",
+        "descrizione": "F-FIX-B16 – base FangFix 16 kg",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5403227",
+        "descrizione": "F-FIX-S16 – blocco cls 16 kg",
+        "quantita": null,
+        "unitaQuantita": "per_asta",
+        "nota": "numero secondo il carico del vento – da definire"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T2.02.dwg",
+    "immagine": "OBO-TBS-250-T2.02.pdf",
+    "note": "Blocchi aggiuntivi in funzione del carico del vento.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T2.02",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T2.14",
+    "nome": "Gruppo frigo protetto con asta isolata",
+    "categoria": "impianti_tetto",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "frigo",
+      "applicazione": "asta_isolata",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5408158",
+        "descrizione": "101 IT-16 – connettore a T",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408107",
+        "descrizione": "101 3-ES-16 – set isolato, fissaggio a 3 punti",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408395",
+        "descrizione": "101 IES-16 – terminale",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408976",
+        "descrizione": "101 16-750 – asta isolante",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5218700",
+        "descrizione": "165 MBG-8-10 – supporto conduttore per tetto piano",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T2.14.dwg",
+    "immagine": "OBO-TBS-250-T2.14.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T2.14",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.01",
+    "nome": "Conduttore su colmo e displuvi – colmo semplice",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "semplice",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202510",
+        "descrizione": "132 P VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5203015",
+        "descrizione": "132 U – supporto colmo con molla 8 mm",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.01.dwg",
+    "immagine": "OBO-TBS-250-T3.01.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.01",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.02",
+    "nome": "Conduttore su colmo e displuvi – colmo angolare",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "angolare",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202510",
+        "descrizione": "132 P VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.02.dwg",
+    "immagine": "OBO-TBS-250-T3.02.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.02",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.03",
+    "nome": "Conduttore su colmo e displuvi – colmo con coppi",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "coppi",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5202833",
+        "descrizione": "132 VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5202836",
+        "descrizione": "132 VA 35 – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.03.dwg",
+    "immagine": "OBO-TBS-250-T3.03.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.03",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.06",
+    "nome": "Conduttore su colmo e displuvi – colmo ceramico",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "ceramico",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5202833",
+        "descrizione": "132 VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5202836",
+        "descrizione": "132 VA 35 – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.06.dwg",
+    "immagine": "OBO-TBS-250-T3.06.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.06",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.07",
+    "nome": "Conduttore su colmo e displuvi – colmo ceramico (variante)",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "ceramico",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5202833",
+        "descrizione": "132 VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5202836",
+        "descrizione": "132 VA 35 – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.07.dwg",
+    "immagine": "OBO-TBS-250-T3.07.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.07",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.04",
+    "nome": "Conduttore su colmo aggraffato",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "aggraffato",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5317208",
+        "descrizione": "270 8-10 VA – morsetto per aggraffatura fino a 10 mm",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.04.dwg",
+    "immagine": "OBO-TBS-250-T3.04.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.04",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.05",
+    "nome": "Conduttore su colmo in tegole bituminose",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "colmo",
+      "tipo": "bituminoso",
+      "applicazione": "colmo",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215544",
+        "descrizione": "157 FK VA 230 – supporto per tetti in tegole",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5215552",
+        "descrizione": "157 F VA 230",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5215555",
+        "descrizione": "157 F VA 230 35",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.05.dwg",
+    "immagine": "OBO-TBS-250-T3.05.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.05",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.08",
+    "nome": "Conduttore sulla falda – tegole bituminose (shingle)",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "bituminoso",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215544",
+        "descrizione": "157 FK-VA 230 – supporto per tetti in tegole",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5215307",
+        "descrizione": "157 ND-VA – supporto per tegole e ardesia",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.08.dwg",
+    "immagine": "OBO-TBS-250-T3.08.pdf",
+    "note": "Raccordo al colmo con piega ≈150°, L ≈ 0,3 m.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.08",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.09",
+    "nome": "Conduttore sulla falda – tegole ceramiche",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "tegole",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215625",
+        "descrizione": "157 I-VA – supporto per tetti in tegole",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "5215668",
+        "descrizione": "157 IK-VA – supporto angolato",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.09.dwg",
+    "immagine": "OBO-TBS-250-T3.09.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.09",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.10",
+    "nome": "Conduttore sulla falda – tegole ceramiche, raccordo al colmo",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "tegole",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215668",
+        "descrizione": "157 IK-VA – supporto angolato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K-VA – supporto per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.10.dwg",
+    "immagine": "OBO-TBS-250-T3.10.pdf",
+    "note": "Piega ≈150°, L ≈ 0,3 m.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.10",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.11",
+    "nome": "Conduttore alla grondaia",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "gronda",
+      "tipo": "grondaia",
+      "applicazione": "gronda",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5316459",
+        "descrizione": "RK-FIX VA – morsetto per grondaia",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.11.dwg",
+    "immagine": "OBO-TBS-250-T3.11.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.11",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.12",
+    "nome": "Conduttore sulla falda – tegole metalliche",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "tegole_metalliche",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207342",
+        "descrizione": "177 35 VA M6 – staffa rialzata senza viti",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.12.dwg",
+    "immagine": "OBO-TBS-250-T3.12.pdf",
+    "note": "Vite autoforante con rondella in gomma (codice non indicato).",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.12",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.13",
+    "nome": "Collegamento del conduttore al paraneve",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "paraneve",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207342",
+        "descrizione": "177 35 VA M6",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5316510",
+        "descrizione": "264 – morsetto per paraneve",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5316014",
+        "descrizione": "262 – morsetto per grondaia",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.13.dwg",
+    "immagine": "OBO-TBS-250-T3.13.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.13",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.14",
+    "nome": "Conduttore sulla falda – ardesia",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "ardesia",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202248",
+        "descrizione": "133 A – supporto per tegole, ardesia, ondulato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.14.dwg",
+    "immagine": "OBO-TBS-250-T3.14.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.14",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.15",
+    "nome": "Conduttore sulla falda – ardesia (con chiodo)",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "ardesia",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5217075",
+        "descrizione": "159 VA-V – supporto per tegole, ardesia, ondulato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202510",
+        "descrizione": "132 P VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.15.dwg",
+    "immagine": "OBO-TBS-250-T3.15.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.15",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.16",
+    "nome": "Conduttore sulla falda – lamiera grecata",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "lamiera_grecata",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5217075",
+        "descrizione": "159 VA-V – supporto per tegole, ardesia, ondulato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5203015",
+        "descrizione": "132 U – supporto colmo con molla",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.16.dwg",
+    "immagine": "OBO-TBS-250-T3.16.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.16",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.17",
+    "nome": "Conduttore sulla falda – copertura aggraffata",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "aggraffata",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5317208",
+        "descrizione": "270 8-10 VA – morsetto per aggraffatura",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218926",
+        "descrizione": "172 AR – compensatore",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.17.dwg",
+    "immagine": "OBO-TBS-250-T3.17.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.17",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.18",
+    "nome": "Asta per antenna satellitare (tetto a falde)",
+    "categoria": "impianti_tetto",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "antenna",
+      "applicazione": "asta_isolata",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5401983",
+        "descrizione": "101 VL2000 – asta conica",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5403335",
+        "descrizione": "SD-Fix – supporto asta per tetto inclinato",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408158",
+        "descrizione": "101 IT-16 – connettore a T",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408976",
+        "descrizione": "101 16-750 – asta isolante",
+        "quantita": 1,
+        "unitaQuantita": "per_asta",
+        "nota": "nel PDF indicata con codice 5408107"
+      },
+      {
+        "codiceOBO": "5102197",
+        "descrizione": "303 DIN-2 – fascetta per tubo",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5408988",
+        "descrizione": "101 BB-16 – bulloni di fissaggio",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.18.dwg",
+    "immagine": "OBO-TBS-250-T3.18.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.18",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.19",
+    "nome": "Collegamento del telaio metallico del lucernario",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "lucernario",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5207342",
+        "descrizione": "177 35 VA M6",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5320704",
+        "descrizione": "287 – elemento di collegamento",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304105",
+        "descrizione": "5001 DIN-FT – connettore Rd 8-10 singolo",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.19.dwg",
+    "immagine": "OBO-TBS-250-T3.19.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.19",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.20",
+    "nome": "Collegamento della passerella alla maglia",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "passerella",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5207460",
+        "descrizione": "177 30 M8 – staffa universale",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304176",
+        "descrizione": "5001 N-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5350123",
+        "descrizione": "301 DIN-120 – fascetta per pluviale",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304105",
+        "descrizione": "5001 DIN-FT",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.20.dwg",
+    "immagine": "OBO-TBS-250-T3.20.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.20",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.21",
+    "nome": "Asta sul camino in muratura",
+    "categoria": "impianti_tetto",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "camino",
+      "applicazione": "asta",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215668",
+        "descrizione": "157 IK-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5401986",
+        "descrizione": "101 VL2500 – asta conica",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5412609",
+        "descrizione": "113 Z-16 – supporto asta Ø16",
+        "quantita": 2,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5335140",
+        "descrizione": "223 O DINZN – giunto di sezionamento aperto",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10 – staffa con traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "3133230",
+        "descrizione": "985 M8 35 – tassello filettato M8",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "2349086",
+        "descrizione": "910 N 8x40 GRW – tassello ad espansione",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.21.dwg",
+    "immagine": "OBO-TBS-250-T3.21.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.21",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.22",
+    "nome": "Asta per torrino di ventilazione sul colmo",
+    "categoria": "impianti_tetto",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "torrino",
+      "applicazione": "asta",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5403330",
+        "descrizione": "F-FIX-132 – supporto asta per colmo",
+        "quantita": 1,
+        "unitaQuantita": "per_asta"
+      },
+      {
+        "codiceOBO": "5207347",
+        "descrizione": "177 20 VA M8 – staffa senza viti Rd 8",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.22.dwg",
+    "immagine": "OBO-TBS-250-T3.22.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.22",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.23",
+    "nome": "Collegamento della banderuola",
+    "categoria": "raccordo",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "banderuola",
+      "applicazione": "collegamento",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215668",
+        "descrizione": "157 IK-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5202515",
+        "descrizione": "132 K-VA",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5102138",
+        "descrizione": "303 DIN-1 1/4 – fascetta per tubo",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5304164",
+        "descrizione": "5001 N-FT",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.23.dwg",
+    "immagine": "OBO-TBS-250-T3.23.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.23",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.24",
+    "nome": "Tetto a padiglione: guglia come captatore naturale",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "impianto_tetto",
+      "tipo": "guglia",
+      "applicazione": "captatore_naturale",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "3133320",
+        "descrizione": "985 M8 35 – tassello filettato M8",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207444",
+        "descrizione": "177 20 M8 – staffa universale",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "2349086",
+        "descrizione": "910 N 8x40 GRW",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5215277",
+        "descrizione": "157 NB-VA – supporto per tegole e ardesia",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5057523",
+        "descrizione": "927 2 – fascetta per tubi inox",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.24.dwg",
+    "immagine": "OBO-TBS-250-T3.24.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.24",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T3.25",
+    "nome": "Conduttore sulla falda – copertura Kalzip",
+    "categoria": "captazione",
+    "condizioni": {
+      "elemento": "falda",
+      "tipo": "kalzip",
+      "applicazione": "falda",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5317512",
+        "descrizione": "RSF 177 20 VA M8 – morsetto Kalzip",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5218926",
+        "descrizione": "175 AR – compensatore",
+        "quantita": 1,
+        "unitaQuantita": "per_compensatore"
+      },
+      {
+        "codiceOBO": "5311519",
+        "descrizione": "249 8-10 ALU – connettore rapido Vario",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T3.25.dwg",
+    "immagine": "OBO-TBS-250-T3.25.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T3.25",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.01",
+    "nome": "Calata su muratura",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "muratura",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10 – staffa con traversa Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "3133230",
+        "descrizione": "985 M8 35 – tassello filettato M8",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      },
+      {
+        "codiceOBO": "2349086",
+        "descrizione": "910 N 8x40 GRW – tassello ad espansione",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.01.dwg",
+    "immagine": "OBO-TBS-250-T4.01.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.01",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.02",
+    "nome": "Calata su parete con cappotto (barra filettata)",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "cappotto",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10 – staffa con traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "3141128",
+        "descrizione": "TR M8 1M G – barra filettata 1 m",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto",
+        "nota": "da tagliare a misura: spessore isolante + ancoraggio"
+      },
+      {
+        "codiceOBO": "3492910",
+        "descrizione": "E M 8x40 – tassello a battere",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.02.dwg",
+    "immagine": "OBO-TBS-250-T4.02.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.02",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.03",
+    "nome": "Calata sotto il cappotto",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "sotto_cappotto",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5228123",
+        "descrizione": "156 K 8-10 ST – traversa Rd 8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "3188043",
+        "descrizione": "HHWS 6x40 G – vite DIN 571",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      },
+      {
+        "codiceOBO": "2349086",
+        "descrizione": "910 N 8x40 GRW",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.03.dwg",
+    "immagine": "OBO-TBS-250-T4.03.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.03",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.04",
+    "nome": "Calata sotto intonaco (in traccia)",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "sotto_intonaco",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": null
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021332",
+        "descrizione": "RD 8-PVC – tondo Al con guaina PVC",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.04.dwg",
+    "immagine": "OBO-TBS-250-T4.04.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.04",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.05",
+    "nome": "Calata dietro facciata ventilata – uscita in copertura",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "facciata_ventilata",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "3141128",
+        "descrizione": "TR M8 1M G – barra filettata",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      },
+      {
+        "codiceOBO": "3492910",
+        "descrizione": "E M 8x40",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.05.dwg",
+    "immagine": "OBO-TBS-250-T4.05.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.05",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.06",
+    "nome": "Calata dietro facciata ventilata – sulle staffe",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "facciata_ventilata_staffe",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": null
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021332",
+        "descrizione": "RD 8-PVC – tondo Al con guaina PVC",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304504",
+        "descrizione": "5004 DIN-FT 20 – morsetto per strutture 10-20 mm",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "sulle staffe della sottostruttura"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.06.dwg",
+    "immagine": "OBO-TBS-250-T4.06.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.06",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.07",
+    "nome": "Calata su facciata vetrata (telaio metallico)",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "vetrata",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "ogni max 1 m"
+      },
+      {
+        "codiceOBO": "3192644",
+        "descrizione": "4759 6.0x60 – vite Sprint",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.07.dwg",
+    "immagine": "OBO-TBS-250-T4.07.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.07",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.08",
+    "nome": "Calata su rivestimento metallico (montanti)",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "lamiera",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": 1.0
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207347",
+        "descrizione": "177 20 VA M8 – staffa senza viti",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5207371",
+        "descrizione": "177 U – rondella per staffa",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      },
+      {
+        "codiceOBO": "3195635",
+        "descrizione": "4758 5.0x30 – vite Sprint",
+        "quantita": 1,
+        "unitaQuantita": "per_supporto"
+      },
+      {
+        "codiceOBO": "5316450",
+        "descrizione": "RK-FIX – morsetto per grondaia",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.08.dwg",
+    "immagine": "OBO-TBS-250-T4.08.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.08",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.09",
+    "nome": "Calata lungo il pluviale",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "pluviale",
+      "applicazione": "calata",
+      "parametri": {
+        "passoSupporti": null
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5351375",
+        "descrizione": "301 S-AL-120 – fascetta pluviale con conduttore dietro",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "passo da verificare"
+      },
+      {
+        "codiceOBO": "5316014",
+        "descrizione": "262 – morsetto per grondaia",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.09.dwg",
+    "immagine": "OBO-TBS-250-T4.09.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.09",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.10",
+    "nome": "Contatore di fulmini sulla calata",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "accessorio",
+      "applicazione": "contatore",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5230322",
+        "descrizione": "113 B-Z-HD – staffa con traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5091722",
+        "descrizione": "LSC I+II – contatore di fulmini",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.10.dwg",
+    "immagine": "OBO-TBS-250-T4.10.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.10",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-250-T4.11",
+    "nome": "Scheda magnetica di registrazione dei fulmini",
+    "categoria": "calata",
+    "condizioni": {
+      "elemento": "parete",
+      "tipo": "accessorio",
+      "applicazione": "contatore",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – conduttore tondo Ø8 alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5091438",
+        "descrizione": "PCS – scheda magnetica",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5091527",
+        "descrizione": "PCS-H – supporto scheda",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5091683",
+        "descrizione": "PCS-CS-D – lettore",
+        "quantita": 1,
+        "unitaQuantita": "per_progetto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-250-T4.11.dwg",
+    "immagine": "OBO-TBS-250-T4.11.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-250-T4.11",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.01",
+    "nome": "Collegamento di tondo e piatto al picchetto",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "picchetto",
+      "applicazione": "tipo_A",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5021103",
+        "descrizione": "RD 10 – tondo acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5000017",
+        "descrizione": "219 20 OMEX FT – picchetto OMEX",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5001641",
+        "descrizione": "2760 20 FT – morsetto universale per picchetto",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.01.dwg",
+    "immagine": "OBO-TBS-200-T5.01.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.01",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.02",
+    "nome": "Tipi di picchetto e accessori di infissione",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "picchetto",
+      "applicazione": "tipo_A",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5000017",
+        "descrizione": "219 20 OMEX FT – picchetto OMEX",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento"
+      },
+      {
+        "codiceOBO": "5000947",
+        "descrizione": "219 20 BP FT – picchetto BP",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5000742",
+        "descrizione": "219 20 ST FT – picchetto standard",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5000300",
+        "descrizione": "LE ERDER FT – picchetto LightEarth",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "3041204",
+        "descrizione": "1819 20 – punta per OMEX",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20BP – punta per ST e BP",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "3041409",
+        "descrizione": "LE SPITZE – punta LightEarth",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "3042200",
+        "descrizione": "1820 20 – testa di battuta",
+        "quantita": 1,
+        "unitaQuantita": "per_progetto",
+        "nota": "attrezzo"
+      },
+      {
+        "codiceOBO": "3043602",
+        "descrizione": "LE HAMMER-SDS-M – inserto martello LightEarth",
+        "quantita": 1,
+        "unitaQuantita": "per_progetto",
+        "nota": "attrezzo"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.02.dwg",
+    "immagine": "OBO-TBS-200-T5.02.pdf",
+    "note": "Inserti per martello: 2536, 2510, 2520, 2530, 2531, 2535, 2500 (3044904, 3043312, 3043703, 3043401, 3043908, 3043916, 3043207) secondo il martello.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.02",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.03",
+    "nome": "Punto di sezionamento tra calata e collegamento a terra",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "sezionamento",
+      "applicazione": "calata",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5021642",
+        "descrizione": "RD 10-V4A – tondo inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m",
+        "nota": "alternativa"
+      },
+      {
+        "codiceOBO": "5021294",
+        "descrizione": "RD 8-ALU-T – tondo alluminio",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5032539",
+        "descrizione": "832 30 – distanziale per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10 – staffa con traversa",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5236457",
+        "descrizione": "233 A VA – giunto di sezionamento",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5304270",
+        "descrizione": "5002 N-VA – connettore doppio",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.03.dwg",
+    "immagine": "OBO-TBS-200-T5.03.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.03",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.04",
+    "nome": "Anello perimetrale in piatto inox (tipo B)",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "anello",
+      "applicazione": "tipo_B",
+      "parametri": {
+        "distanza": 1.0,
+        "profondita": 0.7
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5336341",
+        "descrizione": "233 VA – giunto di sezionamento Rd 8-10 / FL 30",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata",
+        "nota": "uscita dal terreno"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.04.dwg",
+    "immagine": "OBO-TBS-200-T5.04.pdf",
+    "note": "Anello a 1 m dal muro e 0,7 m di profondità.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.04",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.05",
+    "nome": "Anello perimetrale con picchetti",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "anello",
+      "applicazione": "tipo_B",
+      "parametri": {
+        "distanza": 1.0,
+        "profondita": 0.7
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5001633",
+        "descrizione": "2760 20 V4A – morsetto universale per picchetto",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5336341",
+        "descrizione": "233 VA – giunto di sezionamento Rd 8-10 / FL 30",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5000858",
+        "descrizione": "219 20 BP V4A – picchetto BP",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20 BP – punta di infissione",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.05.dwg",
+    "immagine": "OBO-TBS-200-T5.05.pdf",
+    "note": "Anello a 1 m dal muro e 0,7 m di profondità.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.05",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.06",
+    "nome": "Pozzetto d'ispezione tra dispersore e calata",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "sezionamento",
+      "applicazione": "pozzetto",
+      "parametri": {
+        "distanza": 1.0,
+        "profondita": 0.7
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5313023",
+        "descrizione": "250 A-VA – morsetto obliquo",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5021081",
+        "descrizione": "RD 8 FT – tondo zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5106003",
+        "descrizione": "5700 SP – pozzetto con giunto integrato",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.06.dwg",
+    "immagine": "OBO-TBS-200-T5.06.pdf",
+    "note": "Guaina termorestringente come protezione anticorrosione.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.06",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.07",
+    "nome": "Anello con picchetti e calata in tondo PVC",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "anello",
+      "applicazione": "tipo_B",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5313023",
+        "descrizione": "250 A-VA – morsetto obliquo",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20 BP – punta di infissione",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5304270",
+        "descrizione": "5002 N-VA – connettore doppio",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5021162",
+        "descrizione": "RD 10 PVC – tondo zincato con guaina PVC",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5000858",
+        "descrizione": "219 20 BP V4A – picchetto BP",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento"
+      },
+      {
+        "codiceOBO": "5001633",
+        "descrizione": "2760 20 V4A – morsetto universale per picchetto",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.07.dwg",
+    "immagine": "OBO-TBS-200-T5.07.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.07",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.08",
+    "nome": "Collegamento del collettore EBB esterno al dispersore",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "collettore",
+      "applicazione": "EBB",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "2360043",
+        "descrizione": "DW FL 30x3,5 – manicotto di tenuta per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5001633",
+        "descrizione": "2760 20 V4A – morsetto universale per picchetto",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5000858",
+        "descrizione": "219 20 BP V4A – picchetto BP",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20 BP – punta di infissione",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.08.dwg",
+    "immagine": "OBO-TBS-200-T5.08.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.08",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.09",
+    "nome": "Dispersore di fondazione – fissaggio ai ferri",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "fondazione",
+      "applicazione": "fondazione",
+      "parametri": {
+        "latoMaglia": 20
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5314658",
+        "descrizione": "256 A-DIN 30 FT – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_incrocio"
+      },
+      {
+        "codiceOBO": "5014468",
+        "descrizione": "1814 FT – morsetto per ferri di armatura",
+        "quantita": 1,
+        "unitaQuantita": "per_punto",
+        "nota": "passo da verificare"
+      },
+      {
+        "codiceOBO": "5018014",
+        "descrizione": "ProtectionBall – cappuccio per codolo",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.09.dwg",
+    "immagine": "OBO-TBS-200-T5.09.pdf",
+    "note": "Maglia 20 × 20 m.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.09",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.10",
+    "nome": "Dispersore di fondazione – piatto e tondo ai ferri",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "fondazione",
+      "applicazione": "fondazione",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5021103",
+        "descrizione": "RD 10 – tondo zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5014469",
+        "descrizione": "1814 FT D37 – morsetto per ferri grandi",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.10.dwg",
+    "immagine": "OBO-TBS-200-T5.10.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.10",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.11",
+    "nome": "Dispersore di fondazione – uscita del punto di connessione",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "fondazione",
+      "applicazione": "punto_connessione",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5313031",
+        "descrizione": "250 AS-FT – morsetto obliquo",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5312925",
+        "descrizione": "250 V4A – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5420022",
+        "descrizione": "205 DG L180 V4A – punto di terra fisso",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.11.dwg",
+    "immagine": "OBO-TBS-200-T5.11.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.11",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.12",
+    "nome": "Dispersore di fondazione – compensatore al giunto di dilatazione",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "fondazione",
+      "applicazione": "giunto",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5019347",
+        "descrizione": "5052 DIN 30x3,5 – piatto acciaio zincato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5313031",
+        "descrizione": "250 AS-FT",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5312925",
+        "descrizione": "250 V4A",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5420022",
+        "descrizione": "205 DG L180 V4A",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5016142",
+        "descrizione": "1807 – compensatore",
+        "quantita": 1,
+        "unitaQuantita": "per_giunto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.12.dwg",
+    "immagine": "OBO-TBS-200-T5.12.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.12",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.13",
+    "nome": "Sportello d'ispezione su facciata ventilata",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "sezionamento",
+      "applicazione": "sportello",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021162",
+        "descrizione": "RD 10 PVC – tondo zincato con guaina PVC",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5304270",
+        "descrizione": "5002 N-VA – connettore doppio",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3049256",
+        "descrizione": "311 N-ALU 8-10 – targhetta numerata",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5106141",
+        "descrizione": "5800 VA – sportello d'ispezione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.13.dwg",
+    "immagine": "OBO-TBS-200-T5.13.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.13",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.14",
+    "nome": "Messa a terra mobile di apparecchiature",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "picchetto",
+      "applicazione": "provvisoria",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5003040",
+        "descrizione": "213 3000 DIN – picchetto a profilo con capocorda",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      },
+      {
+        "codiceOBO": "5040507",
+        "descrizione": "928 – morsetto di terra per nastro",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.14.dwg",
+    "immagine": "OBO-TBS-200-T5.14.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.14",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.15",
+    "nome": "Anello in tondo inox con picchetti e calata isCon",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "anello",
+      "applicazione": "tipo_B",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5021642",
+        "descrizione": "RD 10-V4A – tondo inox A2",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20 BP – punta di infissione",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5312925",
+        "descrizione": "250 V4A – morsetto a croce",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5229960",
+        "descrizione": "113 Z8-10 – staffa",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5420504",
+        "descrizione": "200 V4A 1500 – asta di uscita",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5001633",
+        "descrizione": "2760 20 V4A – morsetto universale per picchetto",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "5336341",
+        "descrizione": "233 VA – giunto di sezionamento",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5408014",
+        "descrizione": "isCon Ba 45 SW – conduttore isolato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5000858",
+        "descrizione": "219 20 BP V4A – picchetto BP",
+        "quantita": 1,
+        "unitaQuantita": "per_elemento"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.15.dwg",
+    "immagine": "OBO-TBS-200-T5.15.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.15",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.16",
+    "nome": "Collegamento in parallelo dei ferri di armatura",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "fondazione",
+      "applicazione": "continuita_ferri",
+      "parametri": {}
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5315514",
+        "descrizione": "259 A FT – morsetto parallelo per ferri",
+        "quantita": 1,
+        "unitaQuantita": "per_punto"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.16.dwg",
+    "immagine": "OBO-TBS-200-T5.16.pdf",
+    "note": "",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.16",
+    "verificato": false
+  },
+  {
+    "id": "OBO-TBS-200-T5.17",
+    "nome": "Anello perimetrale in piatto inox con calata isCon",
+    "categoria": "terra",
+    "condizioni": {
+      "elemento": "terra",
+      "tipo": "anello",
+      "applicazione": "tipo_B",
+      "parametri": {
+        "distanza": 1.0,
+        "profondita": 0.7
+      }
+    },
+    "componenti": [
+      {
+        "codiceOBO": "5018706",
+        "descrizione": "5052 V4A 30x3,5 – piatto inox",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5408014",
+        "descrizione": "isCon BA 45 SW – conduttore isolato",
+        "quantita": 1,
+        "unitaQuantita": "per_m"
+      },
+      {
+        "codiceOBO": "5336341",
+        "descrizione": "233 VA – giunto di sezionamento Rd 8-10 / FL 30",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5314659",
+        "descrizione": "256 A-DIN 30 V4A – morsetto a croce per piatto",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "5420504",
+        "descrizione": "200 V4A 1500 – asta di uscita",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      },
+      {
+        "codiceOBO": "3041212",
+        "descrizione": "1819 20 BP – punta di infissione",
+        "quantita": 1,
+        "unitaQuantita": "per_picchetto"
+      },
+      {
+        "codiceOBO": "2360055",
+        "descrizione": "356 50 – nastro anticorrosione",
+        "quantita": 1,
+        "unitaQuantita": "per_calata"
+      }
+    ],
+    "bloccoCAD": "OBO-TBS-200-T5.17.dwg",
+    "immagine": "OBO-TBS-200-T5.17.pdf",
+    "note": "Anello a 1 m dal muro e 0,7 m di profondità.",
+    "origine": "OBO",
+    "riferimento": "OBO-TBS-200-T5.17",
+    "verificato": false
+  }
+]
