@@ -152,7 +152,7 @@ function zonaHtml(t, [id, nome]) {
   const c = z.cfg || {};
   const estate = t.stagione !== 'inverno';
   const v3 = t.versione >= 3;
-  const fino = estate ? 'primavera-estate' : z.volo ? `al volo fino alle ${oraTxt(z.volo.fino)}`
+  const fino = estate ? 'primavera-estate' : z.volo ? `${z.volo.origine === 'termostato' ? 'messo sul termostato' : 'al volo'} ${finoTxt(z.volo.fino)}`
     : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} ${finoTxt(z.prossimo.ts)}`
     : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
