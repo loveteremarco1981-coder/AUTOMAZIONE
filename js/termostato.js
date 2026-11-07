@@ -17,6 +17,14 @@ const gradi = n => (n === null || n === undefined || isNaN(Number(n))) ? '—' :
 const durataTxt = min => min % 60 === 0 ? `${min / 60} ${min === 60 ? 'ora' : 'ore'}` : (min > 60 ? `${Math.floor(min / 60)} h ${min % 60} min` : `${min} min`);
 const dataTxt = mmdd => { const [mm, dd] = String(mmdd || '').split('-').map(Number); return mm ? `${dd} ${MESI[mm - 1]}` : '—'; };
 const oraTxt = ms => fmtTime(new Date(Number(ms)).toISOString());
+// "alle 22:30" se è oggi, altrimenti "fino a lunedì alle 06:00"
+const GIORNI = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+function finoTxt(ms) {
+  const d = new Date(Number(ms)), oggi = new Date();
+  if (d.toDateString() === oggi.toDateString()) return `fino alle ${oraTxt(ms)}`;
+  const domani = new Date(oggi); domani.setDate(oggi.getDate() + 1);
+  return `fino a ${d.toDateString() === domani.toDateString() ? 'domani' : GIORNI[d.getDay()]} alle ${oraTxt(ms)}`;
+}
 
 // Stato da mostrare: OFF (spento), A MANO (modifica rispettata), COMFORT, RIDOTTA, — (non noto)
 function statoZona(z, t) {
@@ -145,7 +153,8 @@ function zonaHtml(t, [id, nome]) {
   const estate = t.stagione !== 'inverno';
   const v3 = t.versione >= 3;
   const fino = estate ? 'primavera-estate' : z.volo ? `al volo fino alle ${oraTxt(z.volo.fino)}`
-    : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} fino alle ${oraTxt(z.prossimo.ts)}` : '&nbsp;';
+    : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} ${finoTxt(z.prossimo.ts)}`
+    : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
     : z.programma ? `${COMANDO_NOME[z.programma]} ${gradi(c[z.programma])}` : '—';
   const caldaia = z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
@@ -267,7 +276,7 @@ function openTermostatoSheet(m) {
         </div>
         ${fasceHtml('tm-fer-' + id, 'Comfort lunedì–venerdì', z.feriali)}
         ${fasceHtml('tm-wk-' + id, 'Comfort sabato e domenica', z.weekend)}
-        <p class="fld-hint">Nella barra: arancione Comfort, il resto Ridotta. Senza fasce: Ridotta tutto il giorno.</p>
+        <p class="fld-hint">Nella barra: arancione Comfort, il resto Ridotta. "Tutto il giorno": Comfort sempre quando c’è qualcuno in casa (a casa vuota resta Ridotta).</p>
       </div>`;
   };
   const dz = (d.zone || {});
@@ -392,9 +401,15 @@ function orari(sel, da, a) {
 }
 function fasceHtml(id, titolo, testo) {
   return `<div class="fx" data-id="${id}">
-    <div class="fx-head"><span>${titolo}</span><button type="button" class="small-btn fx-add">+ Fascia</button></div>
+    <div class="fx-head"><span>${titolo}</span>
+      <div class="seg fx-mode" role="group" aria-label="${titolo}">
+        <button type="button" class="seg-btn" data-mode="orari">Orari</button>
+        <button type="button" class="seg-btn" data-mode="tutto">Tutto il giorno</button>
+      </div>
+    </div>
     <div class="fx-bar" aria-hidden="true"><div class="fx-track"></div><div class="fx-ticks"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div></div>
     <div class="fx-list"></div>
+    <button type="button" class="small-btn fx-add">+ Fascia</button>
     <input type="hidden" id="${id}" value="${esc(testo || '')}">
   </div>`;
 }
@@ -402,12 +417,18 @@ function bindFasce(box) {
   const hidden = box.querySelector('input[type=hidden]');
   const list = box.querySelector('.fx-list'), track = box.querySelector('.fx-track');
   let fasce = fasceDa(hidden.value);
+  const tuttoIlGiorno = l => l.length === 1 && l[0][0] === 0 && l[0][1] >= 1440;
+  let modo = tuttoIlGiorno(fasce) ? 'tutto' : 'orari';
+  let orariPrima = modo === 'orari' ? fasce : [];
   const salva = () => {
     hidden.value = fasceTesto(fasce);
     track.innerHTML = fasce.filter(([a, b]) => b > a).map(([a, b]) =>
       `<i style="left:${(a / 1440 * 100).toFixed(2)}%;width:${((b - a) / 1440 * 100).toFixed(2)}%"></i>`).join('');
   };
   const disegna = () => {
+    box.classList.toggle('is-tutto', modo === 'tutto');
+    box.querySelectorAll('.fx-mode .seg-btn').forEach(b => b.classList.toggle('is-active', b.dataset.mode === modo));
+    if (modo === 'tutto') { list.innerHTML = '<p class="fx-empty">Comfort dalle 00:00 alle 24:00 (con qualcuno in casa)</p>'; salva(); return; }
     list.innerHTML = fasce.length ? fasce.map(([a, b], i) => `
       <div class="fx-row" data-i="${i}">
         <select class="fx-da" aria-label="Inizio">${orari(a, 0, 1425)}</select>
@@ -428,6 +449,13 @@ function bindFasce(box) {
     const del = e.target.closest('.fx-del'); if (!del) return;
     fasce.splice(+del.closest('.fx-row').dataset.i, 1); disegna();
   });
+  box.querySelectorAll('.fx-mode .seg-btn').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.mode === modo) return;
+    modo = b.dataset.mode;
+    if (modo === 'tutto') { orariPrima = fasce; fasce = [[0, 1440]]; }
+    else fasce = orariPrima.length ? orariPrima : [[420, 540]];
+    disegna();
+  }));
   box.querySelector('.fx-add').addEventListener('click', () => {
     const fine = fasce.reduce((m, f) => Math.max(m, f[1]), 0);
     const a = fasce.length ? Math.min(fine + 60, 1380) : 420;

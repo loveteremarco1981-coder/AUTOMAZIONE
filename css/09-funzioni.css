@@ -1322,3 +1322,43 @@ body.ro .qa-btn {
 .termo-rapido .termo-zone-head span {
   display: none;
 }
+
+/* ---- Fasce: Orari / Tutto il giorno ---- */
+
+.fx-head {
+  flex-wrap: wrap;
+}
+
+.fx-mode {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.fx-mode .seg-btn {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fx-mode .seg-btn.is-active {
+  background: var(--card, #fff);
+  color: var(--fg);
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+}
+
+.fx > .fx-add {
+  margin-top: 8px;
+}
+
+.fx.is-tutto > .fx-add {
+  display: none;
+}
