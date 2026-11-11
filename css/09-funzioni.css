@@ -1362,3 +1362,15 @@ body.ro .qa-btn {
 .fx.is-tutto > .fx-add {
   display: none;
 }
+
+/* ---- Termostati: nota gialla (scenario diverso dall'app) ---- */
+
+.termo-nota {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: #b45309;
+  background: rgba(245,158,11,.12);
+}

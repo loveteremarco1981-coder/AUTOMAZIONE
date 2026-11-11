@@ -84,6 +84,25 @@ function renderTermoAvviso(m) {
   const el = $('#termo-alert'); if (!el) return;
   const t = termo(m);
   const zone = t && !t.manuale && t.stagione === 'inverno' ? ZONE.filter(([id]) => avvisoZona(t.zone[id])) : [];
+  const fermo = controlloFermo(m);
+  if (!zone.length && fermo) {
+    el.innerHTML = `
+      <span class="ib-ico">${svg('alert')}</span>
+      <span class="ib-text">
+        <span class="ib-title">Termostati: lo script non li controlla dalle ${esc(oraTxt(fermo))}</span>
+        <span class="ib-sub">Il controllo ogni 15 minuti non sta girando: fasce e temperature non vengono applicate. In Apps Script guarda Trigger (deve esserci quello dello Storico) ed Esecuzioni.</span>
+      </span>
+      ${isReadOnly() ? '' : '<span class="ib-btns"><button class="ib-btn ib-done" type="button">Riprova ora</button></span>'}`;
+    el.hidden = false;
+    el.querySelector('.ib-done')?.addEventListener('click', e => busy(e.currentTarget, async () => {
+      haptic();
+      const r = await callAdmin('termostato_auto', null, { noUndo: true });
+      if (!r || r.ok === false) { if (r) toast('Lo script non ha registrato il comando.', 'err'); return; }
+      toast('Programma rimandato adesso. Se il controllo automatico resta fermo, l’avviso torna.', 'ok', 4000);
+      reloadSoon(800);
+    }));
+    return;
+  }
   if (!zone.length) { el.hidden = true; el.innerHTML = ''; return; }
   const [id] = zone[0], av = avvisoZona(t.zone[id]);
   const piani = zone.map(([zid]) => PIANO[zid]).join(' e ');
@@ -147,12 +166,31 @@ return {
   testo: `${CALDAIA_NOME[a.comando] || 'Il comando'} non è stato confermato nemmeno al secondo tentativo. Controlla l’applet ${a.comando === 'scalda' ? 'comfort' : 'ridotta'}_${/notte/i.test(z.nome) ? 'notte' : 'giorno'} e lo scenario Vimar.` };
 }
 
+// Nota gialla: lo scenario Vimar mette una temperatura diversa da quella scritta nell'app
+function notaScenario(z, id) {
+  if (!z.scenario || !z.scenario.length) return '';
+  const p = id === 'notte' ? 'P4' : 'P3';
+  return z.scenario.map(n => n.comando === 'scalda'
+    ? `<p class="termo-nota">Lo scenario Vimar di Scalda (Comfort ${p}) porta il termostato a ${gradi(n.visto)}, ma qui il Massimo è ${gradi(n.app)}. Funziona lo stesso: per sicurezza allineali (scenario oppure Cambia → Massimo).</p>`
+    : `<p class="termo-nota">Lo scenario Vimar di Ferma (Ridotta ${p}) porta il termostato a ${gradi(n.visto)}, ma qui "Scenari Ferma" è ${gradi(n.app)}. Funziona lo stesso: per sicurezza allineali (scenario oppure Cambia → Scenari Ferma).</p>`).join('');
+}
+
+// Lo script ricontrolla i termostati ogni 15 minuti: se è fermo da più di 45, va detto
+const CONTROLLO_MAX_MIN = 45;
+function controlloFermo(m) {
+  const t = termo(m);
+  if (!t || t.versione < 3 || t.manuale || t.stagione !== 'inverno' || (m && m.override)) return null;
+  if (!t.controllo) return null;
+  const adesso = m && m.meta && m.meta.nowIso ? new Date(m.meta.nowIso).getTime() : Date.now();
+  return adesso - Number(t.controllo) > CONTROLLO_MAX_MIN * 60000 ? Number(t.controllo) : null;
+}
+
 function zonaHtml(t, [id, nome]) {
   const z = t.zone[id]; if (!z) return '';
   const c = z.cfg || {};
   const estate = t.stagione !== 'inverno';
   const v3 = t.versione >= 3;
-  const fino = estate ? 'primavera-estate' : z.volo ? `${z.volo.origine === 'termostato' ? 'messo sul termostato' : 'al volo'} ${finoTxt(z.volo.fino)}`
+  const fino = estate ? 'primavera-estate' : z.volo ? `${z.volo.origine === 'termostato' ? 'messo sul termostato' : z.volo.origine === 'ridotta' ? 'ridotta dall’app' : 'al volo'} ${finoTxt(z.volo.fino)}`
     : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} ${finoTxt(z.prossimo.ts)}`
     : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
@@ -188,6 +226,7 @@ function zonaHtml(t, [id, nome]) {
         ${terzo}
       </div>${volo}
       <p class="termo-state${av ? ' alert' : z.hold && !t.manuale && !estate ? ' on' : ''}">${esc(stato)}</p>
+      ${notaScenario(z, id)}
     </div>`;
 }
 
