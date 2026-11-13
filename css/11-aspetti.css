@@ -1,0 +1,328 @@
+/* ============================================================
+   ASPETTI — tre proposte grafiche per Casa · Automazione.
+   Si attivano con <html data-skin="lume | giorno | tinta">.
+   La barra in basso con la perla di luce resta la stessa in tutte:
+   stesso movimento, stessa piastra che si solleva, stesso colore per scheda.
+   ============================================================ */
+
+/* Superfici a cui l'app dà l'aspetto "vetro": qui ogni proposta le ridisegna */
+
+/* ============================================================
+   1) LUME — scura e calma. Niente vetro né macchie di colore:
+      pannelli pieni, testo più grande, l'unica luce è la perla.
+   ============================================================ */
+
+:root[data-skin="lume"] {
+  --bg: #0c1118;
+  --bg2: #151c27;
+  --bg3: #1c2532;
+  --card: #151c27;
+  --card-hover: #1a2330;
+  --line: rgba(255,255,255,.06);
+  --line2: rgba(255,255,255,.12);
+  --fg: #edf2f8;
+  --muted: #9aa7ba;
+  --muted2: #74819a;
+  --ga: 0;
+  --glass-edge: transparent;
+  --glass-hi: transparent;
+  --r-card: 22px;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --tondo: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+[data-skin="lume"] body { background: #0c1118; font-size: 15px; }
+[data-skin="lume"] body::before { display: none; }
+[data-skin="lume"] body::after { height: 46vh; opacity: .20; }
+
+[data-skin="lume"] .st-card,
+[data-skin="lume"] .fav-card,
+[data-skin="lume"] .person-chip,
+[data-skin="lume"] .shutter-card,
+[data-skin="lume"] .app-link-card,
+[data-skin="lume"] .people-detail-card,
+[data-skin="lume"] .qa-btn,
+[data-skin="lume"] .scene-btn,
+[data-skin="lume"] .info-card,
+[data-skin="lume"] .log-row,
+[data-skin="lume"] .appearance-card,
+[data-skin="lume"] .settings-list,
+[data-skin="lume"] .events-list,
+[data-skin="lume"] .temp-card,
+[data-skin="lume"] .termo-card,
+[data-skin="lume"] .family-card,
+[data-skin="lume"] .hc-card {
+  background: var(--card);
+  border: 0;
+  box-shadow: none;
+  border-radius: var(--r-card);
+}
+
+[data-skin="lume"] .hero-title,
+[data-skin="lume"] .section-title,
+[data-skin="lume"] .st-value,
+[data-skin="lume"] .tc-val,
+[data-skin="lume"] .termo-vals b,
+[data-skin="lume"] .tb-title,
+[data-skin="lume"] .sheet-head h2 {
+  font-family: var(--tondo);
+}
+
+[data-skin="lume"] .hero-title { font-size: 34px; letter-spacing: -.02em; font-weight: 700; }
+[data-skin="lume"] .hero-sub { font-size: 15px; color: var(--muted); }
+[data-skin="lume"] .section-title { font-size: 17px; font-weight: 650; margin-top: 18px; }
+
+/* la scheda attiva dà il colore al titolo della pagina: è la luce della perla che sale */
+[data-skin="lume"] .hero-title { color: color-mix(in srgb, var(--tone) 34%, #fff); transition: color .5s ease; }
+
+[data-skin="lume"] .termo-vals > div,
+[data-skin="lume"] .termo-volo,
+[data-skin="lume"] .hd-read,
+[data-skin="lume"] .hp-kpi > div { background: var(--bg3); border: 0; }
+
+[data-skin="lume"] .state-banner { border-radius: 22px; border: 0; background: var(--card); box-shadow: inset 3px 0 0 var(--green); }
+[data-skin="lume"] .icon-btn,
+[data-skin="lume"] .weather-pill { background: var(--card); border: 0; box-shadow: none; }
+[data-skin="lume"] .small-btn,
+[data-skin="lume"] .sh-btn { background: var(--bg3); border: 0; box-shadow: none; }
+[data-skin="lume"] .scene-ico, [data-skin="lume"] .fav-ico { border-radius: 14px; }
+[data-skin="lume"] .sheet { background: #121924; border: 0; }
+[data-skin="lume"] .tab-plate g:first-of-type { fill: #263142; }
+[data-skin="lume"] .tab-plate g:last-of-type { fill: #121924; }
+
+
+/* ============================================================
+   2) GIORNO — chiara e ordinata. Fondo color porcellana, pannelli
+      bianchi con un filo di bordo, titoli in carattere con le grazie.
+      Il colore lo portano solo la perla e gli stati.
+   ============================================================ */
+
+:root[data-skin="giorno"] {
+  color-scheme: light;
+  --bg: #eff2f0;
+  --bg2: #ffffff;
+  --bg3: #e7ebe8;
+  --card: #ffffff;
+  --card-hover: #f6f8f7;
+  --line: rgba(20,32,28,.08);
+  --line2: rgba(20,32,28,.16);
+  --fg: #15201c;
+  --muted: #5b6963;
+  --muted2: #7d8a84;
+  --accent: #1d6b52;
+  --accent2: #1d6b52;
+  --accent-dim: rgba(29,107,82,.11);
+  --green: #1d7f4f;
+  --green-dim: rgba(29,127,79,.12);
+  --ga: 0;
+  --glass-edge: rgba(20,32,28,.09);
+  --glass-hi: transparent;
+  --r-card: 14px;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --grazie: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+}
+
+[data-skin="giorno"] body { background: #eff2f0; font-size: 15px; }
+[data-skin="giorno"] body::before { display: none; }
+[data-skin="giorno"] body::after { opacity: .13; height: 34vh; }
+
+[data-skin="giorno"] .st-card,
+[data-skin="giorno"] .fav-card,
+[data-skin="giorno"] .person-chip,
+[data-skin="giorno"] .shutter-card,
+[data-skin="giorno"] .app-link-card,
+[data-skin="giorno"] .people-detail-card,
+[data-skin="giorno"] .qa-btn,
+[data-skin="giorno"] .scene-btn,
+[data-skin="giorno"] .info-card,
+[data-skin="giorno"] .log-row,
+[data-skin="giorno"] .appearance-card,
+[data-skin="giorno"] .settings-list,
+[data-skin="giorno"] .events-list,
+[data-skin="giorno"] .temp-card,
+[data-skin="giorno"] .termo-card,
+[data-skin="giorno"] .family-card,
+[data-skin="giorno"] .hc-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: var(--r-card);
+}
+
+[data-skin="giorno"] .hero-title,
+[data-skin="giorno"] .tb-title,
+[data-skin="giorno"] .sheet-head h2 {
+  font-family: var(--grazie);
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+[data-skin="giorno"] .hero-title { font-size: 34px; color: var(--fg); }
+[data-skin="giorno"] .hero-sub { font-size: 15px; }
+[data-skin="giorno"] .section-title { font-size: 13.5px; font-weight: 600; color: var(--muted); margin-top: 18px; padding-bottom: 6px; border-bottom: 1px solid var(--line2); }
+[data-skin="giorno"] .st-value,
+[data-skin="giorno"] .tc-val,
+[data-skin="giorno"] .termo-vals b { font-family: var(--grazie); font-weight: 600; }
+
+[data-skin="giorno"] .termo-vals > div,
+[data-skin="giorno"] .termo-volo,
+[data-skin="giorno"] .hd-read,
+[data-skin="giorno"] .hp-kpi > div { background: #f5f7f6; border: 1px solid var(--line); }
+
+[data-skin="giorno"] .state-banner { background: #fff; border: 1px solid var(--line); box-shadow: inset 3px 0 0 var(--green); border-radius: 14px; }
+[data-skin="giorno"] .icon-btn,
+[data-skin="giorno"] .weather-pill { background: #fff; border: 1px solid var(--line); box-shadow: none; }
+[data-skin="giorno"] .small-btn,
+[data-skin="giorno"] .sh-btn { background: #f1f4f2; border: 1px solid var(--line2); box-shadow: none; color: var(--fg); }
+[data-skin="giorno"] .scene-ico, [data-skin="giorno"] .fav-ico { border-radius: 10px; }
+[data-skin="giorno"] .sheet { background: #fff; border: 1px solid var(--line2); }
+[data-skin="giorno"] .chip { background: #fff; border: 1px solid var(--line2); color: var(--muted); }
+[data-skin="giorno"] .chip.on { background: #15201c; border-color: #15201c; color: #fff; }
+[data-skin="giorno"] .chip.on b { color: #fff; }
+[data-skin="giorno"] .tab-plate { filter: drop-shadow(0 8px 16px rgba(20,32,28,.18)); opacity: 1; }
+[data-skin="giorno"] .tab-plate g:first-of-type { fill: #d5dbd8; }
+[data-skin="giorno"] .tab-plate g:last-of-type { fill: #ffffff; }
+[data-skin="giorno"] .tab { color: #5b6963; }
+[data-skin="giorno"] .tab.active { color: color-mix(in srgb, var(--tone) 62%, #15201c); }
+[data-skin="giorno"] .tab.active svg { color: #15201c; }
+
+
+/* ============================================================
+   3) TINTA — ogni sezione ha il suo colore. La luce della perla
+      sale e tinge la pagina: titolo, intestazioni e pulsanti prendono
+      il colore della scheda, e cambiano insieme alla perla.
+   ============================================================ */
+
+:root[data-skin="tinta"] {
+  --bg: #101216;
+  --bg2: #181b21;
+  --bg3: #20242c;
+  --card: #181b21;
+  --card-hover: #1e222a;
+  --line: rgba(255,255,255,.07);
+  --line2: rgba(255,255,255,.13);
+  --fg: #f1f3f6;
+  --muted: #a0a7b3;
+  --muted2: #7b8390;
+  --ga: 0;
+  --glass-edge: transparent;
+  --glass-hi: transparent;
+  --r-card: 18px;
+  --accent: var(--tone);
+  --accent-dim: color-mix(in srgb, var(--tone) 16%, transparent);
+}
+
+[data-skin="tinta"] body { background: #101216; font-size: 15px; }
+
+/* la luce della scheda: dall'alto, larga, cambia colore con la perla */
+[data-skin="tinta"] body::before {
+  display: block;
+  inset: 0 0 auto 0;
+  height: 300px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 46%, #101216) 0%, color-mix(in srgb, var(--tone) 16%, #101216) 46%, #101216 100%);
+}
+[data-skin="tinta"] body::after { opacity: .26; height: 44vh; }
+
+[data-skin="tinta"] .st-card,
+[data-skin="tinta"] .fav-card,
+[data-skin="tinta"] .person-chip,
+[data-skin="tinta"] .shutter-card,
+[data-skin="tinta"] .app-link-card,
+[data-skin="tinta"] .people-detail-card,
+[data-skin="tinta"] .qa-btn,
+[data-skin="tinta"] .scene-btn,
+[data-skin="tinta"] .info-card,
+[data-skin="tinta"] .log-row,
+[data-skin="tinta"] .appearance-card,
+[data-skin="tinta"] .settings-list,
+[data-skin="tinta"] .events-list,
+[data-skin="tinta"] .temp-card,
+[data-skin="tinta"] .termo-card,
+[data-skin="tinta"] .family-card,
+[data-skin="tinta"] .hc-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: none;
+  border-radius: var(--r-card);
+}
+
+[data-skin="tinta"] .hero-title { font-size: 38px; font-weight: 800; letter-spacing: -.03em; color: #fff; }
+[data-skin="tinta"] .hero-sub { font-size: 15px; color: rgba(255,255,255,.82); }
+[data-skin="tinta"] .section-title { font-size: 16px; font-weight: 700; margin-top: 18px; color: color-mix(in srgb, var(--tone) 70%, #fff); transition: color .5s ease; }
+[data-skin="tinta"] .st-value,
+[data-skin="tinta"] .tc-val,
+[data-skin="tinta"] .termo-vals b { font-weight: 800; letter-spacing: -.02em; }
+
+[data-skin="tinta"] .termo-vals > div,
+[data-skin="tinta"] .termo-volo,
+[data-skin="tinta"] .hd-read,
+[data-skin="tinta"] .hp-kpi > div { background: var(--bg3); border: 0; }
+
+[data-skin="tinta"] .state-banner { background: rgba(0,0,0,.26); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; }
+[data-skin="tinta"] .icon-btn,
+[data-skin="tinta"] .weather-pill { background: rgba(0,0,0,.26); border: 1px solid rgba(255,255,255,.14); box-shadow: none; }
+[data-skin="tinta"] .small-btn,
+[data-skin="tinta"] .sh-btn { background: color-mix(in srgb, var(--tone) 18%, #20242c); border: 1px solid color-mix(in srgb, var(--tone) 34%, transparent); box-shadow: none; color: #fff; transition: background .5s ease, border-color .5s ease; }
+[data-skin="tinta"] .chip.on { background: var(--tone); border-color: var(--tone); color: #0b0d12; }
+[data-skin="tinta"] .chip.on b { color: #0b0d12; }
+[data-skin="lume"] .chip.on { background: color-mix(in srgb, var(--tone) 80%, #fff); border-color: transparent; color: #0b0d12; }
+[data-skin="lume"] .chip.on b { color: #0b0d12; }
+[data-skin="tinta"] .sheet { background: #15181d; border: 1px solid var(--line2); }
+[data-skin="tinta"] .tab-plate g:first-of-type { fill: #2c313b; }
+[data-skin="tinta"] .tab-plate g:last-of-type { fill: #15181d; }
+
+
+/* ============================================================
+   Scelta dell'aspetto in Impostazioni (vale per tutti gli aspetti)
+   ============================================================ */
+
+.skin-pick {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.skin-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 8px 10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line2);
+  background: var(--card, var(--bg2));
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.skin-opt.is-active { border-color: var(--tone, var(--accent)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone, var(--accent)) 25%, transparent); }
+.skin-opt:focus-visible { outline: 2px solid var(--tone, var(--accent)); outline-offset: 2px; }
+
+.skin-prev {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.skin-prev i { position: absolute; inset: 0; }
+.skin-prev b { position: absolute; left: 12%; right: 12%; height: 18%; border-radius: 5px; }
+.skin-prev b:nth-of-type(1) { top: 30%; }
+.skin-prev b:nth-of-type(2) { top: 54%; }
+.skin-prev u { position: absolute; left: 42%; bottom: 7%; width: 16%; aspect-ratio: 1; border-radius: 50%; }
+
+.skin-nome { font-size: 13.5px; font-weight: 700; }
+.skin-sub { font-size: 11px; line-height: 1.25; color: var(--muted); }
+
+@media (max-width: 380px) {
+  .skin-pick { gap: 6px; }
+  .skin-sub { display: none; }
+}

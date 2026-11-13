@@ -10,12 +10,17 @@
   <meta name="theme-color" content="#0d1117">
   <meta name="color-scheme" content="dark">
   <script>
-    /* Tema scelto: applicato subito, prima del disegno, per evitare lampi di colore */
+    /* Aspetto e tema scelti: applicati subito, prima del disegno, per evitare lampi di colore */
     (function () {
+      var d = document.documentElement;
+      d.dataset.skin = "tinta"; d.dataset.theme = "dark";
       try {
+        var s = localStorage.getItem("ui_skin");
+        if (s !== "lume" && s !== "giorno" && s !== "classico") s = "tinta";
         var p = localStorage.getItem("ui_theme") || "auto";
-        var t = p === "light" || p === "dark" ? p : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-        document.documentElement.dataset.theme = t;
+        var t = s === "giorno" ? "light" : s === "classico" ? (p === "light" || p === "dark" ? p : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark")) : "dark";
+        if (s === "classico") delete d.dataset.skin; else d.dataset.skin = s;
+        d.dataset.theme = t;
       } catch (e) {}
     })();
   </script>
@@ -31,16 +36,17 @@
   <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1290x2796.png">
   <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1125x2436.png">
   <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-750x1334.png">
-  <link rel="stylesheet" href="css/01-base.css?v=202611130930">
-  <link rel="stylesheet" href="css/02-vetro.css?v=202611130930">
-  <link rel="stylesheet" href="css/03-compatto.css?v=202611130930">
-  <link rel="stylesheet" href="css/04-home.css?v=202611130930">
-  <link rel="stylesheet" href="css/05-persone.css?v=202611130930">
-  <link rel="stylesheet" href="css/06-barra.css?v=202611130930">
-  <link rel="stylesheet" href="css/07-preferiti.css?v=202611130930">
-  <link rel="stylesheet" href="css/08-schermate.css?v=202611130930">
-  <link rel="stylesheet" href="css/09-funzioni.css?v=202611130930">
-  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202611130930">
+  <link rel="stylesheet" href="css/01-base.css?v=202611132243">
+  <link rel="stylesheet" href="css/02-vetro.css?v=202611132243">
+  <link rel="stylesheet" href="css/03-compatto.css?v=202611132243">
+  <link rel="stylesheet" href="css/04-home.css?v=202611132243">
+  <link rel="stylesheet" href="css/05-persone.css?v=202611132243">
+  <link rel="stylesheet" href="css/06-barra.css?v=202611132243">
+  <link rel="stylesheet" href="css/07-preferiti.css?v=202611132243">
+  <link rel="stylesheet" href="css/08-schermate.css?v=202611132243">
+  <link rel="stylesheet" href="css/09-funzioni.css?v=202611132243">
+  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202611132243">
+  <link rel="stylesheet" href="css/11-aspetti.css?v=202611132243">
 </head>
 
 <body class="first-paint">
@@ -226,7 +232,8 @@
       <div class="settings-list" id="settings-list"></div>
 
       <div class="section-header"><h2 class="section-title">Aspetto</h2></div>
-      <div class="appearance-card">
+      <div class="skin-pick" id="skin-pick" role="radiogroup" aria-label="Aspetto dell'app"></div>
+      <div class="appearance-card" id="glass-card">
         <div class="setting-label">Trasparenza del vetro</div>
         <div class="setting-sub">Dal vetro trasparente a quello più opaco e leggibile</div>
         <div class="slider-row">
@@ -356,19 +363,19 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202611130930"></script>
-  <script src="js/core.js?v=202611130930"></script>
-  <script src="js/safety.js?v=202611130930"></script>
-  <script src="js/theme.js?v=202611130930"></script>
-  <script src="js/scenes-edit.js?v=202611130930"></script>
-  <script src="js/schedule.js?v=202611130930"></script>
-  <script src="js/history.js?v=202611130930"></script>
-  <script src="js/notify.js?v=202611130930"></script>
-  <script src="js/settings-extra.js?v=202611130930"></script>
-  <script src="js/termostato.js?v=202611130930"></script>
-  <script src="js/render.js?v=202611130930"></script>
-  <script src="js/load.js?v=202611130930"></script>
-  <script src="js/nav.js?v=202611130930"></script>
-  <script src="js/main.js?v=202611130930"></script>
+  <script src="config.js?v=202611132243"></script>
+  <script src="js/core.js?v=202611132243"></script>
+  <script src="js/safety.js?v=202611132243"></script>
+  <script src="js/theme.js?v=202611132243"></script>
+  <script src="js/scenes-edit.js?v=202611132243"></script>
+  <script src="js/schedule.js?v=202611132243"></script>
+  <script src="js/history.js?v=202611132243"></script>
+  <script src="js/notify.js?v=202611132243"></script>
+  <script src="js/settings-extra.js?v=202611132243"></script>
+  <script src="js/termostato.js?v=202611132243"></script>
+  <script src="js/render.js?v=202611132243"></script>
+  <script src="js/load.js?v=202611132243"></script>
+  <script src="js/nav.js?v=202611132243"></script>
+  <script src="js/main.js?v=202611132243"></script>
 </body>
 </html>
