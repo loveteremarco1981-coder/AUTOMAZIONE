@@ -1610,3 +1610,103 @@ body.ro .qa-btn {
   .hd-tab th, .hd-tab td { padding-right: 8px; }
   .hd-tab td:last-child, .hd-tab th:last-child { padding-right: 0; }
 }
+
+/* ---- Analisi delle presenze: una riga colorata per persona ---- */
+
+.hp-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hp-kpi > div {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.hp-kpi span { display: block; font-size: 11.5px; color: var(--muted); }
+.hp-kpi b { display: block; margin-top: 2px; font-size: 22px; font-variant-numeric: tabular-nums; }
+.hp-kpi small { font-size: 11.5px; color: var(--muted); }
+
+.hp-chart {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(64px, auto) 1fr 52px;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 14px;
+  touch-action: pan-y;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hp-nome {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hp-nome i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.hp-nome.hp-tot { color: var(--muted); font-weight: 500; }
+
+.hp-riga {
+  position: relative;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.hp-riga.hp-tot { height: 12px; border-radius: 6px; }
+.hp-riga > i { position: absolute; top: 0; bottom: 0; opacity: .92; }
+.hp-riga.hp-tot > i { opacity: .7; }
+
+.hp-riga > b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--line2);
+  opacity: .5;
+  z-index: 1;
+}
+
+.hp-riga > b.d { border-left: 1px dashed var(--fg); opacity: .35; }
+
+.hp-pc { text-align: right; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.hp-pc b { display: block; font-size: 14px; }
+.hp-pc small { font-size: 10.5px; color: var(--muted); }
+
+.hp-asse { height: 18px; position: relative; }
+.hp-asse.hd-x span { top: 0; }
+
+.hp-chart .hd-cur { z-index: 2; }
+
+.hp-tab td { text-align: left; }
+.hp-tab thead th { text-align: left; }
+.hp-tab thead th i { margin-right: 5px; }
+
+.hp-bar {
+  display: inline-block;
+  vertical-align: middle;
+  width: 44px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.hp-bar i { display: block; height: 100%; border-radius: 3px; }
+
+@media (max-width: 520px) {
+  .hp-chart { grid-template-columns: minmax(58px, auto) 1fr 44px; gap: 8px 8px; }
+  .hp-bar { width: 30px; }
+}

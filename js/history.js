@@ -287,7 +287,8 @@ function hdTempo(t0, t1, largo) {
   for (let t = d.getTime(); t <= t1; t += passo * 36e5) {
     const x = new Date(t), mezzanotte = x.getHours() === 0;
     out.push({ t, mezzanotte,
-      label: mezzanotte ? x.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' }) : (passo >= 24 ? '' : String(x.getHours()).padStart(2, '0')) });
+      // su schermi stretti e periodi lunghi solo il giorno della settimana, altrimenti le etichette si toccano
+      label: mezzanotte ? x.toLocaleDateString('it-IT', !largo && ore > 80 ? { weekday: 'short' } : { weekday: 'short', day: 'numeric' }) : (passo >= 24 ? '' : String(x.getHours()).padStart(2, '0')) });
   }
   return out;
 }
@@ -299,6 +300,7 @@ function drawHistDetail(wrap) {
   const seg = `<div class="seg hd-seg" role="group" aria-label="Periodo">${[[1, '24 ore'], [3, '3 giorni'], [7, '7 giorni']].map(([d, l]) =>
     `<button type="button" class="seg-btn${d === _hd.days ? ' is-active' : ''}" data-days="${d}">${l}</button>`).join('')}</div>`;
   if (rows.length < 2) { wrap.innerHTML = seg + '<div class="hc-empty wide">Dati non ancora sufficienti per questo periodo.</div>'; hdBind(wrap, rows, []); return; }
+  if (vista.nomi) { drawPresenze(wrap, rows, seg); return; }
 
   const tutte = vista.serie.map(k => HD_SERIE[k]);
   const serie = tutte.filter(sr => !_hd.off[sr.key] && rows.some(r => r[sr.key] !== null));
@@ -346,8 +348,7 @@ function drawHistDetail(wrap) {
     ${bande}
     ${hdStat(rows, serie)}
     ${vista.bande ? hdRiscaldamento(rows) : ''}
-    ${vista.giorni || vista.bande ? hdGiorni(rows) : ''}
-    ${vista.nomi ? hdPresenze(rows) : ''}`;
+    ${vista.giorni || vista.bande ? hdGiorni(rows) : ''}`;
   hdBind(wrap, rows, serie, { t0, span, Y, H });
 }
 
@@ -413,22 +414,140 @@ function hdGiorni(rows) {
     <p class="hd-nota">Il primo e l’ultimo giorno possono essere parziali.</p>`;
 }
 
-// Presenze: ore con la casa vuota e ore in casa di ogni persona
-function hdPresenze(rows) {
-  const dur = (r, i) => (i + 1 < rows.length ? rows[i + 1].t : r.t) - r.t;
-  let vuota = 0, tot = 0; const persone = {};
+/* ---- Presenze: una riga colorata per persona, filtro per persona, percentuali ---- */
+// Colori ben distinti tra loro (niente due arancioni): prima quello del cerchio in Home, se è libero
+const HD_COLORI = ['#4f8cff', '#f59e0b', '#ec4899', '#10b981', '#8b5cf6', '#06b6d4', '#84cc16', '#e11d48'];
+const HD_AVATAR = { 'av-0': '#4f8cff', 'av-1': '#f59e0b', 'av-2': '#10b981', 'av-3': '#ec4899', 'av-4': '#f59e0b' };
+const hdNome = n => n.charAt(0).toUpperCase() + n.slice(1);
+
+// Tutte le persone (anche chi non è mai stato in casa nel periodo), ognuna con un colore diverso:
+// quello del suo cerchio in Home se è libero, altrimenti il primo libero della tavolozza
+function hdPersone(rows) {
+  const nomi = new Set();
+  ((MODEL && MODEL.people) || []).forEach(p => { if (p && p.name) nomi.add(String(p.name).toLowerCase()); });
+  rows.forEach(r => r.names.forEach(n => nomi.add(n.toLowerCase())));
+  const usati = new Set();
+  return [...nomi].sort().map(n => {
+    let c = HD_AVATAR[avClass(n)];
+    if (!c || usati.has(c)) c = HD_COLORI.find(x => !usati.has(x)) || '#8b949e';
+    usati.add(c);
+    return { nome: n, colore: c };
+  });
+}
+
+function drawPresenze(wrap, rows, seg) {
+  const persone = hdPersone(rows);
+  const scelte = persone.filter(p => !_hd.off['p:' + p.nome]);
+  const t0 = rows[0].t, t1 = rows[rows.length - 1].t, span = Math.max(1, t1 - t0);
+  const dur = i => (i + 1 < rows.length ? rows[i + 1].t : rows[i].t) - rows[i].t;
+  const validi = rows.map((r, i) => r.n !== null ? i : -1).filter(i => i >= 0);
+  const tot = validi.reduce((a, i) => a + dur(i), 0) || 1;
+  const pc = ms => Math.round(ms / tot * 100);
+  const inCasa = (r, p) => r.names.some(n => n.toLowerCase() === p.nome);
+  const ms = p => validi.reduce((a, i) => a + (inCasa(rows[i], p) ? dur(i) : 0), 0);
+  const quanti = r => scelte.filter(p => inCasa(r, p)).length;
+  const vuota = validi.reduce((a, i) => a + (quanti(rows[i]) === 0 ? dur(i) : 0), 0);
+  const tutti = scelte.length > 1 ? validi.reduce((a, i) => a + (quanti(rows[i]) === scelte.length ? dur(i) : 0), 0) : null;
+
+  // tratti continui in cui una condizione è vera → rettangoli sulla riga
+  const tratti = (test, colore) => {
+    let html = '', da = null;
+    rows.forEach((r, i) => {
+      const si = r.n !== null && test(r);
+      if (si && da === null) da = r.t;
+      if ((!si || i === rows.length - 1) && da !== null) {
+        const fine = si ? t1 : r.t;
+        html += `<i style="left:${((da - t0) / span * 100).toFixed(2)}%;width:${Math.max(.3, (fine - da) / span * 100).toFixed(2)}%;background:${colore}"></i>`;
+        da = null;
+      }
+    });
+    return html;
+  };
+  const tempo = hdTempo(t0, t1, window.innerWidth >= 720);
+  const griglia = tempo.map(k => `<b class="${k.mezzanotte ? 'd' : ''}" style="left:${((k.t - t0) / span * 100).toFixed(2)}%"></b>`).join('');
+
+  const chips = `<div class="hd-chips">${persone.map(p =>
+    `<button type="button" class="hd-chip${_hd.off['p:' + p.nome] ? '' : ' on'}" data-persona="${esc(p.nome)}" aria-pressed="${!_hd.off['p:' + p.nome]}"><i style="background:${p.colore}"></i>${esc(hdNome(p.nome))}</button>`).join('')}</div>`;
+
+  const riepilogo = `<div class="hp-kpi">
+      <div><span>${scelte.length === persone.length ? 'Casa vuota' : 'Nessuna delle persone scelte'}</span><b>${pc(vuota)}%</b><small>${oreTxt(vuota / 36e5)}</small></div>
+      <div><span>${scelte.length === persone.length ? 'Qualcuno in casa' : 'Almeno una delle scelte'}</span><b>${100 - pc(vuota)}%</b><small>${oreTxt((tot - vuota) / 36e5)}</small></div>
+      ${tutti === null ? '' : `<div><span>${scelte.length === persone.length ? 'Tutti in casa' : 'Tutte le scelte insieme'}</span><b>${pc(tutti)}%</b><small>${oreTxt(tutti / 36e5)}</small></div>`}
+    </div>`;
+
+  const righe = scelte.map(p => { const m = ms(p); return `
+      <div class="hp-nome"><i style="background:${p.colore}"></i>${esc(hdNome(p.nome))}</div>
+      <div class="hp-riga">${griglia}${tratti(r => inCasa(r, p), p.colore)}</div>
+      <div class="hp-pc"><b>${pc(m)}%</b><small>${oreTxt(m / 36e5)}</small></div>`; }).join('');
+
+  wrap.innerHTML = `
+    ${seg}${chips}
+    <div class="hd-read" id="hd-read" aria-live="polite">Tocca o scorri sulle righe per vedere chi era in casa</div>
+    ${riepilogo}
+    <div class="hp-chart" id="hd-plot">
+      ${righe}
+      <div class="hp-nome hp-tot">In casa</div>
+      <div class="hp-riga hp-tot">${griglia}${tratti(r => quanti(r) > 0, 'var(--muted)')}</div>
+      <div class="hp-pc"><b>${100 - pc(vuota)}%</b></div>
+      <div class="hp-asse"></div>
+      <div class="hp-asse hd-x">${tempo.filter(k => k.label).map(k => `<span class="${k.mezzanotte ? 'd' : ''}" style="left:${((k.t - t0) / span * 100).toFixed(2)}%">${k.label}</span>`).join('')}</div>
+      <div class="hp-asse"></div>
+      <div class="hd-cur" id="hd-cur" hidden></div>
+    </div>
+    <p class="hd-nota">Tratto colorato: la persona era in casa. Le percentuali sono sul periodo scelto.</p>
+    ${hdPresenzeGiorni(rows, scelte, inCasa)}`;
+
+  hdBind(wrap, rows, [], null);
+  wrap.querySelectorAll('.hd-chip[data-persona]').forEach(b => b.addEventListener('click', () => {
+    const k = 'p:' + b.dataset.persona;
+    if (!_hd.off[k] && scelte.length <= 1) return;             // almeno una persona resta
+    _hd.off[k] = !_hd.off[k];
+    drawHistDetail(wrap);
+  }));
+  // linea di lettura: l'area utile è quella delle righe (seconda colonna)
+  const plot = wrap.querySelector('#hd-plot'), cur = wrap.querySelector('#hd-cur'), read = wrap.querySelector('#hd-read');
+  const riga = plot.querySelector('.hp-riga'); if (!riga) return;
+  const leggi = clientX => {
+    const box = riga.getBoundingClientRect(), fuori = plot.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (clientX - box.left) / Math.max(1, box.width)));
+    const t = t0 + f * span;
+    let lo = 0, hi = rows.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rows[m].t < t) lo = m; else hi = m; }
+    const r = rows[lo];                                         // la riga che copre quel momento
+    cur.hidden = false; cur.style.left = (box.left - fuori.left + f * box.width) + 'px';
+    const dentro = scelte.filter(p => inCasa(r, p));
+    read.innerHTML = `<strong>${hdQuando(t)}</strong>` + (r.n === null ? '<span>nessun dato</span>'
+      : dentro.length ? dentro.map(p => `<span><i style="background:${p.colore}"></i><b>${esc(hdNome(p.nome))}</b></span>`).join('') + `<span>${dentro.length} su ${scelte.length}</span>`
+      : `<span><b>${scelte.length === persone.length ? 'Casa vuota' : 'Nessuna delle persone scelte'}</b></span>`);
+  };
+  let giu = false;
+  plot.addEventListener('pointerdown', e => { giu = true; try { plot.setPointerCapture(e.pointerId); } catch (_) {} leggi(e.clientX); });
+  plot.addEventListener('pointermove', e => { if (giu || e.pointerType === 'mouse') leggi(e.clientX); });
+  plot.addEventListener('pointerup', () => { giu = false; });
+  plot.addEventListener('pointercancel', () => { giu = false; });
+}
+
+// Giorno per giorno: percentuale di tempo in casa di ogni persona scelta e di casa vuota
+function hdPresenzeGiorni(rows, scelte, inCasa) {
+  const giorni = new Map();
   rows.forEach((r, i) => {
     if (r.n === null) return;
-    const d = dur(r, i); tot += d;
-    if (r.n === 0) vuota += d;
-    r.names.forEach(n => { persone[n] = (persone[n] || 0) + d; });
+    const d = new Date(r.t), k = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    if (!giorni.has(k)) giorni.set(k, { t: r.t, tot: 0, vuota: 0, p: {} });
+    const g = giorni.get(k), ms = (i + 1 < rows.length ? rows[i + 1].t : r.t) - r.t;
+    g.tot += ms;
+    let n = 0;
+    scelte.forEach(p => { if (inCasa(r, p)) { g.p[p.nome] = (g.p[p.nome] || 0) + ms; n++; } });
+    if (!n) g.vuota += ms;
   });
-  if (!tot) return '';
-  const pc = x => Math.round(x / tot * 100) + '%';
-  const righe = Object.entries(persone).sort((a, b) => b[1] - a[1]).map(([n, ms]) =>
-    `<tr><th>${esc(n.charAt(0).toUpperCase() + n.slice(1))}</th><td><b>${oreTxt(ms / 36e5)}</b></td><td>${pc(ms)}</td></tr>`).join('');
-  return `<h3 class="hd-h">Chi era in casa</h3><div class="hd-scroll"><table class="hd-tab"><thead><tr><th></th><th>In casa</th><th>Del periodo</th></tr></thead><tbody>${righe}
-    <tr><th>Casa vuota</th><td><b>${oreTxt(vuota / 36e5)}</b></td><td>${pc(vuota)}</td></tr></tbody></table></div>`;
+  if (giorni.size < 2) return '';
+  const cella = (ms, tot, colore) => { const x = tot ? Math.round(ms / tot * 100) : 0;
+    return `<td><span class="hp-bar"><i style="width:${x}%;background:${colore}"></i></span>${x}%</td>`; };
+  const righe = [...giorni.values()].reverse().map(g => `<tr><th>${new Date(g.t).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</th>
+      ${scelte.map(p => cella(g.p[p.nome] || 0, g.tot, p.colore)).join('')}${cella(g.vuota, g.tot, 'var(--muted)')}</tr>`).join('');
+  return `<h3 class="hd-h">Giorno per giorno</h3><div class="hd-scroll"><table class="hd-tab hp-tab"><thead><tr><th></th>
+      ${scelte.map(p => `<th><i style="background:${p.colore}"></i>${esc(hdNome(p.nome))}</th>`).join('')}<th>Vuota</th></tr></thead><tbody>${righe}</tbody></table></div>
+    <p class="hd-nota">Percentuale della giornata passata in casa. Il primo e l’ultimo giorno possono essere parziali.</p>`;
 }
 
 function hdBind(wrap, rows, serie, g) {
