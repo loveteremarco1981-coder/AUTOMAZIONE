@@ -166,7 +166,7 @@ function heatingCard(rows, axis) {
     }).join('')}</div>
     <div class="hb-legend"><span><i class="hb-giorno"></i>3° piano</span><span><i class="hb-notte"></i>4° piano</span><span>${t.versione >= 3 ? 'ore di riscaldamento al giorno' : t.versione ? 'ore di Comfort al giorno' : 'ore di accensione al giorno'}</span></div>`;
   }
-  return `<article class="hc-card hc-wide"><header><span class="hc-t">Riscaldamento</span><span class="hc-v"><small>${_histDays <= 1 ? 'ultime 24 ore' : 'ultimi 7 giorni'}</small></span></header>
+  return `<article class="hc-card hc-wide hc-tap" data-detail="heat" role="button" tabindex="0" aria-label="Riscaldamento: apri l’analisi"><header><span class="hc-t">Riscaldamento</span><span class="hc-v"><small>${_histDays <= 1 ? 'ultime 24 ore' : 'ultimi 7 giorni'}</small></span>${HC_ZOOM}</header>
     ${righe}${axis}${giorni}</article>`;
 }
 
@@ -198,12 +198,12 @@ function renderHistory() {
   const legenda = SERIE.map(sr => `<span><i style="background:${sr.color}"></i>${sr.label} <b>${g1(lastVal(rows, sr.key))}</b></span>`).join('');
 
   body.innerHTML = `
-    <article class="hc-card hc-wide"><header><span class="hc-t">Temperature</span></header>
+    <article class="hc-card hc-wide hc-tap" data-detail="temp" role="button" tabindex="0" aria-label="Temperature: apri l’analisi"><header><span class="hc-t">Temperature</span>${HC_ZOOM}</header>
       <div class="hc-legend">${legenda}</div>${multiLineChart(rows, SERIE)}${axis}</article>
     ${heatingCard(rows, axis)}
     <div class="hc-grid">
-      <article class="hc-card"><header><span class="hc-t">Umidità esterna</span><span class="hc-v">${statLine(rows, 'hum', '%', false)}</span></header>${lineChart(rows, 'hum', '#58a6ff')}${axis}</article>
-      <article class="hc-card"><header><span class="hc-t">Presenze</span><span class="hc-v"><small>${esc(peakTxt)}</small></span></header>${presenceChart(rows)}${axis}</article>
+      <article class="hc-card hc-tap" data-detail="hum" role="button" tabindex="0" aria-label="Umidità esterna: apri l’analisi"><header><span class="hc-t">Umidità esterna</span><span class="hc-v">${statLine(rows, 'hum', '%', false)}</span></header>${lineChart(rows, 'hum', '#58a6ff')}${axis}</article>
+      <article class="hc-card hc-tap" data-detail="pres" role="button" tabindex="0" aria-label="Presenze: apri l’analisi"><header><span class="hc-t">Presenze</span><span class="hc-v"><small>${esc(peakTxt)}</small></span></header>${presenceChart(rows)}${axis}</article>
     </div>`;
   syncHistSeg();
 }
@@ -222,4 +222,249 @@ function initHistoryUI() {
     _histDays = Number(b.dataset.days) || 1;
     renderHistory();
   });
+  // Tocco su un riquadro: schermata grande di analisi
+  const apri = e => { const c = e.target.closest('.hc-tap'); if (c) { haptic(); openHistDetail(c.dataset.detail); } };
+  $('#hist-body')?.addEventListener('click', apri);
+  $('#hist-body')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apri(e); } });
+}
+
+
+/* ============================================================
+   ANALISI — schermata grande aperta toccando un riquadro di Andamento.
+   Grafico con scala e griglia, linea di lettura che segue il dito,
+   periodo a scelta (24 ore / 3 giorni / 7 giorni) e tabelle con i numeri.
+   ============================================================ */
+const HC_ZOOM = '<span class="hc-zoom" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/></svg></span>';
+
+const HD_SERIE = {
+  temp: { key: 'temp', color: '#ff9f43', label: 'Esterna', unit: '°', dec: 1 },
+  tg:   { key: 'tg',   color: '#f472b6', label: '3° piano', unit: '°', dec: 1 },
+  tn:   { key: 'tn',   color: '#a78bfa', label: '4° piano', unit: '°', dec: 1 },
+  hum:  { key: 'hum',  color: '#58a6ff', label: 'Umidità esterna', unit: '%', dec: 0 },
+  n:    { key: 'n',    color: '#3fb950', label: 'Persone in casa', unit: '', dec: 0, step: true, area: true, zero: true }
+};
+const HD_VISTE = {
+  temp: { titolo: 'Temperature', serie: ['temp', 'tg', 'tn'], bande: true },
+  heat: { titolo: 'Riscaldamento', serie: ['tg', 'tn'], bande: true, giorni: true },
+  hum:  { titolo: 'Umidità esterna', serie: ['hum'] },
+  pres: { titolo: 'Presenze', serie: ['n'], nomi: true }
+};
+const HD_BANDE = [{ key: 'ag', label: '3° piano', cls: 'hb-giorno' }, { key: 'an', label: '4° piano', cls: 'hb-notte' }];
+let _hd = { kind: 'temp', days: 1, off: {} };
+
+const hdNum = (v, sr) => v === null || v === undefined ? '—' : (sr.dec ? (Math.round(v * 10) / 10).toFixed(1).replace('.', ',').replace(',0', '') : String(Math.round(v))) + sr.unit;
+const hdQuando = t => new Date(t).toLocaleString('it-IT', { weekday: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const hdOra = t => new Date(t).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+function openHistDetail(kind) {
+  if (!_hist.ok || !HD_VISTE[kind]) return;
+  _hd = { kind, days: _histDays, off: {} };
+  const wrap = document.createElement('div');
+  wrap.className = 'hd';
+  openSheet(HD_VISTE[kind].titolo, wrap);
+  $('#sheet')?.classList.add('grande');
+  drawHistDetail(wrap);
+}
+
+// Passi "tondi" per la scala verticale
+function hdScala(lo, hi, zero) {
+  if (zero) lo = 0;
+  if (hi - lo < 1) { const c = (hi + lo) / 2; lo = zero ? 0 : c - .5; hi = c + .5; }
+  const grezzo = (hi - lo) / 5;
+  const passo = [.1, .2, .5, 1, 2, 5, 10, 20, 50].find(p => p >= grezzo) || 100;
+  const a = Math.floor(lo / passo) * passo, b = Math.ceil(hi / passo) * passo;
+  const tacche = [];
+  for (let v = a; v <= b + passo / 2; v += passo) tacche.push(Math.round(v * 10) / 10);
+  return { lo: a, hi: b, tacche };
+}
+
+// Tacche dell'asse del tempo: ore tonde, con il giorno a mezzanotte
+function hdTempo(t0, t1, largo) {
+  const ore = (t1 - t0) / 36e5;
+  const passo = ore <= 26 ? (largo ? 2 : 4) : ore <= 80 ? (largo ? 6 : 12) : (largo ? 12 : 24);
+  const out = [];
+  const d = new Date(t0); d.setMinutes(0, 0, 0); d.setHours(Math.ceil(d.getHours() / passo) * passo);
+  for (let t = d.getTime(); t <= t1; t += passo * 36e5) {
+    const x = new Date(t), mezzanotte = x.getHours() === 0;
+    out.push({ t, mezzanotte,
+      label: mezzanotte ? x.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' }) : (passo >= 24 ? '' : String(x.getHours()).padStart(2, '0')) });
+  }
+  return out;
+}
+
+function drawHistDetail(wrap) {
+  const vista = HD_VISTE[_hd.kind];
+  const da = Date.now() - _hd.days * 864e5;
+  const rows = _hist.rows.filter(r => r.t >= da);
+  const seg = `<div class="seg hd-seg" role="group" aria-label="Periodo">${[[1, '24 ore'], [3, '3 giorni'], [7, '7 giorni']].map(([d, l]) =>
+    `<button type="button" class="seg-btn${d === _hd.days ? ' is-active' : ''}" data-days="${d}">${l}</button>`).join('')}</div>`;
+  if (rows.length < 2) { wrap.innerHTML = seg + '<div class="hc-empty wide">Dati non ancora sufficienti per questo periodo.</div>'; hdBind(wrap, rows, []); return; }
+
+  const tutte = vista.serie.map(k => HD_SERIE[k]);
+  const serie = tutte.filter(sr => !_hd.off[sr.key] && rows.some(r => r[sr.key] !== null));
+  const t0 = rows[0].t, t1 = rows[rows.length - 1].t, span = Math.max(1, t1 - t0);
+  const vals = serie.flatMap(sr => rows.filter(r => r[sr.key] !== null).map(r => r[sr.key]));
+  const sc = vals.length ? hdScala(Math.min(...vals), Math.max(...vals), serie.some(sr => sr.zero)) : { lo: 0, hi: 1, tacche: [0, 1] };
+  const W = 1000, H = 300;
+  const X = t => (t - t0) / span * W, Y = v => (1 - (v - sc.lo) / (sc.hi - sc.lo)) * H;
+  const largo = window.innerWidth >= 720;
+  const tempo = hdTempo(t0, t1, largo);
+
+  const griglia = sc.tacche.map(v => `<line x1="0" x2="${W}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="hd-g"/>`).join('') +
+    tempo.map(k => `<line y1="0" y2="${H}" x1="${X(k.t).toFixed(1)}" x2="${X(k.t).toFixed(1)}" class="hd-g${k.mezzanotte ? ' hd-g-day' : ''}"/>`).join('');
+  const linee = serie.map(sr => {
+    const pts = rows.filter(r => r[sr.key] !== null);
+    let d = '';
+    pts.forEach((p, i) => {
+      const x = X(p.t).toFixed(1), y = Y(p[sr.key]).toFixed(1);
+      if (!i) d += `M${x} ${y}`;
+      else d += sr.step ? ` L${x} ${Y(pts[i - 1][sr.key]).toFixed(1)} L${x} ${y}` : ` L${x} ${y}`;
+    });
+    const area = sr.area ? `<path d="${d} L${X(pts[pts.length - 1].t).toFixed(1)} ${H} L${X(pts[0].t).toFixed(1)} ${H} Z" fill="${sr.color}" opacity=".18"/>` : '';
+    return `${area}<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+
+  const chips = tutte.length > 1 ? `<div class="hd-chips">${tutte.map(sr =>
+    `<button type="button" class="hd-chip${_hd.off[sr.key] ? '' : ' on'}" data-serie="${sr.key}" aria-pressed="${!_hd.off[sr.key]}"><i style="background:${sr.color}"></i>${sr.label}</button>`).join('')}</div>` : '';
+
+  const bande = vista.bande ? `<div class="hd-bande">${HD_BANDE.map(b => `
+      <div class="hd-banda"><span>${b.label}</span>${onOffBand(rows, b.key)}</div>`).join('')}
+      <p class="hd-nota">Strisce verdi: quando lo script ha fatto scaldare il piano.</p></div>` : '';
+
+  wrap.innerHTML = `
+    ${seg}${chips}
+    <div class="hd-read" id="hd-read" aria-live="polite">Tocca o scorri sul grafico per leggere i valori</div>
+    <div class="hd-chart">
+      <div class="hd-y">${sc.tacche.map(v => `<span style="top:${(Y(v) / H * 100).toFixed(2)}%">${hdNum(v, serie[0] || tutte[0])}</span>`).join('')}</div>
+      <div class="hd-plot" id="hd-plot">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${griglia}${linee}</svg>
+        <div class="hd-cur" id="hd-cur" hidden></div>
+        ${serie.map(sr => `<i class="hd-dot" data-k="${sr.key}" style="background:${sr.color}" hidden></i>`).join('')}
+      </div>
+      <div class="hd-x">${tempo.filter(k => k.label).map(k => `<span class="${k.mezzanotte ? 'd' : ''}" style="left:${((k.t - t0) / span * 100).toFixed(2)}%">${k.label}</span>`).join('')}</div>
+    </div>
+    ${bande}
+    ${hdStat(rows, serie)}
+    ${vista.bande ? hdRiscaldamento(rows) : ''}
+    ${vista.giorni || vista.bande ? hdGiorni(rows) : ''}
+    ${vista.nomi ? hdPresenze(rows) : ''}`;
+  hdBind(wrap, rows, serie, { t0, span, Y, H });
+}
+
+// Tabella: adesso, minimo, massimo e media di ogni linea
+function hdStat(rows, serie) {
+  if (!serie.length) return '<p class="hd-nota">Scegli almeno una linea da mostrare.</p>';
+  const righe = serie.map(sr => {
+    const p = rows.filter(r => r[sr.key] !== null);
+    if (!p.length) return '';
+    const min = p.reduce((a, b) => b[sr.key] < a[sr.key] ? b : a), max = p.reduce((a, b) => b[sr.key] > a[sr.key] ? b : a);
+    const media = p.reduce((a, b) => a + b[sr.key], 0) / p.length;
+    return `<tr><th><i style="background:${sr.color}"></i>${sr.label}</th><td><b>${hdNum(p[p.length - 1][sr.key], sr)}</b></td>
+      <td>${hdNum(min[sr.key], sr)}<small>${hdQuando(min.t)}</small></td><td>${hdNum(max[sr.key], sr)}<small>${hdQuando(max.t)}</small></td><td>${hdNum(media, { ...sr, dec: 1 })}</td></tr>`;
+  }).join('');
+  return `<h3 class="hd-h">Nel periodo</h3><div class="hd-scroll"><table class="hd-tab"><thead><tr><th></th><th>Adesso</th><th>Minimo</th><th>Massimo</th><th>Media</th></tr></thead><tbody>${righe}</tbody></table></div>`;
+}
+
+// Ore di riscaldamento e accensioni contate sulle righe dello storico (una ogni 15 minuti)
+function hdOreScalda(rows, key) {
+  let ms = 0, acc = 0, prima = 0;
+  rows.forEach((r, i) => {
+    if (r[key] === null) return;
+    if (r[key] === 1) { ms += (i + 1 < rows.length ? rows[i + 1].t : r.t) - r.t; if (prima !== 1) acc++; }
+    prima = r[key];
+  });
+  return { ore: ms / 36e5, acc };
+}
+
+function hdRiscaldamento(rows) {
+  const per = _hist.termo && _hist.termo.periodi ? _hist.termo.periodi[String(_hd.days)] : null;
+  const righe = [['giorno', '3° piano', 'ag', 'tg'], ['notte', '4° piano', 'an', 'tn']].map(([id, nome, k, kt]) => {
+    const o = hdOreScalda(rows, k), z = per && per[id];
+    const t = rows.filter(r => r[kt] !== null).map(r => r[kt]);
+    const quota = Math.round(o.ore / Math.max(.01, (rows[rows.length - 1].t - rows[0].t) / 36e5) * 100);
+    return `<tr><th>${nome}</th><td><b>${oreTxt(o.ore)}</b><small>${quota}% del tempo</small></td><td>${o.acc}</td>
+      <td>${z ? z.modifiche : '—'}</td><td>${t.length ? hdNum(Math.min(...t), HD_SERIE.tg) + ' – ' + hdNum(Math.max(...t), HD_SERIE.tg) : '—'}</td></tr>`;
+  }).join('');
+  return `<h3 class="hd-h">Riscaldamento</h3><div class="hd-scroll"><table class="hd-tab"><thead><tr><th></th><th>Ha scaldato</th><th>Accensioni</th><th>A mano</th><th>Stanza</th></tr></thead><tbody>${righe}</tbody></table></div>
+    ${per ? '<p class="hd-nota">"A mano": le modifiche fatte sul termostato.</p>' : '<p class="hd-nota">"A mano": le modifiche fatte sul termostato, contate solo su 24 ore e 7 giorni.</p>'}`;
+}
+
+// Giorno per giorno: ore di riscaldamento dei due piani e temperatura esterna
+function hdGiorni(rows) {
+  const giorni = new Map();
+  rows.forEach(r => {
+    const d = new Date(r.t), k = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+    if (!giorni.has(k)) giorni.set(k, { t: r.t, rows: [] });
+    giorni.get(k).rows.push(r);
+  });
+  if (giorni.size < 2) return '';
+  const lista = [...giorni.values()];
+  // l'ultima riga di ogni giorno dura fino alla prima del giorno dopo
+  const righe = lista.map((g, i) => {
+    const conSeguente = i + 1 < lista.length ? g.rows.concat(lista[i + 1].rows[0]) : g.rows;
+    const a = hdOreScalda(conSeguente, 'ag'), b = hdOreScalda(conSeguente, 'an');
+    const e = g.rows.filter(r => r.temp !== null).map(r => r.temp);
+    const tg = g.rows.filter(r => r.tg !== null).map(r => r.tg), tn = g.rows.filter(r => r.tn !== null).map(r => r.tn);
+    const med = l => l.length ? hdNum(l.reduce((x, y) => x + y, 0) / l.length, HD_SERIE.tg) : '—';
+    return `<tr><th>${new Date(g.t).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</th>
+      <td><b>${oreTxt(a.ore)}</b></td><td><b>${oreTxt(b.ore)}</b></td><td>${med(tg)}</td><td>${med(tn)}</td><td>${e.length ? hdNum(Math.min(...e), HD_SERIE.temp) + ' – ' + hdNum(Math.max(...e), HD_SERIE.temp) : '—'}</td></tr>`;
+  }).reverse().join('');
+  return `<h3 class="hd-h">Giorno per giorno</h3><div class="hd-scroll"><table class="hd-tab"><thead><tr><th></th><th>Scalda 3°</th><th>Scalda 4°</th><th>Media 3°</th><th>Media 4°</th><th>Esterna</th></tr></thead><tbody>${righe}</tbody></table></div>
+    <p class="hd-nota">Il primo e l’ultimo giorno possono essere parziali.</p>`;
+}
+
+// Presenze: ore con la casa vuota e ore in casa di ogni persona
+function hdPresenze(rows) {
+  const dur = (r, i) => (i + 1 < rows.length ? rows[i + 1].t : r.t) - r.t;
+  let vuota = 0, tot = 0; const persone = {};
+  rows.forEach((r, i) => {
+    if (r.n === null) return;
+    const d = dur(r, i); tot += d;
+    if (r.n === 0) vuota += d;
+    r.names.forEach(n => { persone[n] = (persone[n] || 0) + d; });
+  });
+  if (!tot) return '';
+  const pc = x => Math.round(x / tot * 100) + '%';
+  const righe = Object.entries(persone).sort((a, b) => b[1] - a[1]).map(([n, ms]) =>
+    `<tr><th>${esc(n.charAt(0).toUpperCase() + n.slice(1))}</th><td><b>${oreTxt(ms / 36e5)}</b></td><td>${pc(ms)}</td></tr>`).join('');
+  return `<h3 class="hd-h">Chi era in casa</h3><div class="hd-scroll"><table class="hd-tab"><thead><tr><th></th><th>In casa</th><th>Del periodo</th></tr></thead><tbody>${righe}
+    <tr><th>Casa vuota</th><td><b>${oreTxt(vuota / 36e5)}</b></td><td>${pc(vuota)}</td></tr></tbody></table></div>`;
+}
+
+function hdBind(wrap, rows, serie, g) {
+  wrap.querySelectorAll('.hd-seg .seg-btn').forEach(b => b.addEventListener('click', () => { _hd.days = Number(b.dataset.days) || 1; drawHistDetail(wrap); }));
+  wrap.querySelectorAll('.hd-chip').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.serie;
+    const accese = HD_VISTE[_hd.kind].serie.filter(x => !_hd.off[x]);
+    if (!_hd.off[k] && accese.length <= 1) return;           // almeno una linea resta
+    _hd.off[k] = !_hd.off[k];
+    drawHistDetail(wrap);
+  }));
+  const plot = wrap.querySelector('#hd-plot'); if (!plot || !g) return;
+  const cur = wrap.querySelector('#hd-cur'), read = wrap.querySelector('#hd-read');
+  const leggi = clientX => {
+    const box = plot.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (clientX - box.left) / Math.max(1, box.width)));
+    const t = g.t0 + f * g.span;
+    let lo = 0, hi = rows.length - 1;                          // riga più vicina nel tempo
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rows[m].t < t) lo = m; else hi = m; }
+    const r = Math.abs(rows[lo].t - t) <= Math.abs(rows[hi].t - t) ? rows[lo] : rows[hi];
+    const left = ((r.t - g.t0) / g.span * 100).toFixed(2) + '%';
+    cur.hidden = false; cur.style.left = left;
+    serie.forEach(sr => {
+      const dot = plot.querySelector(`.hd-dot[data-k="${sr.key}"]`); if (!dot) return;
+      if (r[sr.key] === null) { dot.hidden = true; return; }
+      dot.hidden = false; dot.style.left = left; dot.style.top = (g.Y(r[sr.key]) / g.H * 100).toFixed(2) + '%';
+    });
+    const valori = serie.map(sr => `<span><i style="background:${sr.color}"></i>${sr.label} <b>${hdNum(r[sr.key], sr)}</b></span>`).join('');
+    const scalda = HD_VISTE[_hd.kind].bande
+      ? `<span>Scalda: <b>${HD_BANDE.filter(b => r[b.key] === 1).map(b => b.label).join(' e ') || 'nessun piano'}</b></span>` : '';
+    const chi = r.n !== null ? `<span>In casa: <b>${r.names.length ? esc(r.names.map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(', ')) : 'nessuno'}</b></span>` : '';
+    read.innerHTML = `<strong>${hdQuando(r.t)}</strong>${valori}${scalda}${chi}`;
+  };
+  let giu = false;
+  plot.addEventListener('pointerdown', e => { giu = true; try { plot.setPointerCapture(e.pointerId); } catch (_) {} leggi(e.clientX); });
+  plot.addEventListener('pointermove', e => { if (giu || e.pointerType === 'mouse') leggi(e.clientX); });
+  plot.addEventListener('pointerup', () => { giu = false; });
+  plot.addEventListener('pointercancel', () => { giu = false; });
 }

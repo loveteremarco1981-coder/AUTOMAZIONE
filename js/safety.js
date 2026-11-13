@@ -71,6 +71,7 @@ function applyRole(m) {
 /* ---- Pannello a scomparsa (bottom sheet) ---- */
 function openSheet(title, node) {
   const sh = $('#sheet'); if (!sh) return;
+  sh.classList.remove('grande');               // la schermata grande la chiede chi la apre (Analisi)
   $('#sheet-title').textContent = title;
   const body = $('#sheet-body');
   body.innerHTML = '';
