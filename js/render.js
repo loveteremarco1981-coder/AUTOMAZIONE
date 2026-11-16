@@ -469,73 +469,61 @@ function updateCamStates(m) {
   $$('[data-cam-key]').forEach(card => setCamButtons(card, !!stateMap[card.dataset.camKey]));
 }
 
+/* Persone: i quattro cerchi come in Home; toccandone uno, sotto compaiono
+   i suoi dettagli e i pulsanti per forzarla in casa o fuori */
+let _personaScelta = null;
 function renderPeopleDetail(m) {
-  const list = $('#people-detail');
-  if (list) {
-    list.innerHTML = '';
-    const people = Array.isArray(m.people) ? m.people : [];
-    const sorted = [...people].sort((a, b) => {
-      if (a.onlineSmart !== b.onlineSmart) return a.onlineSmart ? -1 : 1;
-      return String(a.name).localeCompare(String(b.name), 'it');
-    });
-
-    sorted.forEach(p => {
-      const st = p.onlineSmart ? 'in' : 'out';
-      const ini = String(p.name || '?').charAt(0).toUpperCase();
-      const ago = p.lastSeen || '—';
-      const wifi = p.wifiOnline ? 'Wi‑Fi connesso' : 'Wi‑Fi non connesso';
-
-      const card = document.createElement('div');
-      card.className = 'people-detail-card';
-      card.innerHTML = `
-        <div class="pdc-top">
-          <div class="pdc-avatar ${st} ${avClass(p.name)}">${esc(ini)}</div>
-          <div>
-            <div class="pdc-name">${esc(cap(p.name))}</div>
-            <div class="pdc-state ${st}">${st === 'in' ? 'In casa' : 'Fuori'} · ${esc(ago)}</div>
-            <div class="pdc-ssid">${wifi}</div>
-          </div>
-        </div>
-        <div class="pdc-actions">
-          <button class="pdc-btn btn-in"  type="button">${svg('check')}Forza in casa</button>
-          <button class="pdc-btn btn-out" type="button">${svg('x')}Forza fuori</button>
-        </div>`;
-
-      const force = (btn, event, okMsg) => busy(btn, async () => {
-        haptic();
-        toast(`Aggiorno ${cap(p.name)}…`);
-        const r = await callAdmin(event, { name: p.name });
-        if (r && r.ok !== false) toast(okMsg, 'ok');
-        else if (r) toast('Operazione non riuscita. Riprova tra qualche secondo.', 'err');
-        reloadSoon(800);
-      });
-      const bIn = card.querySelector('.btn-in'), bOut = card.querySelector('.btn-out');
-      bIn.addEventListener('click',  () => force(bIn,  'force_in',  `${cap(p.name)} è in casa`));
-      bOut.addEventListener('click', () => force(bOut, 'force_out', `${cap(p.name)} è fuori`));
-      list.appendChild(card);
-    });
-  }
-
-  const qa = $('#quick-actions');
-  if (qa) {
-    qa.innerHTML = '';
-    [
-      { icon: 'up',      label: 'Alza tutto',      fn: async function run() { toast('Invio il comando di apertura…');   const r = await callAdmin('alza_tutto', { manual: 'TRUE' }); if (r && r.ok !== false) { setShuttersUp(true); markShutters('up'); } else if (r) failToast('IFTTT non ha confermato il comando.', run); } },
-      { icon: 'down',    label: 'Abbassa tutto',   fn: async function run() { toast('Invio il comando di chiusura…'); const r = await callAdmin('abbassa_tutto'); if (r && r.ok !== false) { setShuttersUp(false); markShutters('down'); } else if (r) failToast('IFTTT non ha confermato il comando.', run); } },
-      { icon: 'leaf',    label: 'Annaffia piante', fn: async function run() { toast('Invio il comando di irrigazione…'); const r = await callAdmin('piante'); if (r && r.ok === false) failToast('IFTTT non ha confermato il comando.', run); } },
-      { icon: 'plane',   label: 'Vacanza',         fn: async () => { const next = !MODEL?.vacanza;  toast(next ? 'Modalità vacanza attiva' : 'Modalità vacanza disattivata'); await callAdmin('set_vacanza',  { value: String(next) }); reloadSoon(500); } },
-      { icon: 'shield',  label: 'Override',        fn: async () => { const next = !MODEL?.override; toast(next ? 'Override attivo' : 'Override disattivato'); await callAdmin('set_override', { value: String(next) }); reloadSoon(500); } },
-      { icon: 'refresh', label: 'Aggiorna dati',   fn: () => loadAll(true) },
-    ].forEach(a => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'qa-btn';
-      btn.dataset.tone = ({ up: 'blue', down: 'blue', leaf: 'green', plane: 'amber', shield: 'red', refresh: 'purple' })[a.icon] || 'blue';
-      btn.innerHTML = `<span class="qa-ico">${svg(a.icon)}</span><span>${a.label}</span>`;
-      btn.addEventListener('click', () => busy(btn, async () => { haptic(); await a.fn(); }));
-      qa.appendChild(btn);
-    });
-  }
+  const host = $('#people-detail'); if (!host) return;
+  const people = Array.isArray(m.people) ? m.people : [];
+  if (!people.length) { host.innerHTML = '<div class="empty-state">Nessuna persona configurata.</div>'; return; }
+  const sorted = [...people].sort((a, b) => {
+    if (a.onlineSmart !== b.onlineSmart) return a.onlineSmart ? -1 : 1;
+    return String(a.name).localeCompare(String(b.name), 'it');
+  });
+  if (!sorted.some(p => p.name === _personaScelta)) _personaScelta = sorted[0].name;
+  const inN = sorted.filter(p => p.onlineSmart).length;
+  const sel = sorted.find(p => p.name === _personaScelta);
+  const st = sel.onlineSmart ? 'in' : 'out';
+  host.innerHTML = `
+    <div class="fam-head">
+      <span class="fam-count"><b>${inN}</b> su ${sorted.length} in casa</span>
+      <span class="fam-pips" aria-hidden="true">${sorted.map(p => `<i class="${p.onlineSmart ? 'on' : ''}"></i>`).join('')}</span>
+    </div>
+    <div class="fam-row" role="tablist" aria-label="Persone">
+      ${sorted.map((p, idx) => {
+        const t = /(\d{1,2}:\d{2})/.exec(String(p.lastSeen || ''));
+        return `<button type="button" role="tab" aria-selected="${p.name === _personaScelta}" class="fam-person ${p.onlineSmart ? 'in' : 'out'}${p.name === _personaScelta ? ' scelta' : ''}" data-nome="${esc(p.name)}" style="--i:${idx}">
+          <span class="fam-avatar ${avClass(p.name)}">${esc(String(p.name || '?').charAt(0).toUpperCase())}<span class="fam-dot ${p.wifiOnline ? 'on' : ''}"></span></span>
+          <span class="fam-name">${esc(cap(p.name))}</span>
+          <span class="fam-state">${p.onlineSmart ? 'In casa' : 'Fuori'}</span>
+          ${t ? `<span class="fam-time">dalle ${t[1]}</span>` : ''}
+        </button>`; }).join('')}
+    </div>
+    <div class="pp-det" role="tabpanel">
+      <div class="pp-info">
+        <b>${esc(cap(sel.name))}</b>
+        <span class="pp-st ${st}">${st === 'in' ? 'In casa' : 'Fuori'} · ${esc(sel.lastSeen || '—')}</span>
+        <span class="pp-wifi">${sel.wifiOnline ? 'Wi‑Fi di casa connesso' : 'Wi‑Fi di casa non connesso'}</span>
+      </div>
+      <div class="pp-btns">
+        <button class="pdc-btn btn-in" type="button" ${st === 'in' ? 'disabled' : ''}>${svg('check')}In casa</button>
+        <button class="pdc-btn btn-out" type="button" ${st === 'out' ? 'disabled' : ''}>${svg('x')}Fuori</button>
+      </div>
+    </div>`;
+  host.querySelectorAll('.fam-person').forEach(b => b.addEventListener('click', () => {
+    haptic(); _personaScelta = b.dataset.nome; renderPeopleDetail(MODEL || m);
+  }));
+  const force = (btn, event, okMsg) => busy(btn, async () => {
+    haptic();
+    toast(`Aggiorno ${cap(sel.name)}…`);
+    const r = await callAdmin(event, { name: sel.name });
+    if (r && r.ok !== false) toast(okMsg, 'ok');
+    else if (r) toast('Operazione non riuscita. Riprova tra qualche secondo.', 'err');
+    reloadSoon(800);
+  });
+  const bIn = host.querySelector('.btn-in'), bOut = host.querySelector('.btn-out');
+  bIn.addEventListener('click', () => force(bIn, 'force_in', `${cap(sel.name)} è in casa`));
+  bOut.addEventListener('click', () => force(bOut, 'force_out', `${cap(sel.name)} è fuori`));
 }
 
 function renderSettings(m) {
