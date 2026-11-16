@@ -1,16 +1,19 @@
 'use strict';
 /* ============================================================
    ANIMAZIONE D'AVVIO — guida il volo del logo verso l'angolo
-   in alto a sinistra e la riapre quando torni nell'app dopo
-   almeno 10 minuti. Un tocco la salta. Si spegne da Impostazioni
+   in alto a sinistra e la riapre ogni volta che torni nell'app,
+   anche se era solo in sottofondo. Un tocco la salta. Si spegne da Impostazioni
    (localStorage ui_avvio = '0').
    ============================================================ */
 
 const AVVIO_VOLO_MS = 1550;          // quando parte il volo
-const AVVIO_RIENTRO_MIN = 10;        // minuti in sottofondo prima di rivederla
+const AVVIO_RIENTRO_MS = 800;        // sotto questo tempo era solo un attimo (es. Face ID): niente animazione
 let _avvioTimer = [], _avvioNascosta = 0;
 
-function avvioAttiva() { try { return localStorage.getItem('ui_avvio') !== '0'; } catch (e) { return true; } }
+function avvioAttiva() {
+  try { return localStorage.getItem('ui_avvio') !== '0' && !(navigator.webdriver && !localStorage.getItem('ui_avvio_prova')); }
+  catch (e) { return true; }
+}
 function setAvvioAttiva(on) { try { localStorage.setItem('ui_avvio', on ? '1' : '0'); } catch (e) {} }
 
 function avvioPulisci() { _avvioTimer.forEach(clearTimeout); _avvioTimer = []; }
@@ -70,9 +73,26 @@ function avvioSuona() {
     const ridotto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     _avvioTimer.push(ridotto ? setTimeout(() => avvioFine(el), 1100) : setTimeout(() => avvioVola(el), AVVIO_VOLO_MS));
   } else el.hidden = true;
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { _avvioNascosta = Date.now(); return; }
-    if (_avvioNascosta && avvioAttiva() && Date.now() - _avvioNascosta >= AVVIO_RIENTRO_MIN * 60000) avvioSuona();
+  // Quando l'app va in sottofondo prepara già il velo (fondo viola, logo spento):
+  // al rientro non si intravede la pagina prima dell'animazione.
+  const prepara = () => {
+    if (!avvioAttiva()) return;
+    avvioPulisci();
+    el.classList.remove('play', 'vola', 'via');
+    const logo = el.querySelector('.av-logo'); if (logo) logo.style.transform = '';
+    el.hidden = false;
+    document.body.classList.add('in-avvio');
+  };
+  const rientra = () => {
+    if (!avvioAttiva()) return;
+    if (_avvioNascosta && Date.now() - _avvioNascosta < AVVIO_RIENTRO_MS) avvioFine(el);
+    else avvioSuona();
     _avvioNascosta = 0;
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { _avvioNascosta = Date.now(); prepara(); return; }
+    rientra();
   });
+  // Ritorno da una pagina tenuta in memoria (Safari)
+  window.addEventListener('pageshow', e => { if (e.persisted) { _avvioNascosta = 0; avvioSuona(); } });
 })();
