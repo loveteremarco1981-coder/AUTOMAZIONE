@@ -31,6 +31,8 @@ function statoZona(z, t) {
   if (!z) return { cls: 'unk', txt: '—', tip: 'Stato non ancora ricevuto' };
   const spento = z.modo && /\boff\b|spent|disattiv|stop/i.test(String(z.modo.v));
   if (spento) return { cls: 'off', txt: 'OFF', tip: 'Spento' };
+  // Gestione manuale: lo script non comanda, quindi niente SCALDA/FERMO/ON ma MANUALE
+  if (t && t.manuale) return { cls: 'man', txt: 'MANUALE', tip: z.modo && z.modo.v ? `Gestione manuale · modalità «${z.modo.v}»` : 'Gestione manuale: lo comandi da casa' };
   // Con la gestione manuale o in primavera-estate lo script non comanda: conta solo il termostato
   const comanda = !t || (!t.manuale && t.stagione === 'inverno');
   if (!comanda) return z.modo && z.modo.v ? { cls: 'on', txt: 'ON', tip: `Modalità «${z.modo.v}»` } : { cls: 'unk', txt: '—', tip: 'Stato non ancora ricevuto' };
@@ -197,7 +199,7 @@ function zonaHtml(t, [id, nome]) {
     : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
     : z.programma ? `${COMANDO_NOME[z.programma]} ${gradi(c[z.programma])}` : '—';
-  const caldaia = z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
+  const caldaia = t.manuale ? 'Manuale' : z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
   const terzo = v3
     ? `<div><span>Caldaia</span><b class="termo-prog">${esc(caldaia)}</b><small>${z.setpoint ? `termostato ${gradi(z.setpoint.v)}` : '&nbsp;'}</small></div>`
     : `<div><span>Impostata</span><b>${gradi(z.setpoint && z.setpoint.v)}</b>${quandoTxt(z.setpoint)}</div>`;

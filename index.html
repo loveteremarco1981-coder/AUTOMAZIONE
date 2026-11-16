@@ -39,20 +39,54 @@
   <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-v2-1290x2796.png">
   <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-v2-1125x2436.png">
   <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-v2-750x1334.png">
-  <link rel="stylesheet" href="css/01-base.css?v=202611161833">
-  <link rel="stylesheet" href="css/02-vetro.css?v=202611161833">
-  <link rel="stylesheet" href="css/03-compatto.css?v=202611161833">
-  <link rel="stylesheet" href="css/04-home.css?v=202611161833">
-  <link rel="stylesheet" href="css/05-persone.css?v=202611161833">
-  <link rel="stylesheet" href="css/06-barra.css?v=202611161833">
-  <link rel="stylesheet" href="css/07-preferiti.css?v=202611161833">
-  <link rel="stylesheet" href="css/08-schermate.css?v=202611161833">
-  <link rel="stylesheet" href="css/09-funzioni.css?v=202611161833">
-  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202611161833">
-  <link rel="stylesheet" href="css/11-aspetti.css?v=202611161833">
+  <link rel="stylesheet" href="css/01-base.css?v=202611162036">
+  <link rel="stylesheet" href="css/02-vetro.css?v=202611162036">
+  <link rel="stylesheet" href="css/03-compatto.css?v=202611162036">
+  <link rel="stylesheet" href="css/04-home.css?v=202611162036">
+  <link rel="stylesheet" href="css/05-persone.css?v=202611162036">
+  <link rel="stylesheet" href="css/06-barra.css?v=202611162036">
+  <link rel="stylesheet" href="css/07-preferiti.css?v=202611162036">
+  <link rel="stylesheet" href="css/08-schermate.css?v=202611162036">
+  <link rel="stylesheet" href="css/09-funzioni.css?v=202611162036">
+  <link rel="stylesheet" href="css/10-tema-chiaro.css?v=202611162036">
+  <link rel="stylesheet" href="css/11-aspetti.css?v=202611162036">
+  <link rel="stylesheet" href="css/12-avvio.css?v=202611162036">
 </head>
 
 <body class="first-paint">
+  <!-- ANIMAZIONE D'AVVIO (si toglie da sola; js/avvio.js la guida) -->
+  <div class="avvio play" id="avvio" aria-hidden="true">
+    <div class="av-caldo"></div>
+    <div class="av-centro">
+      <div class="av-logo">
+        <span class="av-onda"></span><span class="av-onda b"></span>
+        <span class="av-scintille"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <svg viewBox="0 0 100 100"><defs>
+          <linearGradient id="avtr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b39bff"/><stop offset=".55" stop-color="#7c4dff"/><stop offset="1" stop-color="#4f24c9"/></linearGradient>
+          <radialGradient id="avlu" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff6d8"/><stop offset=".45" stop-color="#ffc56b"/><stop offset="1" stop-color="#ff9a3c" stop-opacity="0"/></radialGradient>
+          <radialGradient id="aval" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffb35c" stop-opacity=".55"/><stop offset="1" stop-color="#ffb35c" stop-opacity="0"/></radialGradient>
+        </defs>
+        <g transform="translate(50 50) scale(1.12) translate(-50 -51)">
+          <circle class="av-alone" cx="50" cy="58" r="20" fill="url(#aval)"/>
+          <path class="av-tetto" d="M24 78 V46 L50 24 L76 46 V78" fill="none" stroke="url(#avtr)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="av-luce" cx="50" cy="56" r="11" fill="url(#avlu)"/>
+          <circle class="av-punto" cx="50" cy="56" r="4.6" fill="#fffaf0"/>
+        </g></svg>
+      </div>
+      <div class="av-testo"><b class="av-nome">Casa</b><span class="av-saluto" id="av-saluto">Bentornato</span></div>
+    </div>
+  </div>
+  <script>
+    // Decide subito, prima che si veda qualcosa: niente animazione se disattivata o nelle prove automatiche
+    (function () {
+      var el = document.getElementById('avvio'), no = false;
+      try { no = localStorage.getItem('ui_avvio') === '0' || (navigator.webdriver && !localStorage.getItem('ui_avvio_prova')); } catch (e) {}
+      if (no) { el.className = 'avvio'; el.hidden = true; return; }
+      document.body.classList.add('in-avvio');
+      var h = new Date().getHours();
+      document.getElementById('av-saluto').textContent = h < 5 ? 'Buonanotte' : h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera';
+    })();
+  </script>
   <!-- TOPBAR -->
   <header id="topbar">
     <div class="tb-left">
@@ -375,22 +409,23 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- CONFIG -->
-  <script src="config.js?v=202611161833"></script>
-  <script src="js/core.js?v=202611161833"></script>
-  <script src="js/safety.js?v=202611161833"></script>
-  <script src="js/theme.js?v=202611161833"></script>
-  <script src="js/scenes-edit.js?v=202611161833"></script>
-  <script src="js/schedule.js?v=202611161833"></script>
-  <script src="js/history.js?v=202611161833"></script>
-  <script src="js/notify.js?v=202611161833"></script>
-  <script src="js/settings-extra.js?v=202611161833"></script>
-  <script src="js/termostato.js?v=202611161833"></script>
-  <script src="js/ottone.js?v=202611161833"></script>
-  <script src="js/render.js?v=202611161833"></script>
-  <script src="js/collegamenti.js?v=202611161833"></script>
-  <script src="js/dispositivi.js?v=202611161833"></script>
-  <script src="js/load.js?v=202611161833"></script>
-  <script src="js/nav.js?v=202611161833"></script>
-  <script src="js/main.js?v=202611161833"></script>
+  <script src="config.js?v=202611162036"></script>
+  <script src="js/core.js?v=202611162036"></script>
+  <script src="js/safety.js?v=202611162036"></script>
+  <script src="js/theme.js?v=202611162036"></script>
+  <script src="js/scenes-edit.js?v=202611162036"></script>
+  <script src="js/schedule.js?v=202611162036"></script>
+  <script src="js/history.js?v=202611162036"></script>
+  <script src="js/notify.js?v=202611162036"></script>
+  <script src="js/settings-extra.js?v=202611162036"></script>
+  <script src="js/termostato.js?v=202611162036"></script>
+  <script src="js/ottone.js?v=202611162036"></script>
+  <script src="js/render.js?v=202611162036"></script>
+  <script src="js/avvio.js?v=202611162036"></script>
+  <script src="js/collegamenti.js?v=202611162036"></script>
+  <script src="js/dispositivi.js?v=202611162036"></script>
+  <script src="js/load.js?v=202611162036"></script>
+  <script src="js/nav.js?v=202611162036"></script>
+  <script src="js/main.js?v=202611162036"></script>
 </body>
 </html>

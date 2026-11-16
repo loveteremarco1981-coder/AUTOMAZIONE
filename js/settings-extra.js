@@ -46,6 +46,14 @@ function extraSettingRows(list, rowHtml, m) {
     `<label class="toggle-wrap"><input type="checkbox" aria-label="Conferma con Annulla" ${undoEnabled() ? 'checked' : ''}><span class="toggle-slider"></span></label>`,
     row => row.querySelector('input').addEventListener('change', e => setUndoEnabled(e.target.checked)));
 
+  add({ label: 'Animazione all\'avvio', sub: 'Il logo si accende quando apri l\'app', icon: 'home', tone: 'purple' },
+    `<button class="small-btn av-prova" type="button">Guarda</button>
+     <label class="toggle-wrap"><input type="checkbox" aria-label="Animazione all'avvio" ${avvioAttiva() ? 'checked' : ''}><span class="toggle-slider"></span></label>`,
+    row => {
+      row.querySelector('input').addEventListener('change', e => setAvvioAttiva(e.target.checked));
+      row.querySelector('.av-prova').addEventListener('click', () => { haptic(); avvioSuona(); });
+    });
+
   renderSkinPick();
   if (skinPref() !== 'classico') return;      // Tinta, Lume e Giorno hanno già il loro tema
   add({ label: 'Tema', sub: 'Automatico segue il telefono', icon: 'palette', tone: 'green' },
