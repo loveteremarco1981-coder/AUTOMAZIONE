@@ -155,6 +155,7 @@ function renderFavorites(m) {
     card.className = 'fav-card' + (isOn ? ' active' : '');
     card.style.setProperty('--fc', f.color || '#58a6ff');
     card.dataset.kind = f.kind || (f.id === 'tapparelle' ? 'toggle' : 'action');
+    if (f.id) card.dataset.fav = f.id;
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     if (isToggle) card.setAttribute('aria-pressed', String(isOn));

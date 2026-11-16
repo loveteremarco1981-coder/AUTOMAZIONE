@@ -11,6 +11,7 @@ function renderModel(m) {
   renderPeopleDetail(m); renderSettings(m);
   updateErrorBadge(m); updateTs(m);
   updateHero();
+  if (typeof renderOttone === 'function') renderOttone(m);
 }
 
 async function loadAll(manual) {

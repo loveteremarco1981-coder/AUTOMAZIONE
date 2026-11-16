@@ -134,7 +134,8 @@ function openTermoRapido(id) {
     const t = termo(MODEL);
     if (!t) { closeSheet(); return; }
     const nome = ZONE.find(([zid]) => zid === id)[1];
-    wrap.innerHTML = `<div class="termo-card-in">${zonaHtml(t, [id, nome])}</div>
+    const dial = typeof isOttone === 'function' && isOttone() ? otQuadrante(t.zone[id], t) : '';
+    wrap.innerHTML = `${dial}<div class="termo-card-in">${zonaHtml(t, [id, nome])}</div>
       <div class="sheet-actions"><button class="btn-ghost" type="button" id="tr-dettagli">Tutti i termostati</button></div>`;
     wrap.querySelectorAll('.termo-volo').forEach(b => bindVolo(b, disegna));
     wrap.querySelector('#tr-dettagli').addEventListener('click', () => { closeSheet(); activateTab('devices'); });

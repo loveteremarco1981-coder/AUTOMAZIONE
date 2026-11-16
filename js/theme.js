@@ -33,6 +33,7 @@ function applyTheme() {
   if (tc) tc.setAttribute('content', SKINS[sk].colore || (t === 'light' ? '#eef2f8' : '#0d1117'));
   const cs = document.querySelector('meta[name="color-scheme"]');
   if (cs) cs.setAttribute('content', t);
+  if (typeof renderOttone === 'function' && typeof MODEL !== 'undefined' && MODEL) renderOttone(MODEL);
 }
 
 function initTheme() {
