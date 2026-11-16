@@ -280,7 +280,7 @@
 
 .skin-pick {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -322,7 +322,117 @@
 .skin-nome { font-size: 13.5px; font-weight: 700; }
 .skin-sub { font-size: 11px; line-height: 1.25; color: var(--muted); }
 
+@media (max-width: 520px) {
+  .skin-pick { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 380px) {
   .skin-pick { gap: 6px; }
   .skin-sub { display: none; }
+}
+
+
+/* ============================================================
+   4) OTTONE — antracite e ottone. Pannelli grafite morbidi, icone
+      chiare monocromatiche, e il colore ottone solo su ciò che è
+      acceso o scelto (preferiti attivi, filtri, pulsanti).
+   ============================================================ */
+
+:root[data-skin="ottone"] {
+  --bg: #1d1f20;
+  --bg2: #2a2d2f;
+  --bg3: #34383a;
+  --card: #2a2d2f;
+  --card-hover: #303436;
+  --line: rgba(255,255,255,.06);
+  --line2: rgba(255,255,255,.12);
+  --fg: #f3f0ea;
+  --muted: #a6a8a7;
+  --muted2: #7f8382;
+  --ottone: #c9a45c;
+  --ottone-chiaro: #e2c48a;
+  --accent: #c9a45c;
+  --accent2: #c9a45c;
+  --accent-dim: rgba(201,164,92,.16);
+  --ga: 0;
+  --glass-edge: transparent;
+  --glass-hi: transparent;
+  --r-card: 22px;
+  --radius: 20px;
+  --radius-sm: 14px;
+}
+
+[data-skin="ottone"] body { background: linear-gradient(180deg, #2a2d2f 0, #1d1f20 340px); background-attachment: fixed; font-size: 15px; }
+[data-skin="ottone"] body::before { display: none; }
+[data-skin="ottone"] body::after { opacity: .16; height: 40vh; }
+
+[data-skin="ottone"] .st-card,
+[data-skin="ottone"] .fav-card,
+[data-skin="ottone"] .person-chip,
+[data-skin="ottone"] .shutter-card,
+[data-skin="ottone"] .app-link-card,
+[data-skin="ottone"] .people-detail-card,
+[data-skin="ottone"] .qa-btn,
+[data-skin="ottone"] .scene-btn,
+[data-skin="ottone"] .info-card,
+[data-skin="ottone"] .log-row,
+[data-skin="ottone"] .appearance-card,
+[data-skin="ottone"] .settings-list,
+[data-skin="ottone"] .events-list,
+[data-skin="ottone"] .temp-card,
+[data-skin="ottone"] .termo-card,
+[data-skin="ottone"] .family-card,
+[data-skin="ottone"] .hc-card {
+  background: var(--card);
+  border: 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset;
+  border-radius: var(--r-card);
+}
+
+[data-skin="ottone"] .hero-title { font-size: 34px; font-weight: 600; letter-spacing: -.02em; color: #fff; }
+[data-skin="ottone"] .hero-sub { font-size: 15px; color: var(--muted); }
+[data-skin="ottone"] .section-title { font-size: 16px; font-weight: 600; margin-top: 18px; color: var(--fg); }
+[data-skin="ottone"] .st-value,
+[data-skin="ottone"] .tc-val,
+[data-skin="ottone"] .termo-vals b { font-weight: 600; letter-spacing: -.01em; }
+[data-skin="ottone"] .tb-title { font-weight: 600; }
+
+/* icone chiare e monocromatiche su tasselli grafite */
+[data-skin="ottone"] .scene-ico,
+[data-skin="ottone"] .scene-btn[data-tone] .scene-ico { background: var(--bg3); color: #ece8df; border-radius: 14px; }
+[data-skin="ottone"] .fav-glyph { background: var(--bg3) !important; box-shadow: none; border-radius: 14px; }
+[data-skin="ottone"] .fav-glyph img { filter: grayscale(1) brightness(2.2); }
+[data-skin="ottone"] .fav-card[aria-pressed="false"] .fav-glyph { filter: none; opacity: .75; }
+
+/* acceso = ottone pieno, come un tasto illuminato */
+[data-skin="ottone"] .fav-card.active { background: linear-gradient(160deg, var(--ottone-chiaro), var(--ottone)); border: 0; box-shadow: 0 10px 26px rgba(201,164,92,.25); }
+[data-skin="ottone"] .fav-card.active .fav-glyph { background: rgba(29,31,32,.16) !important; }
+[data-skin="ottone"] .fav-card.active .fav-glyph img { filter: brightness(0) opacity(.8); }
+[data-skin="ottone"] .fav-card.active .fav-label,
+[data-skin="ottone"] .fav-card.active .fav-status { color: #1d1f20; }
+[data-skin="ottone"] .fav-card.active .fav-status::before { background: #1d1f20; }
+
+[data-skin="ottone"] .termo-vals > div,
+[data-skin="ottone"] .termo-volo,
+[data-skin="ottone"] .hd-read,
+[data-skin="ottone"] .hp-kpi > div { background: var(--bg3); border: 0; }
+
+[data-skin="ottone"] .state-banner { background: var(--card); border: 0; box-shadow: inset 3px 0 0 var(--ottone); border-radius: 20px; }
+[data-skin="ottone"] .icon-btn,
+[data-skin="ottone"] .weather-pill { background: var(--card); border: 0; box-shadow: none; }
+[data-skin="ottone"] .small-btn,
+[data-skin="ottone"] .sh-btn { background: transparent; border: 1px solid rgba(201,164,92,.55); color: var(--ottone-chiaro); box-shadow: none; }
+[data-skin="ottone"] .chip.on { background: var(--ottone); border-color: var(--ottone); color: #1d1f20; }
+[data-skin="ottone"] .chip.on b { color: #1d1f20; }
+[data-skin="ottone"] .seg-btn.is-active,
+[data-skin="ottone"] .hd-seg .seg-btn.is-active { background: var(--ottone); color: #1d1f20; }
+[data-skin="ottone"] .toggle-wrap input:checked + .toggle-slider { background: var(--ottone); }
+[data-skin="ottone"] .sheet { background: #26292b; border: 0; }
+[data-skin="ottone"] .tab-plate g:first-of-type { fill: #3a3e41; }
+[data-skin="ottone"] .tab-plate g:last-of-type { fill: #26292b; }
+
+[data-skin="ottone"] .skin-opt.is-active { border-color: var(--ottone); box-shadow: 0 0 0 3px rgba(201,164,92,.25); }
+
+@media (max-width: 520px) {
+  .skin-prev { aspect-ratio: 1 / 1; }
 }

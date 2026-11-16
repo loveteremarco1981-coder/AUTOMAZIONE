@@ -71,6 +71,7 @@ function renderSkinPick() {
     tinta:    '<i style="background:linear-gradient(180deg,#1f4f86,#101216 70%)"></i><b style="background:#181b21"></b><b style="background:#181b21"></b><u style="background:#58a6ff"></u>',
     lume:     '<i style="background:#0c1118"></i><b style="background:#151c27"></b><b style="background:#151c27"></b><u style="background:#8fc1ff"></u>',
     giorno:   '<i style="background:#eff2f0"></i><b style="background:#fff;box-shadow:inset 0 0 0 1px rgba(20,32,28,.12)"></b><b style="background:#fff;box-shadow:inset 0 0 0 1px rgba(20,32,28,.12)"></b><u style="background:#1d6b52"></u>',
+    ottone:   '<i style="background:linear-gradient(180deg,#2f3335,#1d1f20)"></i><b style="background:linear-gradient(160deg,#e2c48a,#c9a45c)"></b><b style="background:#34383a"></b><u style="background:#c9a45c"></u>',
     classico: '<i style="background:radial-gradient(circle at 30% 20%,#3b4a8a,#0d1117 70%)"></i><b style="background:rgba(255,255,255,.12)"></b><b style="background:rgba(255,255,255,.12)"></b><u style="background:#58a6ff"></u>'
   };
   box.innerHTML = Object.entries(SKINS).map(([id, s]) => `

@@ -1,7 +1,7 @@
 'use strict';
 /* ============================================================
-   ASPETTO — Tinta (predefinito), Lume, Giorno o Classico (il vetro).
-   Tinta e Lume sono scuri, Giorno è chiaro; solo Classico segue il
+   ASPETTO — Tinta (predefinito), Lume, Giorno, Ottone o Classico (il vetro).
+   Tinta, Lume e Ottone sono scuri, Giorno è chiaro; solo Classico segue il
    Tema (automatico, chiaro o scuro).
    TEMA — automatico (segue il telefono), chiaro o scuro
    ============================================================ */
@@ -9,6 +9,7 @@ const SKINS = {
   tinta:    { nome: 'Tinta',    sub: 'Un colore per ogni sezione', tema: 'dark',  colore: '#101216' },
   lume:     { nome: 'Lume',     sub: 'Scura e calma',              tema: 'dark',  colore: '#0c1118' },
   giorno:   { nome: 'Giorno',   sub: 'Chiara e ordinata',          tema: 'light', colore: '#eff2f0' },
+  ottone:   { nome: 'Ottone',   sub: 'Antracite e ottone',         tema: 'dark',  colore: '#26292b' },
   classico: { nome: 'Classico', sub: 'Il vetro di prima',          tema: null,    colore: null }
 };
 const skinPref = () => { try { const s = localStorage.getItem('ui_skin'); return SKINS[s] ? s : 'tinta'; } catch (_) { return 'tinta'; } };
