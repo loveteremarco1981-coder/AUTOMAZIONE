@@ -43,12 +43,8 @@ function renderOttone(m) {
     const caldo = z && z.comando === 'scalda';
     const ob = z && typeof z.obiettivo === 'number' ? z.obiettivo : null;
     return `<button type="button" class="ot-room${caldo ? ' caldo' : ''}" data-piano="${id}" aria-label="${nome}: apri il termostato">
-      <span class="ot-room-top" aria-hidden="true">
-        <svg viewBox="0 0 100 60" preserveAspectRatio="xMidYMid slice"><path d="M0 60 L0 34 L28 14 L56 34 L56 60 Z" class="ot-r1"/><path d="M44 60 L44 30 L70 10 L100 32 L100 60 Z" class="ot-r2"/><rect x="21" y="36" width="12" height="12" rx="1.5" class="ot-r3"/><rect x="65" y="34" width="12" height="12" rx="1.5" class="ot-r3"/></svg>
-        <span class="onoff ${s.cls}">${esc(s.txt)}</span>
-      </span>
-      <span class="ot-room-nome">${nome}</span>
-      <span class="ot-room-val"><b>${z && z.temp ? num(z.temp.v, 1) : '—'}°</b><small>${ob !== null ? `obiettivo ${num(ob, 1)}°` : (z && z.modo ? esc(z.modo.v) : '')}</small></span>
+      <span class="ot-room-riga"><span class="ot-room-nome">${nome}</span><span class="onoff ${s.cls}">${esc(s.txt)}</span></span>
+      <span class="ot-room-val"><b>${z && z.temp ? num(z.temp.v, 1) : '—'}°</b><small>${ob !== null ? `→ ${num(ob, 1)}°` : (z && z.modo ? esc(z.modo.v) : '')}</small></span>
     </button>`;
   };
 
@@ -63,17 +59,15 @@ function renderOttone(m) {
 
     <div class="ot-sez">Comandi rapidi</div>
     <div class="ot-quick">
-      <div class="ot-quick-grid">${scene.map(tassello).join('')}</div>
-      <button type="button" class="ot-tall${su ? ' on' : ''}" data-tapparelle aria-pressed="${su}" aria-label="Tapparelle: ${su ? 'abbassa' : 'alza'}">
+      ${scene.map(tassello).join('')}
+      <button type="button" class="ot-tile ot-tall${su ? ' on' : ''}" data-tapparelle aria-pressed="${su}" aria-label="Tapparelle: ${su ? 'abbassa' : 'alza'}">
         <span class="ot-ico">${svg(su ? 'up' : 'down')}</span>
-        <span class="ot-lab">Tapparelle</span>
-        <span class="ot-sub">${rec ? (su ? 'Aperte' : 'Chiuse') : 'Tocca per alzare'}</span>
+        <span class="ot-lab">${rec ? (su ? 'Aperte' : 'Chiuse') : 'Tapparelle'}</span>
       </button>
     </div>
 
     ${t ? `<div class="ot-sez">Piani</div><div class="ot-rooms">${piano('giorno')}${piano('notte')}</div>` : ''}
 
-    <div class="ot-sez">Fuori</div>
     <div class="ot-fuori">
       <div><span>Temperatura °C</span><b>${num(w.tempC, 1)}°</b></div>
       <div><span>Umidità</span><b>${num(w.humidity)}%</b></div>
