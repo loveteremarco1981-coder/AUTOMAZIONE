@@ -138,6 +138,7 @@ function openTermoRapido(id) {
     wrap.innerHTML = `${dial}<div class="termo-card-in">${zonaHtml(t, [id, nome])}</div>
       <div class="sheet-actions"><button class="btn-ghost" type="button" id="tr-dettagli">Tutti i termostati</button></div>`;
     wrap.querySelectorAll('.termo-volo').forEach(b => bindVolo(b, disegna));
+    if (dial && typeof otBindDial === 'function') otBindDial(wrap, id, disegna);
     wrap.querySelector('#tr-dettagli').addEventListener('click', () => { closeSheet(); activateTab('devices'); });
   };
   openSheet(PIANO[id], wrap);
