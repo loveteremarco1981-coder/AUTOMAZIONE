@@ -73,7 +73,7 @@ main {
 /* Scene: quattro tessere compatte in una riga, ognuna con il suo colore */
 
 .scene-row {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -163,7 +163,7 @@ main {
 
 @media (min-width: 560px) {
   .st-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -361,7 +361,7 @@ main {
 
 @media (min-width: 900px) {
   .scene-row {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .hero-title {
     font-size: 34px;

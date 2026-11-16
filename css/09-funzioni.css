@@ -757,7 +757,7 @@ body.ro .qa-btn {
 
 .termo-vals {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 8px;
 }
@@ -895,7 +895,7 @@ body.ro .qa-btn {
 
 .temp-card {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   margin-bottom: 8px;
   border-radius: 16px;
@@ -966,7 +966,7 @@ body.ro .qa-btn {
 /* Le altre tre tessere su una riga */
 
 .st-grid.st-grid-3 {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .st-grid-3 .st-card {
@@ -1059,7 +1059,7 @@ body.ro .qa-btn {
 
 .hb-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   margin-top: 14px;
 }
@@ -1715,11 +1715,15 @@ body.ro .qa-btn {
 
 .dev-groups {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
 }
 
 .dev-group {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1756,12 +1760,12 @@ body.ro .qa-btn {
 
 .dev-group-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .dev-group-txt b { font-size: 15.5px; font-weight: 650; }
-.dev-group-txt small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-group-txt small { font-size: 12.5px; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .dev-group-go { flex: none; color: var(--muted); }
 .dev-group-go svg { width: 18px; height: 18px; }
 
 @media (min-width: 720px) {
-  .dev-groups { grid-template-columns: 1fr 1fr; }
+  .dev-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .dev-back {

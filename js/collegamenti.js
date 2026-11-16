@@ -3,6 +3,7 @@
    COLLEGAMENTI TRA LE SCHEDE
    Qualunque elemento con data-vai="…" porta da un'altra parte:
      tab:<scheda>        apre una scheda (home, devices, people, log, settings)
+     log:<filtro>        apre il Log già filtrato (presenze, err, who:<nome>, code:<CODICE>)
      dev:<gruppo>        apre Dispositivi su quel gruppo
      hist:<tipo>         apre l'analisi (temp, heat, hum, pres)
      scene               modifica le scene
@@ -17,6 +18,11 @@ function vai(dest) {
   const [cosa, arg] = dest.split(':');
   const chiudi = () => { if (typeof closeSheet === 'function' && document.body.classList.contains('sheet-open')) closeSheet(); };
   if (cosa === 'tab') { chiudi(); activateTab(arg); return; }
+  if (cosa === 'log') {
+    chiudi(); _logFilter = dest.slice(4) || 'all'; _logQ = '';
+    const q = $('#log-search'); if (q) q.value = '';
+    activateTab('log'); drawLogs(); return;
+  }
   if (cosa === 'dev') { chiudi(); activateDevices(arg); return; }
   if (cosa === 'hist') {
     if (typeof _hist === 'undefined' || !_hist.ok) { toast('Andamento non ancora disponibile.', 'info', 2500); return; }
@@ -67,7 +73,7 @@ function renderCollegamenti(m) {
   metti('#view-people', [
     ['hist:pres', 'home', 'Analisi delle presenze'],
     ['dev:riscaldamento', 'thermo', 'Riscaldamento dei piani'],
-    ['tab:log', 'bell', 'Registro: entrate e uscite']
+    ['log:presenze', 'bell', 'Registro: entrate e uscite']
   ]);
   metti('#view-settings', [
     ['dev:riscaldamento', 'thermo', 'Termostati in Dispositivi'],

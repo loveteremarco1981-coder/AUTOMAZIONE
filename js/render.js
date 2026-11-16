@@ -506,6 +506,7 @@ function renderPeopleDetail(m) {
         <b>${esc(cap(sel.name))}</b>
         <span class="pp-st ${st}">${st === 'in' ? 'In casa' : 'Fuori'} · ${esc(sel.lastSeen || '—')}</span>
         <span class="pp-wifi">${sel.wifiOnline ? 'Wi‑Fi di casa connesso' : 'Wi‑Fi di casa non connesso'}</span>
+        <button type="button" class="pp-log" data-vai="log:who:${esc(String(sel.name || '').toLowerCase())}">Registro di ${esc(cap(sel.name))}${svg('chevron')}</button>
       </div>
       <div class="pp-btns">
         <button class="pdc-btn btn-in" type="button" ${st === 'in' ? 'disabled' : ''}>${svg('check')}In casa</button>
@@ -600,7 +601,8 @@ function renderSettings(m) {
 }
 
 /* ---- Log: righe compatte, filtri per tipo, errori in evidenza ---- */
-const ROUTINE_RE = /^(WATCHDOG|SUPERVISOR|REPORT|HEARTBEAT)$/i;   // eventi di routine (modificabile): li nasconde il filtro "Senza routine"
+const ROUTINE_RE = /^(WATCHDOG|SUPERVISOR|REPORT|HEARTBEAT)$/i;
+const PRESENZE_RE = /^(IN|OUT|OUT_PENDING|FORCE_IN|FORCE_OUT|ARRIVO|USCITA|PRESENZ\w*)$/i;   // entrate e uscite   // eventi di routine (modificabile): li nasconde il filtro "Senza routine"
 let _logAll = [], _logFilter = 'all', _logQ = '', _logErr24 = 0, _lastLogsFetch = 0;
 
 const isErrLog = x =>
@@ -652,17 +654,21 @@ function drawLogs() {
       { id: 'all',       label: 'Tutti',         n: all.length },
       { id: 'err',       label: 'Errori',        n: errs.length, err: true },
       { id: 'noroutine', label: 'Senza routine', n: all.filter(x => !ROUTINE_RE.test(x.code || '')).length },
+      { id: 'presenze',  label: 'Entrate e uscite', n: all.filter(x => PRESENZE_RE.test(x.code || '')).length },
       ...logPeople().map(n => ({ id: 'who:' + n, label: cap(n), n: all.filter(x => logText(x).includes(n)).length })).filter(d => d.n),
       ...types.map(t => ({ id: 'code:' + t, label: cap(t.toLowerCase()), n: counts[t] })),
     ];
     chips.innerHTML = defs.map(d =>
       `<button class="chip${_logFilter === d.id ? ' on' : ''}${d.err && d.n ? ' chip-err' : ''}" type="button" data-f="${esc(d.id)}">${esc(d.label)} <b>${d.n}</b></button>`
     ).join('');
+    const on = chips.querySelector('.chip.on');
+    if (on && _logFilter !== 'all') chips.scrollLeft = Math.max(0, on.offsetLeft - 16);
   }
 
   const pass = x =>
     _logFilter === 'err' ? isErrLog(x) :
     _logFilter === 'noroutine' ? !ROUTINE_RE.test(x.code || '') :
+    _logFilter === 'presenze' ? PRESENZE_RE.test(x.code || '') :
     _logFilter.startsWith('code:') ? logCode(x) === _logFilter.slice(5) :
     _logFilter.startsWith('who:') ? logText(x).includes(_logFilter.slice(4)) : true;
   const q = _logQ.trim().toLowerCase();

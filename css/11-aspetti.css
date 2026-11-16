@@ -280,7 +280,7 @@
 
 .skin-pick {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -323,7 +323,7 @@
 .skin-sub { font-size: 11px; line-height: 1.25; color: var(--muted); }
 
 @media (max-width: 520px) {
-  .skin-pick { grid-template-columns: repeat(3, 1fr); }
+  .skin-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 380px) {
@@ -480,7 +480,7 @@
 /* comandi rapidi: una riga di cinque tasselli compatti */
 .ot-quick {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
   border: 1px solid var(--line2);
@@ -610,3 +610,12 @@ button.ot-badge:active { transform: scale(.97); }
 .link-chip span { flex: 1; }
 .link-chip .link-go { width: 14px; height: 14px; color: var(--muted); flex: none; }
 .link-chip:active { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+
+/* Schermi stretti (iPhone con Zoom schermo): le caselle non escono mai a destra */
+.fav-card, .fam-person { min-width: 0; }
+.fav-label, .fav-status, .fam-name, .fam-time, .fam-state { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 340px) {
+  .people-pick .fam-avatar { width: 44px; height: 44px; font-size: 17px; }
+  .people-pick .fam-time { font-size: 10.5px; }
+  #view-home .fav-label { font-size: 12px; }
+}

@@ -982,7 +982,7 @@ main {
   position: fixed;
   z-index: 100;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-top: 1px solid var(--line);
   padding-bottom: var(--safe-bottom);
   -webkit-transform: translateZ(0);
@@ -1101,10 +1101,10 @@ main {
 
 @media (min-width: 420px) {
   .fav-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .quick-actions {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1218,9 +1218,9 @@ main {
     max-width: 920px;
   }
   .st-grid, .fav-grid, .scene-row {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .quick-actions {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
