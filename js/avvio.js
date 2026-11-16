@@ -6,7 +6,7 @@
    (localStorage ui_avvio = '0').
    ============================================================ */
 
-const AVVIO_VOLO_MS = 1550;          // quando parte il volo
+const AVVIO_VOLO_MS = 2550;          // quando parte il volo (il saluto resta un secondo in più)
 const AVVIO_RIENTRO_MS = 800;        // sotto questo tempo era solo un attimo (es. Face ID): niente animazione
 let _avvioTimer = [], _avvioNascosta = 0;
 
@@ -15,6 +15,43 @@ function avvioAttiva() {
   catch (e) { return true; }
 }
 function setAvvioAttiva(on) { try { localStorage.setItem('ui_avvio', on ? '1' : '0'); } catch (e) {} }
+
+// Chi usa questo telefono: vale solo qui (localStorage), non è una chiave né cambia i permessi
+function avvioIo() { try { return localStorage.getItem('ui_io') || ''; } catch (e) { return ''; } }
+function setAvvioIo(nome) { try { nome ? localStorage.setItem('ui_io', nome) : localStorage.removeItem('ui_io'); localStorage.setItem('ui_io_chiesto', '1'); } catch (e) {} }
+function avvioSaluto() {
+  const h = new Date().getHours(), io = avvioIo();
+  return (h < 5 ? 'Buonanotte' : h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera') + (io ? ', ' + io : '');
+}
+
+// Foglio "Chi usa questo telefono?" con i cerchi delle persone
+function openChiSonoSheet(m) {
+  const people = ((m || MODEL || {}).people || []).map(p => String(p.name || '')).filter(Boolean);
+  const wrap = document.createElement('div');
+  wrap.className = 'chi-sono';
+  const io = avvioIo();
+  wrap.innerHTML = `<p class="chi-sono-txt">Serve solo per salutarti all'apertura. Resta su questo telefono.</p>
+    <div class="chi-sono-grid">${people.map(n => `
+      <button type="button" class="chi-sono-p${cap(n) === io ? ' scelta' : ''}" data-nome="${esc(cap(n))}">
+        <span class="fam-avatar ${avClass(n)}">${esc(n.charAt(0).toUpperCase())}</span><span>${esc(cap(n))}</span></button>`).join('')}</div>
+    <button type="button" class="small-btn chi-sono-no">${io ? 'Nessun nome' : 'Non ora'}</button>`;
+  wrap.querySelectorAll('.chi-sono-p').forEach(b => b.addEventListener('click', () => {
+    haptic(); setAvvioIo(b.dataset.nome); closeSheet(); toast(`${avvioSaluto()}!`, 'ok', 2200);
+    if (typeof renderSettings === 'function' && MODEL) renderSettings(MODEL);
+  }));
+  wrap.querySelector('.chi-sono-no').addEventListener('click', () => {
+    setAvvioIo(''); closeSheet(); if (typeof renderSettings === 'function' && MODEL) renderSettings(MODEL);
+  });
+  openSheet('Chi usa questo telefono?', wrap);
+}
+
+// La prima volta, finita l'animazione, chiede il nome una volta sola
+function avvioChiediNome() {
+  try { if (localStorage.getItem('ui_io_chiesto') || localStorage.getItem('ui_io')) return; } catch (e) { return; }
+  if (!avvioAttiva() || !MODEL || !(MODEL.people || []).length) return;
+  if (document.body.classList.contains('sheet-open')) return;
+  openChiSonoSheet(MODEL);
+}
 
 function avvioPulisci() { _avvioTimer.forEach(clearTimeout); _avvioTimer = []; }
 
@@ -26,6 +63,7 @@ function avvioFine(el) {
   el.hidden = true;
   const logo = el.querySelector('.av-logo'); if (logo) logo.style.transform = '';
   _avvioTimer.push(setTimeout(() => document.body.classList.remove('dopo-avvio'), 800));
+  _avvioTimer.push(setTimeout(avvioChiediNome, 1200));
 }
 
 function avvioVola(el) {
@@ -56,7 +94,7 @@ function avvioSuona() {
   document.body.classList.add('in-avvio');
   const h = new Date().getHours();
   const sal = document.getElementById('av-saluto');
-  if (sal) sal.textContent = h < 5 ? 'Buonanotte' : h < 13 ? 'Buongiorno' : h < 18 ? 'Buon pomeriggio' : 'Buonasera';
+  if (sal) sal.textContent = avvioSaluto();
   const ridotto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (ridotto) { _avvioTimer.push(setTimeout(() => avvioFine(el), 1100)); return; }
   _avvioTimer.push(setTimeout(() => avvioVola(el), AVVIO_VOLO_MS));

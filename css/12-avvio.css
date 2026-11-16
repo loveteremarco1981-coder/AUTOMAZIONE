@@ -19,7 +19,7 @@
   contain: strict;
 }
 .avvio[hidden] { display: none; }
-.avvio.play { animation: av-velo 2.75s cubic-bezier(.4, 0, .2, 1) forwards; }
+.avvio.play { animation: av-velo 3.75s cubic-bezier(.4, 0, .2, 1) forwards; }
 .avvio.via  { animation: av-velo-via .45s ease forwards; }
 
 .av-centro { position: relative; display: grid; justify-items: center; transform: translateY(-4vh); }
@@ -119,7 +119,7 @@ body.dopo-avvio #topbar .tb-icon-home { animation: av-atterra .45s cubic-bezier(
 @keyframes av-scintilla{ 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); } }
 @keyframes av-su       { to { opacity: 1; transform: none; } }
 @keyframes av-riflesso { from { background-position: 100% 0; } to { background-position: 0 0; } }
-@keyframes av-velo     { 0%, 82% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes av-velo     { 0%, 87% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
 @keyframes av-velo-via { to { opacity: 0; visibility: hidden; } }
 @keyframes av-atterra  { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
 
@@ -132,3 +132,12 @@ body.dopo-avvio #topbar .tb-icon-home { animation: av-atterra .45s cubic-bezier(
   .av-onda, .av-caldo, .av-scintille { display: none; }
   body.in-avvio main, body.in-avvio .tabbar, body.in-avvio #tabbar { transform: none; }
 }
+
+/* Chi usa questo telefono */
+.chi-sono-txt { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.chi-sono-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.chi-sono-p { appearance: none; border: 1.5px solid transparent; background: none; border-radius: 16px; padding: 10px 2px;
+  display: grid; justify-items: center; gap: 6px; font: inherit; font-size: 13px; font-weight: 600; color: var(--fg); cursor: pointer; min-width: 0; }
+.chi-sono-p span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chi-sono-p .fam-avatar { width: 52px; height: 52px; font-size: 20px; }
+.chi-sono-p.scelta { border-color: var(--brand, var(--accent)); background: color-mix(in srgb, var(--brand, var(--accent)) 10%, transparent); }
