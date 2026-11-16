@@ -139,5 +139,10 @@ function activateTab(target) {
   window.scrollTo({ top: 0 });
   try { sessionStorage.setItem('ui_tab', target); } catch (_) {}
   if (target === 'log') loadLogs();
+  if (target === 'devices' && typeof openDevGroup === 'function') openDevGroup(_tabGruppo || null);
+  _tabGruppo = null;
 }
+let _tabGruppo = null;
+// Apre Dispositivi direttamente su un gruppo (es. dal riquadro di un termostato)
+function activateDevices(gruppo) { _tabGruppo = gruppo; activateTab('devices'); }
 

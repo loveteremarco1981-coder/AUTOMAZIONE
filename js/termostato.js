@@ -73,7 +73,7 @@ function renderTermoMini(m) {
       haptic();
       const tt = termo(MODEL || m), id = b.id === 'tc-floor-notte' || /notte/.test(b.dataset.zona || b.id) ? 'notte' : 'giorno';
       if (tt && tt.versione >= 3 && tt.zone[id]) openTermoRapido(id);
-      else activateTab('devices');
+      else activateDevices('riscaldamento');
     });
   });
   renderTermoAvviso(m);
@@ -139,7 +139,7 @@ function openTermoRapido(id) {
       <div class="sheet-actions"><button class="btn-ghost" type="button" id="tr-dettagli">Tutti i termostati</button></div>`;
     wrap.querySelectorAll('.termo-volo').forEach(b => bindVolo(b, disegna));
     if (dial && typeof otBindDial === 'function') otBindDial(wrap, id, disegna);
-    wrap.querySelector('#tr-dettagli').addEventListener('click', () => { closeSheet(); activateTab('devices'); });
+    wrap.querySelector('#tr-dettagli').addEventListener('click', () => { closeSheet(); activateDevices('riscaldamento'); });
   };
   openSheet(PIANO[id], wrap);
   disegna();

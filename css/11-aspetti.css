@@ -438,21 +438,28 @@
 }
 
 
+:root { --brand: var(--accent, #58a6ff); --brand-2: color-mix(in srgb, var(--brand) 70%, #fff); }
+[data-skin="tinta"]  { --brand: var(--tone, #58a6ff); }
+[data-skin="lume"]   { --brand: #8fc1ff; }
+[data-skin="giorno"] { --brand: #1d6b52; --brand-2: #2f8a6b; }
+[data-skin="ottone"] { --brand: #c9a45c; --brand-2: #e2c48a; }
+
 /* ============================================================
-   OTTONE — struttura della Home (js/ottone.js)
+   STRUTTURA DELLA HOME (js/ottone.js) — uguale per tutti gli aspetti;
+   ogni aspetto cambia solo i colori (--brand = colore di ciò che è acceso)
    ============================================================ */
 
 #ot-home { display: none; }
-[data-skin="ottone"] #ot-home:not([hidden]) { display: block; }
+#ot-home:not([hidden]) { display: block; }
 
 /* le sezioni che Ottone sostituisce */
-[data-skin="ottone"] #view-home .section-header:has(+ #scene-row),
-[data-skin="ottone"] #view-home #scene-row,
-[data-skin="ottone"] #view-home .section-header:has(+ #card-weather),
-[data-skin="ottone"] #view-home .section-header:has(+ * + #card-weather),
-[data-skin="ottone"] #view-home #card-weather,
-[data-skin="ottone"] #view-home .st-grid-3 { display: none; }
-[data-skin="ottone"] #view-home .hero { display: none; }
+#view-home .section-header:has(+ #scene-row),
+#view-home #scene-row,
+#view-home .section-header:has(+ #card-weather),
+#view-home .section-header:has(+ * + #card-weather),
+#view-home #card-weather,
+#view-home .st-grid-3 { display: none; }
+#view-home .hero { display: none; }
 
 .ot-head {
   display: flex;
@@ -464,9 +471,9 @@
   border-bottom: 1px solid var(--line2);
 }
 
-.ot-titolo { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+.ot-titolo { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.02em; color: var(--fg); }
 .ot-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--fg); }
-.ot-badge svg { width: 16px; height: 16px; color: var(--ottone); }
+.ot-badge svg { width: 16px; height: 16px; color: var(--brand); }
 
 .ot-sez { margin: 14px 0 8px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
 
@@ -499,12 +506,12 @@
 }
 
 .ot-tile:active, .ot-room:active { transform: scale(.96); }
-.ot-tile:focus-visible, .ot-room:focus-visible { outline: 2px solid var(--ottone); outline-offset: 2px; }
+.ot-tile:focus-visible, .ot-room:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .ot-tile.is-busy { opacity: .55; }
 .ot-ico svg { width: 20px; height: 20px; stroke-width: 1.7; }
 .ot-lab { font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.ot-tall.on { background: linear-gradient(170deg, #9a7d45, #7a6236); }
-.ot-tall.on .ot-ico, .ot-tall.on .ot-lab { color: #fbf1dc; }
+.ot-tall.on { background: linear-gradient(170deg, color-mix(in srgb, var(--brand) 80%, #fff 0%), color-mix(in srgb, var(--brand) 62%, #000)); }
+.ot-tall.on .ot-ico, .ot-tall.on .ot-lab { color: #fff; }
 
 /* piani: due schede basse */
 .ot-rooms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -524,7 +531,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.ot-room.caldo { box-shadow: inset 0 0 0 1px rgba(201,164,92,.45); background: linear-gradient(160deg, rgba(201,164,92,.16), var(--card) 70%); }
+.ot-room.caldo { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 50%, transparent); background: linear-gradient(160deg, color-mix(in srgb, var(--brand) 16%, transparent), var(--card) 70%); }
 .ot-room-riga { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .ot-room-nome { font-size: 12.5px; color: var(--muted); }
 .ot-room .onoff { transform: scale(.88); transform-origin: right center; }
@@ -549,35 +556,57 @@
 .ot-fuori b small { font-size: 11px; color: var(--muted); }
 
 /* resto della Home più compatto in Ottone */
-[data-skin="ottone"] #view-home .section-title { font-size: 13.5px; font-weight: 600; color: var(--muted); margin-top: 14px; }
-[data-skin="ottone"] #view-home .fav-grid { gap: 6px; }
-[data-skin="ottone"] #view-home .fav-card { padding: 10px 6px; border-radius: 14px; }
-[data-skin="ottone"] #view-home .fav-glyph { width: 30px; height: 30px; margin-bottom: 4px; border-radius: 10px; }
-[data-skin="ottone"] #view-home .fav-glyph img { width: 16px; height: 16px; }
-[data-skin="ottone"] #view-home .fav-label { font-size: 11.5px; }
-[data-skin="ottone"] #view-home .fav-status { font-size: 10.5px; }
-[data-skin="ottone"] .state-banner { padding-top: 8px; padding-bottom: 8px; }
+#view-home .section-title { font-size: 13.5px; font-weight: 600; color: var(--muted); margin-top: 14px; }
+#view-home .fav-grid { gap: 6px; }
+#view-home .fav-card { padding: 10px 6px; border-radius: 14px; }
+#view-home .fav-glyph { width: 30px; height: 30px; margin-bottom: 4px; border-radius: 10px; }
+#view-home .fav-glyph img { width: 16px; height: 16px; }
+#view-home .fav-label { font-size: 11.5px; }
+#view-home .fav-status { font-size: 10.5px; }
+.state-banner { padding-top: 8px; padding-bottom: 8px; }
 
 /* quadrante del termostato nel riquadro del piano */
 .ot-dial { position: relative; width: min(250px, 72vw); margin: 4px auto 10px; }
 .ot-dial svg { display: block; width: 100%; height: auto; }
-.ot-dial-t line { stroke: rgba(255,255,255,.25); stroke-width: 1.2; stroke-linecap: round; }
-.ot-dial-t line.l { stroke: rgba(255,255,255,.55); stroke-width: 1.6; }
-.ot-dial-base { fill: none; stroke: #3a3e41; stroke-width: 10; stroke-linecap: round; }
-.ot-dial-arc { fill: none; stroke: #c9a45c; stroke-width: 10; stroke-linecap: round; }
-.ot-dial-knob { fill: #e2c48a; stroke: #1d1f20; stroke-width: 3; }
-.ot-dial-stanza { fill: #fff; }
+.ot-dial-t line { stroke: color-mix(in srgb, var(--fg) 25%, transparent); stroke-width: 1.2; stroke-linecap: round; }
+.ot-dial-t line.l { stroke: color-mix(in srgb, var(--fg) 55%, transparent); stroke-width: 1.6; }
+.ot-dial-base { fill: none; stroke: var(--line2); stroke-width: 10; stroke-linecap: round; }
+.ot-dial-arc { fill: none; stroke: var(--brand); stroke-width: 10; stroke-linecap: round; }
+.ot-dial-knob { fill: var(--brand-2); stroke: #1d1f20; stroke-width: 3; }
+.ot-dial-stanza { fill: var(--fg); }
 .ot-dial-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ot-dial-txt span { font-size: 12px; color: var(--muted); }
 .ot-dial-txt b { font-size: 46px; font-weight: 300; letter-spacing: -.03em; line-height: 1; }
 .ot-dial-txt small { margin-top: 4px; font-size: 12px; color: var(--muted); }
-[data-skin="ottone"] #view-home .fam-avatar { width: 46px; height: 46px; font-size: 18px; }
-[data-skin="ottone"] #view-home .fam-name { font-size: 12.5px; }
-[data-skin="ottone"] #view-home .family-card { padding-top: 10px; padding-bottom: 12px; }
+#view-home .fam-avatar { width: 46px; height: 46px; font-size: 18px; }
+#view-home .fam-name { font-size: 12.5px; }
+#view-home .family-card { padding-top: 10px; padding-bottom: 12px; }
 .ot-dial.attivo svg { touch-action: none; cursor: grab; }
 .ot-dial.attivo svg:active { cursor: grabbing; }
 .ot-dial.attivo .ot-dial-knob { r: 12; filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
 .ot-dial.is-busy { opacity: .6; }
-.ot-dial svg:focus-visible { outline: 2px solid var(--ottone); outline-offset: 4px; border-radius: 50%; }
+.ot-dial svg:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 50%; }
 .ot-dial-hint { margin: -6px 0 0; text-align: center; font-size: 11.5px; color: var(--muted); }
 .ot-dial-txt { pointer-events: none; }
+
+/* ====== COLLEGAMENTI TRA LE SCHEDE ====== */
+button.ot-badge { appearance: none; border: 1px solid var(--line2); background: transparent; border-radius: 999px;
+  padding: 5px 8px 5px 10px; font: inherit; font-size: 13px; font-weight: 600; color: var(--fg); cursor: pointer; }
+button.ot-badge:active { transform: scale(.97); }
+.ot-badge .ot-go { width: 13px !important; height: 13px !important; color: var(--muted) !important; }
+.ot-sez { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ot-link { appearance: none; border: 0; background: none; padding: 4px 0 4px 8px; font: inherit; font-size: 13px;
+  font-weight: 600; color: var(--brand); cursor: pointer; }
+.ot-fuori[data-vai] { cursor: pointer; }
+.ot-fuori[data-vai]:active { transform: scale(.99); }
+.ot-link:focus-visible, button.ot-badge:focus-visible, .ot-fuori:focus-visible, .link-chip:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.link-bar { display: flex; flex-direction: column; margin: 18px 0 6px; border: 1px solid var(--line2);
+  border-radius: 14px; overflow: hidden; background: var(--card, transparent); }
+.link-chip { appearance: none; border: 0; background: none; display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; font: inherit; font-size: 14px; color: var(--fg); text-align: left; cursor: pointer; }
+.link-chip + .link-chip { border-top: 1px solid var(--line2); }
+.link-chip > svg:first-child { width: 18px; height: 18px; color: var(--brand); flex: none; }
+.link-chip span { flex: 1; }
+.link-chip .link-go { width: 14px; height: 14px; color: var(--muted); flex: none; }
+.link-chip:active { background: color-mix(in srgb, var(--brand) 10%, transparent); }

@@ -1,6 +1,6 @@
 'use strict';
 /* ============================================================
-   OTTONE — struttura propria della Home (solo con l'aspetto Ottone).
+   STRUTTURA DELLA HOME — uguale in tutti gli aspetti (nata con Ottone).
    Al posto di "Scene" e "In questo momento":
      · intestazione con il nome della casa e lo stato a destra
      · "Comandi rapidi": tasselli quadrati delle scene e un tassello
@@ -13,7 +13,8 @@
    dell'app: scene, tapparelle e termostati si comportano uguali.
    ============================================================ */
 
-const isOttone = () => document.documentElement.dataset.skin === 'ottone';
+// La struttura nuova della Home (nata con Ottone) vale per tutti gli aspetti: cambiano solo i colori
+const isOttone = () => true;
 
 function renderOttone(m) {
   let host = $('#ot-home');
@@ -54,10 +55,10 @@ function renderOttone(m) {
   host.innerHTML = `
     <div class="ot-head">
       <h2 class="ot-titolo">Casa</h2>
-      <span class="ot-badge">${svg('home')}<span>${persone ? `${persone} in casa` : 'Casa vuota'}</span></span>
+      <button type="button" class="ot-badge" data-vai="tab:people" aria-label="Persone: apri la scheda">${svg('home')}<span>${persone ? `${persone} in casa` : 'Casa vuota'}</span>${svg('chevron', 'ot-go')}</button>
     </div>
 
-    <div class="ot-sez">Comandi rapidi</div>
+    <div class="ot-sez"><span>Comandi rapidi</span><button type="button" class="ot-link" data-vai="scene">Modifica</button></div>
     <div class="ot-quick">
       ${scene.map(tassello).join('')}
       <button type="button" class="ot-tile ot-tall${su ? ' on' : ''}" data-tapparelle aria-pressed="${su}" aria-label="Tapparelle: ${su ? 'abbassa' : 'alza'}">
@@ -66,9 +67,10 @@ function renderOttone(m) {
       </button>
     </div>
 
-    ${t ? `<div class="ot-sez">Piani</div><div class="ot-rooms">${piano('giorno')}${piano('notte')}</div>` : ''}
+    ${t ? `<div class="ot-sez"><span>Piani</span><button type="button" class="ot-link" data-vai="dev:riscaldamento">Tutti i termostati</button></div><div class="ot-rooms">${piano('giorno')}${piano('notte')}</div>` : ''}
 
-    <div class="ot-fuori">
+    <div class="ot-sez"><span>Fuori</span><button type="button" class="ot-link" data-vai="hist:temp">Andamento</button></div>
+    <div class="ot-fuori" data-vai="hist:temp" role="button" tabindex="0" aria-label="Fuori: apri l'andamento">
       <div><span>Temperatura °C</span><b>${num(w.tempC, 1)}°</b></div>
       <div><span>Umidità</span><b>${num(w.humidity)}%</b></div>
       <div><span>Vento</span><b>${num(w.windKmh)}<small> km/h</small></b></div>

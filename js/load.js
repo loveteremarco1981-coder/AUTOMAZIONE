@@ -12,6 +12,8 @@ function renderModel(m) {
   updateErrorBadge(m); updateTs(m);
   updateHero();
   if (typeof renderOttone === 'function') renderOttone(m);
+  if (typeof renderDevGroups === 'function') renderDevGroups(m);
+  if (typeof renderCollegamenti === 'function') renderCollegamenti(m);
 }
 
 async function loadAll(manual) {

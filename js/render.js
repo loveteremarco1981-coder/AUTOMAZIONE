@@ -375,7 +375,9 @@ function renderDevices(m) {
         if (r && r.ok === false) failToast(`${t.label}: IFTTT non ha confermato il comando.`, () => busy(b, run));
         else if (r) iftttEsito([t.event], `${t.label}: comando inviato`);
       }));
-      thermoList.appendChild(card);
+      // il clima (condizionatore) ha il suo gruppo in Dispositivi
+      const clima = /clima/.test(t.event) ? $('#clima-list') : null;
+      (clima || thermoList).appendChild(card);
     });
     thermoList.dataset.built = '1';
   }

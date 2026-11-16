@@ -1710,3 +1710,81 @@ body.ro .qa-btn {
   .hp-chart { grid-template-columns: minmax(58px, auto) 1fr 44px; gap: 8px 8px; }
   .hp-bar { width: 30px; }
 }
+
+/* ---- Dispositivi per gruppi ---- */
+
+.dev-groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.dev-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-card, 18px);
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease;
+}
+
+.dev-group:active { transform: scale(.98); }
+.dev-group:focus-visible { outline: 2px solid var(--tone, var(--accent)); outline-offset: 2px; }
+
+.dev-group-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
+.dev-group-ico svg { width: 21px; height: 21px; }
+.dev-group[data-tone="blue"]   .dev-group-ico { background: rgba(88,166,255,.16); color: #58a6ff; }
+.dev-group[data-tone="orange"] .dev-group-ico { background: rgba(251,146,60,.16); color: #fb923c; }
+.dev-group[data-tone="cyan"]   .dev-group-ico { background: rgba(34,211,238,.15); color: #22d3ee; }
+.dev-group[data-tone="purple"] .dev-group-ico { background: rgba(188,140,255,.18); color: #c4a1ff; }
+.dev-group[data-tone="green"]  .dev-group-ico { background: rgba(63,185,80,.16); color: #4ade80; }
+
+.dev-group-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dev-group-txt b { font-size: 15.5px; font-weight: 650; }
+.dev-group-txt small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-group-go { flex: none; color: var(--muted); }
+.dev-group-go svg { width: 18px; height: 18px; }
+
+@media (min-width: 720px) {
+  .dev-groups { grid-template-columns: 1fr 1fr; }
+}
+
+.dev-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: -4px;
+  padding: 4px 10px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tone, var(--accent));
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dev-back svg { width: 18px; height: 18px; transform: rotate(180deg); }
+
+/* Ottone: tasselli grafite e icone chiare */
+[data-skin="ottone"] .dev-group { border: 0; }
+[data-skin="ottone"] .dev-group .dev-group-ico { background: var(--bg3); color: #ece8df; }
+[data-skin="ottone"] .dev-back { color: var(--ottone-chiaro); }
+[data-skin="giorno"] .dev-group { background: #fff; }
+.dev-groups[hidden], .dev-panel[hidden] { display: none; }
