@@ -20,7 +20,7 @@ async function showNotice(title, body, tag) {
   if (!notifySupported() || Notification.permission !== 'granted') return;
   try {
     const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
-    const opts = { body, tag, icon: 'icons/house-192.png', badge: 'icons/house-192.png' };
+    const opts = { body, tag, icon: 'icons/casa-v2-192.png', badge: 'icons/casa-v2-192.png' };
     if (reg && reg.showNotification) await reg.showNotification(title, opts);
     else new Notification(title, opts);
   } catch (_) {}

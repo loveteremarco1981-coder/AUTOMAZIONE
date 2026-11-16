@@ -6,7 +6,7 @@
 // ============================================================
 'use strict';
 
-const CACHE = 'casa-v23';
+const CACHE = 'casa-v24';
 
 self.addEventListener('install', () => {
   // Nessun skipWaiting automatico: l'app mostra "Nuova versione disponibile"
