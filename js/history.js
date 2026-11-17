@@ -31,6 +31,7 @@ async function loadHistory(force) {
     }
   } catch (_) { return; }
   renderHistory();
+  if (typeof renderDevGroups === 'function') renderDevGroups();
   if (typeof drawLogs === 'function' && _logAll.length) drawLogs();
 }
 

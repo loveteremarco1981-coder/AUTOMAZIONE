@@ -69,7 +69,7 @@ function renderOttone(m) {
 
     ${t ? `<div class="ot-sez"><span>Piani</span><button type="button" class="ot-link" data-vai="dev:riscaldamento">Tutti i termostati</button></div><div class="ot-rooms">${piano('giorno')}${piano('notte')}</div>` : ''}
 
-    <div class="ot-sez"><span>Fuori</span><button type="button" class="ot-link" data-vai="hist:temp">Andamento</button></div>
+    <div class="ot-sez"><span>Fuori</span><button type="button" class="ot-link" data-vai="dev:andamento">Grafici</button></div>
     <div class="ot-fuori" data-vai="hist:temp" role="button" tabindex="0" aria-label="Fuori: apri l'andamento">
       <div><span>Temperatura °C</span><b>${num(w.tempC, 1)}°</b></div>
       <div><span>Umidità</span><b>${num(w.humidity)}%</b></div>

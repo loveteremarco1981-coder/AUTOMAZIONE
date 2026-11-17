@@ -11,6 +11,7 @@ const DEV_GRUPPI = [
   { id: 'tapparelle',    nome: 'Tapparelle',    icon: 'shutter', tone: 'blue' },
   { id: 'riscaldamento', nome: 'Riscaldamento', icon: 'thermo',  tone: 'orange' },
   { id: 'clima',         nome: 'Clima',         icon: 'power',   tone: 'cyan' },
+  { id: 'andamento',     nome: 'Andamento',     icon: 'chart',   tone: 'pink' },
   { id: 'telecamere',    nome: 'Telecamere',    icon: 'camera',  tone: 'purple' },
   { id: 'app',           nome: 'App collegate', icon: 'phone',   tone: 'green' }
 ];
@@ -24,6 +25,11 @@ function devRiassunto(id, m) {
     const z = id2 => { const zz = t.zone[id2]; if (!zz) return ''; const s = statoZona(zz, t);
       return `${id2 === 'giorno' ? '3°' : '4°'} ${zz.temp ? gradi(zz.temp.v) : '—'} ${s.txt !== '—' ? s.txt.toLowerCase() : ''}`.trim(); };
     return [z('giorno'), z('notte')].filter(Boolean).join(' · ');
+  }
+  if (id === 'andamento') {
+    if (typeof _hist === 'undefined' || !_hist.ok || !_hist.rows.length) return 'Grafici di temperature, riscaldamento e presenze';
+    const g = k => { const v = lastVal(_hist.rows, k); return v === null ? null : String(Math.round(v * 10) / 10).replace('.', ',') + '°'; };
+    return [['Fuori', g('temp')], ['3°', g('tg')], ['4°', g('tn')]].filter(x => x[1]).map(x => x.join(' ')).join(' · ') || 'Grafici di temperature, riscaldamento e presenze';
   }
   if (id === 'clima') return 'Condizionatore: accendi o spegni';
   if (id === 'telecamere') {
@@ -39,6 +45,7 @@ function devGruppiVisibili() {
   return DEV_GRUPPI.filter(g => {
     const p = $(`.dev-panel[data-group="${g.id}"]`); if (!p) return false;
     if (g.id === 'riscaldamento') return true;
+    if (g.id === 'andamento') return typeof _hist !== 'undefined' && !!_hist.ok;
     return !!p.querySelector('.shutter-card, .app-link-card');
   });
 }

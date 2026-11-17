@@ -1792,3 +1792,4 @@ body.ro .qa-btn {
 [data-skin="ottone"] .dev-back { color: var(--ottone-chiaro); }
 [data-skin="giorno"] .dev-group { background: #fff; }
 .dev-groups[hidden], .dev-panel[hidden] { display: none; }
+.dev-group[data-tone="pink"] .dev-group-ico { background: rgba(244,114,182,.18); color: #f9a8d4; }
