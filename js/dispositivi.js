@@ -23,7 +23,8 @@ function devRiassunto(id, m) {
     const t = typeof termo === 'function' ? termo(m) : null;
     if (!t) return typeof termoSummary === 'function' ? termoSummary(m) : 'Termostati Vimar';
     const z = id2 => { const zz = t.zone[id2]; if (!zz) return ''; const s = statoZona(zz, t);
-      return `${id2 === 'giorno' ? '3°' : '4°'} ${zz.temp ? gradi(zz.temp.v) : '—'} ${s.txt !== '—' ? s.txt.toLowerCase() : ''}`.trim(); };
+      const val = regolaVimar(t) && !tempFresca(zz) ? (typeof zz.obiettivo === 'number' ? gradi(zz.obiettivo) : '—') : (zz.temp ? gradi(zz.temp.v) : '—');
+      return `${id2 === 'giorno' ? '3°' : '4°'} ${val} ${s.txt !== '—' ? s.txt.toLowerCase() : ''}`.trim(); };
     return [z('giorno'), z('notte')].filter(Boolean).join(' · ');
   }
   if (id === 'andamento') {

@@ -1793,3 +1793,7 @@ body.ro .qa-btn {
 [data-skin="giorno"] .dev-group { background: #fff; }
 .dev-groups[hidden], .dev-panel[hidden] { display: none; }
 .dev-group[data-tone="pink"] .dev-group-ico { background: rgba(244,114,182,.18); color: #f9a8d4; }
+.termo-scegli { flex-wrap: wrap; gap: 6px; }
+.termo-scegli > span { flex: 1 1 100%; }
+.termo-scegli .tv-scegli.on { background: var(--brand, var(--accent)); color: #fff; border-color: transparent; }
+.tm-solo-script[hidden] { display: none !important; }

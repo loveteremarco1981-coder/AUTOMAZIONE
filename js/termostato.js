@@ -11,6 +11,11 @@ const STAGIONE_NOME = { inverno: 'autunno-inverno', estate: 'primavera-estate' }
 const ZONE = [['giorno', 'Zona Giorno · 3° piano'], ['notte', 'Zona Notte · 4° piano']];
 const COMANDO_NOME = { comfort: 'Comfort', ridotta: 'Ridotta', off: 'Spento' };
 const CALDAIA_NOME = { scalda: 'Scalda', ferma: 'Ferma', off: 'Spento', comfort: 'Comfort', ridotta: 'Ridotta' };
+// Regola 'vimar': il termostato tiene da solo la temperatura dello scenario (Comfort o Ridotta),
+// lo script cambia solo scenario. Le temperature della stanza arrivano solo se c'è l'applet.
+const regolaVimar = t => !!(t && t.regola === 'vimar');
+const SCENARIO_NOME = { scalda: 'Comfort', ferma: 'Ridotta', off: 'Spento' };
+const tempFresca = z => !!(z && z.temp && typeof z.temp.v === 'number' && Date.now() - Number(z.temp.ts || 0) < 3 * 3600e3);
 
 const termo = m => (m && m.termostato && m.termostato.zone) ? m.termostato : null;
 const gradi = n => (n === null || n === undefined || isNaN(Number(n))) ? '—' : String(Math.round(Number(n) * 10) / 10).replace('.', ',') + '°';
@@ -37,6 +42,8 @@ function statoZona(z, t) {
   const comanda = !t || (!t.manuale && t.stagione === 'inverno');
   if (!comanda) return z.modo && z.modo.v ? { cls: 'on', txt: 'ON', tip: `Modalità «${z.modo.v}»` } : { cls: 'unk', txt: '—', tip: 'Stato non ancora ricevuto' };
   if (z.hold) return { cls: 'man', txt: 'A MANO', tip: 'Modifica a mano rispettata dallo script' };
+  if (regolaVimar(t) && z.comando === 'scalda') return { cls: 'on', txt: 'COMFORT', tip: `Scenario Comfort: il termostato tiene ${gradi(z.obiettivo)}` };
+  if (regolaVimar(t) && z.comando === 'ferma') return { cls: 'eco', txt: 'RIDOTTA', tip: `Scenario Ridotta: il termostato tiene ${gradi(z.obiettivo)}` };
   if (z.comando === 'scalda') return { cls: 'on', txt: 'SCALDA', tip: `Sta scaldando fino a ${gradi(z.obiettivo)}` };
   if (z.comando === 'ferma') return { cls: 'stop', txt: 'FERMO', tip: `Obiettivo ${gradi(z.obiettivo)} raggiunto` };
   if (z.comando === 'comfort') return { cls: 'on', txt: 'COMFORT', tip: `Comfort ${gradi(z.cfg && z.cfg.comfort)}` };
@@ -136,7 +143,7 @@ function openTermoRapido(id) {
     const t = termo(MODEL);
     if (!t) { closeSheet(); return; }
     const nome = ZONE.find(([zid]) => zid === id)[1];
-    const dial = typeof isOttone === 'function' && isOttone() ? otQuadrante(t.zone[id], t) : '';
+    const dial = typeof isOttone === 'function' && isOttone() && !regolaVimar(t) ? otQuadrante(t.zone[id], t) : '';
     wrap.innerHTML = `${dial}<div class="termo-card-in">${zonaHtml(t, [id, nome])}</div>
       <div class="sheet-actions"><button class="btn-ghost" type="button" id="tr-dettagli">Tutti i termostati</button></div>`;
     wrap.querySelectorAll('.termo-volo').forEach(b => bindVolo(b, disegna));
@@ -199,12 +206,19 @@ function zonaHtml(t, [id, nome]) {
     : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
     : z.programma ? `${COMANDO_NOME[z.programma]} ${gradi(c[z.programma])}` : '—';
-  const caldaia = t.manuale ? 'Manuale' : z.comando ? CALDAIA_NOME[z.comando] || z.comando : '—';
+  const vim = regolaVimar(t);
+  const caldaia = t.manuale ? 'Manuale' : z.comando ? (vim ? SCENARIO_NOME : CALDAIA_NOME)[z.comando] || z.comando : '—';
   const terzo = v3
-    ? `<div><span>Caldaia</span><b class="termo-prog">${esc(caldaia)}</b><small>${z.setpoint ? `termostato ${gradi(z.setpoint.v)}` : '&nbsp;'}</small></div>`
+    ? `<div><span>${vim ? 'Scenario' : 'Caldaia'}</span><b class="termo-prog">${esc(caldaia)}</b><small>${z.setpoint ? `termostato ${gradi(z.setpoint.v)}` : '&nbsp;'}</small></div>`
     : `<div><span>Impostata</span><b>${gradi(z.setpoint && z.setpoint.v)}</b>${quandoTxt(z.setpoint)}</div>`;
   const voloVal = z.volo ? z.volo.v : (typeof z.obiettivo === 'number' ? z.obiettivo : c[z.programma] || c.comfort);
-  const volo = v3 && !estate && !isReadOnly() && !t.manuale ? `
+  const volo = vim && !estate && !isReadOnly() && !t.manuale ? `
+      <div class="termo-volo termo-scegli" data-zona="${id}">
+        <span>Fino alla fascia dopo</span>
+        <button type="button" class="small-btn tv-scegli${z.volo && z.comando === 'scalda' ? ' on' : ''}" data-v="${c.comfort}">Comfort ${gradi(c.comfort)}</button>
+        <button type="button" class="small-btn tv-scegli${z.volo && z.comando === 'ferma' ? ' on' : ''}" data-v="${c.ridotta}">Ridotta ${gradi(c.ridotta)}</button>
+        ${z.volo ? '<button type="button" class="small-btn tv-reset">Programma</button>' : ''}
+      </div>` : v3 && !estate && !isReadOnly() && !t.manuale ? `
       <div class="termo-volo" data-zona="${id}" data-v="${voloVal}" data-max="${c.base}">
         <span>Al volo</span>
         <button type="button" class="tv-btn" data-d="-0.5" aria-label="Mezzo grado in meno">−</button>
@@ -219,13 +233,14 @@ function zonaHtml(t, [id, nome]) {
   else if (estate) stato = 'Primavera-estate: lo script non accende il riscaldamento';
   else if (z.hold) stato = z.hold.fino ? `${z.hold.motivo ? cap(z.hold.motivo) : 'Modifica a mano'}: torna al programma alle ${oraTxt(z.hold.fino)}` : `${cap(z.hold.motivo || 'Spento a mano')}: resta così finché non lo cambi`;
   else if (z.ultima) stato = `${z.ultima.testo} · ${shutterWhen(z.ultima.ts)}`;
+  else if (vim && !z.comando) stato = 'Lo scenario partirà al prossimo controllo';
   else if (!z.temp && !z.setpoint) stato = 'In attesa dei primi dati da IFTTT';
   else stato = 'Il programma partirà al prossimo controllo';
   return `
     <div class="termo-zone" data-zona="${id}">
       <div class="termo-zone-head"><b>${esc(nome)} ${onOffBadge(z, t)}</b><span>max ${gradi(c.base)}</span></div>
       <div class="termo-vals">
-        <div><span>Stanza</span><b>${gradi(z.temp && z.temp.v)}</b>${quandoTxt(z.temp)}</div>
+        <div><span>Stanza</span><b>${vim && !tempFresca(z) ? '—' : gradi(z.temp && z.temp.v)}</b>${vim && !tempFresca(z) ? '<small>non letta</small>' : quandoTxt(z.temp)}</div>
         <div><span>Obiettivo</span><b>${esc(obiettivo)}</b><small>${fino}</small></div>
         ${terzo}
       </div>${volo}
@@ -276,6 +291,9 @@ function bindVolo(box, dopo) {
     clearTimeout(timer);
     timer = setTimeout(() => invia({ ['volo_' + zona]: v }), 1200);
   }));
+  box.querySelectorAll('.tv-scegli').forEach(b => b.addEventListener('click', () => {
+    haptic(); v = Number(b.dataset.v); invia({ ['volo_' + zona]: v });
+  }));
   box.querySelector('.tv-reset')?.addEventListener('click', () => { clearTimeout(timer); invia({ ['volo_' + zona]: 'off' }); });
 }
 
@@ -284,7 +302,7 @@ function anticipoTxt(t) {
   const c = t.cfg || {}, oggi = t.anticipoOggi;
   if (t.manuale) return 'Gestione manuale attiva: lo script registra temperature e modifiche ma non comanda i termostati. Si spegne in Impostazioni.';
   if (t.stagione !== 'inverno') return 'Primavera-estate: lo script non accende il riscaldamento; a casa vuota spegne i termostati.';
-  const isteresi = c.isteresi ? `Scalda quando la stanza è sotto l’obiettivo di ${gradi(c.isteresi).replace('°', '')}°, si ferma quando lo raggiunge. ` : '';
+  const isteresi = regolaVimar(t) ? 'Il termostato tiene da solo Comfort o Ridotta; lo script cambia scenario. ' : c.isteresi ? `Scalda quando la stanza è sotto l’obiettivo di ${gradi(c.isteresi).replace('°', '')}°, si ferma quando lo raggiunge. ` : '';
   const spento = c.spento ? ` Spento a mano: riprende il programma dopo ${durataTxt(c.spento)}.` : '';
   if (!c.anticipo) return isteresi + 'Anticipo sul rientro: spento.' + spento;
   let s = isteresi + `Rientro abituale: ${esc(abitudiniTxt(t))}. Anticipo ${c.anticipo} min.` + spento;
@@ -327,15 +345,22 @@ function openTermostatoSheet(m) {
   const wrap = document.createElement('div');
   wrap.className = 'se';
   wrap.innerHTML = `
-    <p class="sheet-note">Lo script fa da termostato: accende ogni piano con lo scenario Vimar <b>Scalda</b> e lo ferma con lo scenario <b>Ferma</b>, guardando la temperatura della stanza. Comfort e Ridotta li cambi qui quando vuoi. Il <b>Massimo</b> deve essere la temperatura salvata nello scenario Scalda del piano.</p>
+    ${regolaVimar(t)
+      ? `<p class="sheet-note">Il termostato tiene da solo la temperatura dello scenario: lo script manda lo scenario Vimar <b>Comfort</b> o <b>Ridotta</b> solo quando cambia la fascia o la presenza. <b>Comfort e Ridotta qui devono essere uguali alle temperature salvate negli scenari</b> del piano nell’app Vimar: se cambi un valore qui, cambialo anche nello scenario.</p>`
+      : `<p class="sheet-note">Lo script fa da termostato: accende ogni piano con lo scenario Vimar <b>Scalda</b> e lo ferma con lo scenario <b>Ferma</b>, guardando la temperatura della stanza. Comfort e Ridotta li cambi qui quando vuoi. Il <b>Massimo</b> deve essere la temperatura salvata nello scenario Scalda del piano.</p>`}
     ${ZONE.map(zonaHtml).join('')}
     <div class="tm-zone">
       <h3>Automatismi (per tutta la casa)</h3>
-      <div class="fld-row tm-3">
+      <label class="fld"><span>Chi regola la temperatura</span><select id="tm-regola">
+        ${opt('vimar', regolaVimar(t) ? 'vimar' : 'script', 'Il termostato (consigliato, pochi crediti IFTTT)')}
+        ${opt('script', regolaVimar(t) ? 'vimar' : 'script', 'Lo script, guardando la stanza')}
+      </select></label>
+      <p class="fld-hint">"Lo script" accende e ferma con Scalda/Ferma e ha bisogno delle applet della temperatura (vimar_temp_giorno e vimar_temp_notte), che consumano molti crediti IFTTT.</p>
+      <div class="fld-row tm-3 tm-solo-script"${regolaVimar(t) ? ' hidden' : ''}>
         ${gradiInput('tm-ferma', c.ferma ?? 15, 'Scenari Ferma', 5, 18)}
         <label class="fld"><span>Riparti sotto di</span><select id="tm-isteresi">${[0.2, 0.3, 0.5, 1].map(x => opt(x, Number(c.isteresi ?? 0.3), String(x).replace('.', ',') + '°')).join('')}</select></label>
       </div>
-      <p class="fld-hint">"Scenari Ferma": la temperatura salvata negli scenari Ferma P3 e P4. "Riparti sotto di": quanto deve scendere la stanza sotto l’obiettivo prima di scaldare di nuovo.</p>
+      <p class="fld-hint tm-solo-script"${regolaVimar(t) ? ' hidden' : ''}>"Scenari Ferma": la temperatura salvata negli scenari Ferma P3 e P4. "Riparti sotto di": quanto deve scendere la stanza sotto l’obiettivo prima di scaldare di nuovo.</p>
       <label class="fld"><span>Modifica a mano: torna al programma</span><select id="tm-ritorno">${[0, 60, 120, 180, 240].map(x => opt(x, Number(c.ritorno || 0), x ? `dopo ${durataTxt(x)}` : 'Alla prossima fascia')).join('')}</select></label>
       <p class="fld-hint">Se qualcuno cambia la temperatura sul termostato, il Vimar regola da solo fino a quel momento. Sopra il massimo lo script riprende subito.</p>
       <label class="fld"><span>Anticipo sul rientro abituale</span><select id="tm-anticipo">${[0, 15, 30, 45, 60, 90, 120].map(x => opt(x, Number(c.anticipo || 0), x ? `${x} minuti prima` : 'Spento')).join('')}</select></label>
@@ -387,18 +412,19 @@ function openTermostatoSheet(m) {
   };
   const fasciaOk = s => !s.trim() || s.split(/[,;]+/).every(x => /^\s*\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\s*$/.test(x));
 
+  $w('#tm-regola').addEventListener('change', e => { wrap.querySelectorAll('.tm-solo-script').forEach(x => { x.hidden = e.target.value !== 'script'; }); });
   $w('#tm-save').addEventListener('click', e => busy(e.currentTarget, async () => {
     err.textContent = '';
     const params = { stagione: c.stagione, invernoDa: mmdd('#tm-da-g', '#tm-da-m'), invernoA: mmdd('#tm-a-g', '#tm-a-m'),
                      anticipo: $w('#tm-anticipo').value, spento: $w('#tm-spento').value, ritorno: $w('#tm-ritorno').value,
-                     ferma: num('#tm-ferma'), isteresi: $w('#tm-isteresi').value };
+                     ferma: num('#tm-ferma'), isteresi: $w('#tm-isteresi').value, regola: $w('#tm-regola').value };
     if (isNaN(params.ferma) || params.ferma < 5 || params.ferma > 18) { err.textContent = 'Scenari Ferma: tra 5° e 18°.'; return; }
     for (const [id, nome] of ZONE) {
       const piano = nome.split(' · ')[1];
       const comfort = num('#tm-comfort-' + id), ridotta = num('#tm-ridotta-' + id), base = num('#tm-base-' + id);
       if ([comfort, ridotta].some(x => isNaN(x) || x < 5 || x > 30)) { err.textContent = `${piano}: le temperature devono essere tra 5° e 30°.`; return; }
       if (isNaN(base) || base < 16 || base > 28) { err.textContent = `${piano}: il massimo deve essere tra 16° e 28°.`; return; }
-      if (ridotta < params.ferma) { err.textContent = `${piano}: la Ridotta non può stare sotto la temperatura degli scenari Ferma.`; return; }
+      if (params.regola === 'script' && ridotta < params.ferma) { err.textContent = `${piano}: la Ridotta non può stare sotto la temperatura degli scenari Ferma.`; return; }
       if (ridotta > comfort) { err.textContent = `${piano}: la Ridotta non può superare il Comfort.`; return; }
       if (comfort > base) { err.textContent = `${piano}: il Comfort non può superare il Massimo.`; return; }
       const fer = $w('#tm-fer-' + id).value, wk = $w('#tm-wk-' + id).value;

@@ -45,7 +45,9 @@ function renderOttone(m) {
     const ob = z && typeof z.obiettivo === 'number' ? z.obiettivo : null;
     return `<button type="button" class="ot-room${caldo ? ' caldo' : ''}" data-piano="${id}" aria-label="${nome}: apri il termostato">
       <span class="ot-room-riga"><span class="ot-room-nome">${nome}</span><span class="onoff ${s.cls}">${esc(s.txt)}</span></span>
-      <span class="ot-room-val"><b>${z && z.temp ? num(z.temp.v, 1) : '—'}°</b><small>${ob !== null ? `→ ${num(ob, 1)}°` : (z && z.modo ? esc(z.modo.v) : '')}</small></span>
+      ${regolaVimar(t) && !tempFresca(z)
+        ? `<span class="ot-room-val"><b>${ob !== null ? num(ob, 1) : '—'}°</b><small>${z && z.comando ? (z.hold ? 'a mano' : SCENARIO_NOME[z.comando] || '') : ''}</small></span>`
+        : `<span class="ot-room-val"><b>${z && z.temp ? num(z.temp.v, 1) : '—'}°</b><small>${ob !== null ? `→ ${num(ob, 1)}°` : (z && z.modo ? esc(z.modo.v) : '')}</small></span>`}
     </button>`;
   };
 
