@@ -160,7 +160,7 @@ function termoSummary(m) {
   if (t.manuale) return 'Gestione manuale: lo script non li comanda';
   if (!t.versione) return 'Aggiorna lo script dei termostati';
   const z = t.zone;
-  return `Comfort ${gradi(z.giorno.cfg.comfort)} / ridotta ${gradi(z.giorno.cfg.ridotta)} · ${STAGIONE_NOME[t.stagione]}`;
+  return `Comfort ${gradi(z.giorno.cfg.comfort)} / ridotta ${gradi(z.giorno.cfg.ridotta)}${t.progr === 'slim' ? ` · Comfort slim (finisce ${durataTxt(Number(t.slimMin) || 60)} prima)` : ''} · ${STAGIONE_NOME[t.stagione]}`;
 }
 
 const quandoTxt = x => x && x.ts ? `<small>alle ${oraTxt(x.ts)}</small>` : '<small>&nbsp;</small>';
@@ -202,6 +202,8 @@ function zonaHtml(t, [id, nome]) {
   const estate = t.stagione !== 'inverno';
   const v3 = t.versione >= 3;
   const fino = estate ? 'primavera-estate' : z.volo ? `${z.volo.origine === 'termostato' ? 'messo sul termostato' : z.volo.origine === 'ridotta' ? 'ridotta dall’app' : 'al volo'} ${finoTxt(z.volo.fino)}`
+    : z.slim && !z.slim.finito ? `Comfort slim ${finoTxt(z.slim.fino)}`
+    : z.slim && z.slim.finito ? 'Ridotta: Comfort slim finito, riparte alla prossima fascia'
     : z.prossimo && z.prossimo.ts ? `${COMANDO_NOME[z.programma] || ''} ${finoTxt(z.prossimo.ts)}`
     : z.programma ? `${COMANDO_NOME[z.programma]} tutto il giorno` : '&nbsp;';
   const obiettivo = estate ? 'Nessuno' : v3 ? gradi(z.obiettivo !== null && z.obiettivo !== undefined ? z.obiettivo : (z.volo ? z.volo.v : c[z.programma]))
@@ -351,8 +353,16 @@ function openTermostatoSheet(m) {
     ${ZONE.map(zonaHtml).join('')}
     <div class="tm-zone">
       <h3>Automatismi (per tutta la casa)</h3>
+      <div class="fld-row">
+        <label class="fld"><span>Programma</span><select id="tm-progr">
+          ${opt('fasce', t.progr === 'slim' ? 'slim' : 'fasce', 'Comfort normale')}
+          ${opt('slim', t.progr === 'slim' ? 'slim' : 'fasce', 'Comfort slim')}
+        </select></label>
+        <label class="fld tm-solo-slim"${t.progr === 'slim' ? '' : ' hidden'}><span>Finisce prima di</span><select id="tm-slim">${[30, 45, 60, 90, 120].map(x => opt(x, Number(t.slimMin || 60), durataTxt(x))).join('')}</select></label>
+      </div>
+      <p class="fld-hint">Comfort slim, per il riscaldamento centralizzato: ogni fascia Comfort parte all’ora di sempre ma finisce prima del tempo scelto (es. fascia 17:00–22:30, 1 ora prima → Comfort fino alle 21:30, poi Ridotta). Comfort e Ridotta restano a 22° e 18°. Il pulsante "Comfort" dell’app vale comunque fino alla fascia dopo.</p>
       <label class="fld"><span>Chi regola la temperatura</span><select id="tm-regola">
-        ${opt('vimar', regolaVimar(t) ? 'vimar' : 'script', 'Il termostato (consigliato, pochi crediti IFTTT)')}
+        ${opt('vimar', regolaVimar(t) ? 'vimar' : 'script', 'Il termostato (consigliato)')}
         ${opt('script', regolaVimar(t) ? 'vimar' : 'script', 'Lo script, guardando la stanza')}
       </select></label>
       <p class="fld-hint">"Lo script" accende e ferma con Scalda/Ferma e ha bisogno delle applet della temperatura (vimar_temp_giorno e vimar_temp_notte), che consumano molti crediti IFTTT.</p>
@@ -412,12 +422,14 @@ function openTermostatoSheet(m) {
   };
   const fasciaOk = s => !s.trim() || s.split(/[,;]+/).every(x => /^\s*\d{1,2}[:.]\d{2}\s*[-–]\s*\d{1,2}[:.]\d{2}\s*$/.test(x));
 
+  $w('#tm-progr').addEventListener('change', e => { wrap.querySelectorAll('.tm-solo-slim').forEach(x => { x.hidden = e.target.value !== 'slim'; }); });
   $w('#tm-regola').addEventListener('change', e => { wrap.querySelectorAll('.tm-solo-script').forEach(x => { x.hidden = e.target.value !== 'script'; }); });
   $w('#tm-save').addEventListener('click', e => busy(e.currentTarget, async () => {
     err.textContent = '';
     const params = { stagione: c.stagione, invernoDa: mmdd('#tm-da-g', '#tm-da-m'), invernoA: mmdd('#tm-a-g', '#tm-a-m'),
                      anticipo: $w('#tm-anticipo').value, spento: $w('#tm-spento').value, ritorno: $w('#tm-ritorno').value,
-                     ferma: num('#tm-ferma'), isteresi: $w('#tm-isteresi').value, regola: $w('#tm-regola').value };
+                     ferma: num('#tm-ferma'), isteresi: $w('#tm-isteresi').value, regola: $w('#tm-regola').value,
+                     progr: $w('#tm-progr').value, slimMin: $w('#tm-slim').value };
     if (isNaN(params.ferma) || params.ferma < 5 || params.ferma > 18) { err.textContent = 'Scenari Ferma: tra 5° e 18°.'; return; }
     for (const [id, nome] of ZONE) {
       const piano = nome.split(' · ')[1];
