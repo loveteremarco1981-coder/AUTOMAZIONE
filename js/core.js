@@ -321,9 +321,13 @@ function showLoadError() {
 }
 
 /* ============================================================
-   RETE (JSONP verso Apps Script)
+   RETE verso Apps Script
+   Prima una richiesta normale SENZA cookie (credentials: 'omit'): così,
+   se nel browser ci sono più account Google collegati, Google non
+   dirotta la richiesta sull'account sbagliato ("Impossibile aprire il
+   file"). Se non va, si ripiega sul vecchio JSONP.
    ============================================================ */
-function jsonpFetch(url) {
+function jsonpScript(url) {
   return new Promise((resolve, reject) => {
     const id = '__cb_' + (++_cbId);
     const sep = url.includes('?') ? '&' : '?';
@@ -336,6 +340,29 @@ function jsonpFetch(url) {
     el.onerror = () => { clearTimeout(timer); cleanup(); reject(new Error('load error')); };
     document.head.appendChild(el);
   });
+}
+
+async function fetchSenzaCookie(url) {
+  const sep = url.includes('?') ? '&' : '?';
+  const k = getKey();
+  const u = url + sep + (k ? 'key=' + encodeURIComponent(k) + '&' : '') + '_=' + Date.now();
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : null;
+  try {
+    const r = await fetch(u, { credentials: 'omit', cache: 'no-store', redirect: 'follow', signal: ctl ? ctl.signal : undefined });
+    if (!r.ok) throw new Error('http ' + r.status);
+    const testo = await r.text();
+    return JSON.parse(testo);                      // la pagina di errore di Google non è JSON: si ripiega
+  } finally { if (timer) clearTimeout(timer); }
+}
+
+let _soloJsonp = false;                            // se la richiesta normale non va mai, non la si riprova a ogni chiamata
+async function jsonpFetch(url) {
+  if (!_soloJsonp) {
+    try { return await fetchSenzaCookie(url); }
+    catch (e) { if (e && e.name !== 'AbortError') _soloJsonp = true; }
+  }
+  return jsonpScript(url);
 }
 
 async function callAdmin(event, params, opts) {
