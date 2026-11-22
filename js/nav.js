@@ -133,7 +133,10 @@ function activateTab(target) {
     b.classList.toggle('active', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
+  const primaAttiva = $('.view.active');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + target));
+  const ora = $('#view-' + target);
+  if (ora && ora !== primaAttiva && typeof animaVista === 'function') animaVista(ora);
   setTone(target);
   placeBead($('.tab.active'), true);
   window.scrollTo({ top: 0 });

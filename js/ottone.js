@@ -78,6 +78,7 @@ function renderOttone(m) {
       <div><span>Vento</span><b>${num(w.windKmh)}<small> km/h</small></b></div>
     </div>`;
   void stato;
+  if (typeof animaHome === 'function' && m && m.termostato) animaHome();
 }
 
 function otClick(e) {

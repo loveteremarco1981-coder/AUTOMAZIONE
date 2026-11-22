@@ -79,4 +79,5 @@ function openDevGroup(id, silenzioso) {
     } else sub.textContent = 'Scegli un gruppo.';
   }
   if (!silenzioso) window.scrollTo({ top: 0 });
+  if (g && g.id === 'andamento' && !silenzioso && typeof animaGrafici === 'function') animaGrafici($('.dev-panel[data-group="andamento"]'));
 }
